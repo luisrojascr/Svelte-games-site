@@ -1,0 +1,18 @@
+{
+  "[typescript]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
+  "[javascript]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
+  "[json]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
+  "[svelte]": { "editor.defaultFormatter": "svelte.svelte-vscode" },
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true,
+  "editor.wordWrapColumn": 120,
+  "editor.codeActionsOnSave": {
+    "source.sortImports": true
+  },
+  "workbench.colorCustomizations": {
+    "titleBar.activeBackground": "#d122d9",
+    "titleBar.activeForeground": "#ffffff",
+    "titleBar.inactiveBackground": "#8115d9",
+    "titleBar.inactiveForeground": "#cccccc"
+  }
+}
