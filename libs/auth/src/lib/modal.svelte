@@ -19,12 +19,14 @@
 		stateWalletAddress,
 		stateWalletConfirmed
 	} from './state';
+	import { FormMode } from './types';
 
 	let _form: HTMLFormElement;
 	let _email: Email;
 	let _wallet: Wallet;
 	let _password: Password;
 	let _totp: Totp;
+	let _form_mode: FormMode = FormMode.Login;
 
 	let _loggedIn: boolean | undefined = undefined;
 	let _showPassword = false;
@@ -32,6 +34,7 @@
 	let _ready = false;
 	let _submitting = false;
 	let _email_required = true;
+	let _password_required = true;
 
 	let emailAddress = '';
 	let googleAuthToken = '';
@@ -116,16 +119,33 @@
 		if (result.data?.loginCheck) {
 			const check = result.data.loginCheck;
 			if (check.isRegistered === true) {
+				_form_mode = FormMode.Login;
 				// check if ready to log in
-				if (check.hasPassword && !check.hasGoogle) stateShowPassword.set(true);
+				if (
+					check.hasPassword &&
+					!check.hasGoogle
+					// && (password.length > 0 || !check.walletConfirmed)
+				) {
+					stateShowPassword.set(true);
+				} else {
+					statePassword.set('');
+				}
 				if (check.hasTotp) {
 					stateShowTotp.set(true);
 				}
-				if (check.walletConfirmed && (!check.hasTotp || totp.length > 0)) {
-					_ready = true;
+				if (walletAddress.length > 0 && check.walletConfirmed) {
 					_email_required = false;
+					_password_required = false;
 				}
 				if (
+					walletAddress.length > 0 &&
+					check.walletConfirmed &&
+					(!check.hasTotp || totp.length > 0)
+				) {
+					_ready = true;
+				}
+				if (
+					emailAddress.length > 0 &&
 					check.emailConfirmed &&
 					(!check.hasTotp || totp.length > 0) &&
 					(!check.hasPassword || password.length > 0 || (check.hasGoogle && googleAuthToken))
@@ -133,13 +153,15 @@
 					_ready = true;
 				}
 			} else if (check.isRegistered === false) {
+				_form_mode = FormMode.Register;
+
 				// check if ready to go to next step of registration
-				if (check.walletConfirmed) {
-					_ready = true;
+				if (walletAddress.length > 0 && check.walletConfirmed) {
 					_email_required = false;
+					_password_required = false;
 				}
-				if (check.emailConfirmed) {
-					_ready = true;
+				if (emailAddress.length > 0 && check.emailConfirmed) {
+					stateShowPassword.set(true);
 				}
 			}
 		}
@@ -150,6 +172,15 @@
 			event.preventDefault();
 			const url = import.meta.env.VITE_AUTH_URL;
 			window.location.replace(url);
+			return;
+		}
+		if (!_ready) {
+			event.preventDefault();
+			_form.reportValidity();
+			return;
+		}
+		if (_form_mode === FormMode.Register) {
+			console.log(`go to registration page 2`);
 			return;
 		}
 		if (_ready && _form.checkValidity()) {
@@ -225,13 +256,28 @@
 			<div class="modal">
 				<h1 class="welcome">Welcome</h1>
 				{#if _loggedIn === false}
-					<h3 class="header">Login or Register</h3>
+					<div class="mode">
+						<a
+							href={'#'}
+							on:click={() => (_form_mode = FormMode.Login)}
+							class={`mode${_form_mode === FormMode.Login ? '_selected' : ''}`}>Login</a
+						>
+						<a
+							href={'#'}
+							on:click={() => (_form_mode = FormMode.Register)}
+							class={`mode${_form_mode === FormMode.Register ? '_selected' : ''}`}>Register</a
+						>
+					</div>
 					<Email bind:this={_email} bind:required={_email_required} />
 					<hr />
 					<Wallet bind:this={_wallet} />
 					{#if _showPassword}
 						<hr />
-						<Password bind:this={_password} />
+						<Password
+							bind:this={_password}
+							bind:required={_password_required}
+							bind:mode={_form_mode}
+						/>
 					{/if}
 					{#if _showTotp}
 						<hr />
@@ -279,5 +325,14 @@
 	}
 	a.logout {
 		@apply text-gray-400 text-xs;
+	}
+	div.mode {
+		@apply border-b-2 border-100 pb-3;
+	}
+	a.mode_selected {
+		@apply text-white text-sm uppercase font-extrabold pr-3 pl-3 pb-3 border-b-4 border-blue-500;
+	}
+	a.mode {
+		@apply text-gray-400 text-sm uppercase font-extrabold pr-3 pl-3 pb-3;
 	}
 </style>

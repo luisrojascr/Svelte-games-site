@@ -1,23 +1,27 @@
 <script lang="ts">
 	import { statePassword, statePasswordSet } from '../state';
+	import { FormMode } from '../types';
+
+	export let required = true;
+	export let mode: FormMode = FormMode.Login;
 
 	let _element: HTMLInputElement;
-	let _confirmed = false;
+	let _valid = false;
 	let _incorrect = false;
 	let _revealed = false;
 
 	const onChange = () => {
-		_confirmed = _element.checkValidity();
+		_valid = _element.value.length > 0 && _element.checkValidity();
 		_incorrect = false;
-		statePassword.set(_confirmed ? _element.value : '');
-		statePasswordSet.set(_confirmed);
+		statePassword.set(_valid ? _element.value : '');
+		statePasswordSet.set(_valid);
 	};
 
 	const onBlur = (event: Event) => {
 		if (!_incorrect) {
-			_confirmed = _element.checkValidity();
-			statePassword.set(_confirmed ? _element.value : '');
-			statePasswordSet.set(_confirmed);
+			_valid = _element.value.length > 0 && _element.checkValidity();
+			statePassword.set(_valid ? _element.value : '');
+			statePasswordSet.set(_valid);
 		}
 	};
 
@@ -50,9 +54,9 @@
 			type="password"
 			name="password"
 			id="password"
-			placeholder={`password`}
+			placeholder={mode === FormMode.Register ? `choose password` : `password`}
 			minlength="8"
-			required
+			{required}
 			bind:this={_element}
 			on:change={onChange}
 			on:input={onChange}
@@ -73,7 +77,7 @@
 			</svg>
 		</a>
 	</div>
-	{#if _confirmed}
+	{#if _valid}
 		<svg
 			class="check"
 			aria-hidden="true"

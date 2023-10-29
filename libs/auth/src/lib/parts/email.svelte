@@ -32,7 +32,7 @@
 	});
 
 	const onEmailBlur = (event: Event) => {
-		const _valid = _element.checkValidity();
+		const _valid = _element.value.length > 0 && _element.checkValidity();
 		if (_valid && !_confirmed) {
 			confirmWithMagicLink(event);
 		}
