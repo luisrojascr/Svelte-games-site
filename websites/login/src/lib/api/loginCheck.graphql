@@ -1,0 +1,11 @@
+query LoginCheck {
+	loginCheck(emailAddress: $emailAddress, googleAuthToken: $googleAuthToken, language: $language) {
+		emailAddress
+		walletAddress
+		registered
+		google
+		totp
+		wallet
+		password
+	}
+}
