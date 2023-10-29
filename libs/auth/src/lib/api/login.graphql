@@ -1,0 +1,37 @@
+mutation Login(
+	$language: String
+	$emailAddress: String
+	$magicLinkToken: String
+	$googleAuthToken: String
+	$stag: String
+	$password: String
+	$totp: String
+	$walletAddress: String
+) {
+	login(
+		language: $language
+		emailAddress: $emailAddress
+		magicLinkToken: $magicLinkToken
+		googleAuthToken: $googleAuthToken
+		stag: $stag
+		password: $password
+		totp: $totp
+		walletAddress: $walletAddress
+	) {
+		success
+		username
+		token
+		emailAddress
+		walletAddress
+		emailConfirmed
+		walletConfirmed
+		passwordConfirmed
+		totpConfirmed
+		emailBanned
+		walletBanned
+		isDuplicate
+		seonReject
+		geoBlock
+		ipReject
+	}
+}

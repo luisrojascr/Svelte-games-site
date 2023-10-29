@@ -1,0 +1,33 @@
+query LoginCheck(
+	$language: String
+	$emailAddress: String
+	$magicLinkToken: String
+	$googleAuthToken: String
+	$stag: String
+	$walletAddress: String
+) {
+	loginCheck(
+		language: $language
+		emailAddress: $emailAddress
+		magicLinkToken: $magicLinkToken
+		googleAuthToken: $googleAuthToken
+		stag: $stag
+		walletAddress: $walletAddress
+	) {
+		emailAddress
+		walletAddress
+		emailConfirmed
+		walletConfirmed
+		isRegistered
+		hasGoogle
+		hasTotp
+		hasWallet
+		hasPassword
+		emailBanned
+		walletBanned
+		isDuplicate
+		seonReject
+		geoBlock
+		ipReject
+	}
+}
