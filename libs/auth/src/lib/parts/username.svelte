@@ -1,31 +1,57 @@
 <script lang="ts">
+	import { AsyncUsernameCheck } from '$lib/api/api';
 	import { stateUsername, stateUsernameConfirmed } from '../state';
+
+	const MINLEN = 6;
+	const MAXLEN = 16;
+	const PATTERN = /[a-zA-Z0-9]{MINLEN,MAXLEN}/;
 
 	let element: HTMLInputElement;
 	let confirmed = false;
-	const _pattern = /[a-zA-Z0-9]{6,10}/;
+	let incorrect = false;
+	let value = '';
 
 	const onChange = () => {
-		const valid = element.checkValidity() && _pattern.test(element.value);
-		console.log(`username onChange ${valid}`);
-		// confirmed = valid;
-		if (confirmed) stateUsername.set(element.value);
-		else stateUsername.set('');
+		const valid = element.checkValidity() && PATTERN.test(element.value);
+		incorrect = false;
 	};
 
 	const onBlur = (event: Event) => {
-		const valid = element.value.length > 0 && element.checkValidity();
+		const valid = element.checkValidity() && PATTERN.test(element.value);
+		(async () => usernameCheck(element.value))().catch((error) => {
+			const errorStr = `${error}`.toLowerCase();
+			console.log(errorStr);
+		});
 	};
 
 	stateUsername.subscribe((value) => {
-		if (value && element) {
-			element.value = value;
+		if (value) {
+			value = value;
+			if (element) element.value = value;
 		}
 	});
 
 	stateUsernameConfirmed.subscribe((value) => {
 		confirmed = value;
 	});
+
+	const usernameCheck = async (username: string): Promise<boolean> => {
+		const vars = { variables: { username } };
+		console.log(`posting ${JSON.stringify(vars)}`);
+		const result = await AsyncUsernameCheck(vars);
+		console.log(`Username result: ${JSON.stringify(result, null, 2)}`);
+		if (result.data?.usernameCheck) {
+			const check = result.data.usernameCheck;
+			if (check.available === true) {
+				confirmed = true;
+				stateUsername.set(username);
+				return true;
+			} else if (check.available === false) {
+				incorrect = true;
+			}
+		}
+		return false;
+	};
 </script>
 
 <span class="section">
@@ -47,8 +73,8 @@
 			type="username"
 			name="username"
 			id="username"
-			minlength="6"
-			maxlength="10"
+			minlength={MINLEN}
+			maxlength={MAXLEN}
 			required
 			autocomplete="off"
 			placeholder={`choose username`}
@@ -59,7 +85,19 @@
 			disabled={confirmed}
 		/>
 	</div>
-	{#if confirmed}
+	{#if incorrect}
+		<svg
+			class="incorrect"
+			aria-hidden="true"
+			xmlns="http://www.w3.org/2000/svg"
+			fill="currentColor"
+			viewBox="0 0 20 20"
+		>
+			<path
+				d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM10 15a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm1-4a1 1 0 0 1-2 0V6a1 1 0 0 1 2 0v5Z"
+			/>
+		</svg>
+	{:else if confirmed}
 		<svg
 			class="check"
 			aria-hidden="true"
@@ -90,6 +128,9 @@
 	}
 	.check {
 		@apply w-6 h-6 text-green-400 pt-3 pl-2;
+	}
+	.incorrect {
+		@apply w-8 h-8 text-red-400 pt-3 pl-2;
 	}
 	input,
 	input:disabled {
