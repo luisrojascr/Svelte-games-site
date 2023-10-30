@@ -18,8 +18,10 @@
 		stateReset,
 		stateShowPassword,
 		stateShowTotp,
+		stateTermsConfirmed,
 		stateTotp,
 		stateTotpSet,
+		stateUsername,
 		stateWalletAddress,
 		stateWalletConfirmed
 	} from './state';
@@ -31,7 +33,7 @@
 	let isLoggedIn: boolean | undefined = undefined;
 	let showPassword = false;
 	let showTotp = false;
-	let ready = true; // false;
+	let ready = false;
 	let submitting = false;
 	let check: LoginCheck | undefined = undefined;
 
@@ -45,75 +47,10 @@
 	let googleAuthToken = '';
 	let magicLinkToken = '';
 	let password = '';
+	let termsConfirmed = false;
 	let totp = '';
+	let username = '';
 	let walletAddress = '';
-
-	loggedIn.subscribe((value: boolean | undefined) => (isLoggedIn = value));
-
-	stateEmail.subscribe((value) => {
-		emailAddress = value;
-	});
-	statePassword.subscribe((value) => {
-		password = value;
-	});
-	stateTotp.subscribe((value) => {
-		totp = value;
-	});
-	stateWalletAddress.subscribe((value) => {
-		walletAddress = value;
-	});
-	stateShowPassword.subscribe((value) => {
-		showPassword = value;
-	});
-	stateShowTotp.subscribe((value) => {
-		showTotp = value;
-	});
-
-	statePasswordSet.subscribe((value) => {
-		if (value) {
-			if (form.checkValidity()) {
-				ready = true;
-			}
-		} else {
-			ready = false;
-		}
-	});
-
-	stateTotpSet.subscribe((value) => {
-		if (value) {
-			if (form.checkValidity()) {
-				ready = true;
-			}
-		} else {
-			ready = false;
-		}
-	});
-
-	stateMagicToken.subscribe((value) => {
-		magicLinkToken = value;
-		if (!emailAddress || !magicLinkToken) return;
-		(async () => loginCheck())().catch((error) => {
-			const errorStr = `${error}`.toLowerCase();
-			console.log(errorStr);
-		});
-	});
-
-	stateGoogleToken.subscribe((value) => {
-		googleAuthToken = value;
-		if (!emailAddress || !googleAuthToken) return;
-		(async () => loginCheck())().catch((error) => {
-			const errorStr = `${error}`.toLowerCase();
-			console.log(errorStr);
-		});
-	});
-
-	stateWalletConfirmed.subscribe((value) => {
-		if (!value || !walletAddress) return;
-		(async () => loginCheck())().catch((error) => {
-			const errorStr = `${error}`.toLowerCase();
-			console.log(errorStr);
-		});
-	});
 
 	const loginCheck = async () => {
 		const vars = { variables: { emailAddress, magicLinkToken, googleAuthToken, walletAddress } };
@@ -137,25 +74,7 @@
 				if (check.hasTotp) {
 					stateShowTotp.set(true);
 				}
-				if (walletAddress.length > 0 && check.walletConfirmed) {
-					emailRequired = false;
-					passwordRequired = false;
-				}
-				if (
-					walletAddress.length > 0 &&
-					check.walletConfirmed &&
-					(!check.hasTotp || totp.length > 0)
-				) {
-					ready = true;
-				}
-				if (
-					emailAddress.length > 0 &&
-					check.emailConfirmed &&
-					(!check.hasTotp || totp.length > 0) &&
-					(!check.hasPassword || password.length > 0 || (check.hasGoogle && googleAuthToken))
-				) {
-					ready = true;
-				}
+				ready = isReady();
 			} else if (check.isRegistered === false) {
 				formMode = FormMode.Register;
 
@@ -183,15 +102,44 @@
 		formMode = _mode;
 	};
 
+	const isReady = (): boolean => {
+		if (isLoggedIn) return true;
+		if (form && !form.checkValidity()) return false;
+		if (check?.isRegistered === false) {
+			if (check.emailConfirmed || check.walletConfirmed) {
+				if (formPage === 1) return true;
+				if (formPage === 2 && username.length > 0 && termsConfirmed) return true;
+			}
+		} else if (check?.isRegistered === true) {
+			if (
+				walletAddress.length > 0 &&
+				check.walletConfirmed &&
+				(!check.hasTotp || totp.length > 0)
+			) {
+				return true;
+			}
+			if (
+				emailAddress.length > 0 &&
+				check.emailConfirmed &&
+				(!check.hasTotp || totp.length > 0) &&
+				(!check.hasPassword || password.length > 0 || (check.hasGoogle && googleAuthToken))
+			) {
+				return true;
+			}
+		}
+		return false;
+	};
+
 	const submit = (event: Event): void => {
+		event.preventDefault();
 		if (isLoggedIn) {
-			event.preventDefault();
 			const url = import.meta.env.VITE_AUTH_URL;
 			window.location.replace(url);
 			return;
 		}
-		if (!ready) {
-			event.preventDefault();
+		ready = isReady();
+		if (!ready && form.checkValidity()) {
+			submitting = false;
 			form.reportValidity();
 			return;
 		}
@@ -202,10 +150,10 @@
 				return;
 			} else if (formPage === 2) {
 				console.log(`submit registration`);
+				return;
 			}
 		}
-		if (form.checkValidity()) {
-			event.preventDefault();
+		if (formMode === FormMode.Login) {
 			submitting = true;
 			try {
 				(async () => {
@@ -250,10 +198,6 @@
 				console.log(`LoginCheck error ${e}`);
 				submitting = false;
 			}
-		} else {
-			event.preventDefault();
-			form.reportValidity();
-			submitting = false;
 		}
 	};
 
@@ -261,6 +205,78 @@
 		deleteToken();
 		stateReset();
 	};
+
+	loggedIn.subscribe((value: boolean | undefined) => (isLoggedIn = value));
+
+	stateEmail.subscribe((value) => {
+		emailAddress = value;
+	});
+	statePassword.subscribe((value) => {
+		password = value;
+	});
+	stateTotp.subscribe((value) => {
+		totp = value;
+	});
+	stateUsername.subscribe((value) => {
+		username = value;
+		ready = isReady();
+	});
+	stateWalletAddress.subscribe((value) => {
+		walletAddress = value;
+	});
+	stateShowPassword.subscribe((value) => {
+		showPassword = value;
+	});
+	stateShowTotp.subscribe((value) => {
+		showTotp = value;
+	});
+
+	statePasswordSet.subscribe((value) => {
+		if (value) {
+			ready = isReady();
+		} else {
+			ready = false;
+		}
+	});
+
+	stateTotpSet.subscribe((value) => {
+		if (value) {
+			ready = isReady();
+		} else {
+			ready = false;
+		}
+	});
+
+	stateMagicToken.subscribe((value) => {
+		magicLinkToken = value;
+		if (!emailAddress || !magicLinkToken) return;
+		(async () => loginCheck())().catch((error) => {
+			const errorStr = `${error}`.toLowerCase();
+			console.log(errorStr);
+		});
+	});
+
+	stateGoogleToken.subscribe((value) => {
+		googleAuthToken = value;
+		if (!emailAddress || !googleAuthToken) return;
+		(async () => loginCheck())().catch((error) => {
+			const errorStr = `${error}`.toLowerCase();
+			console.log(errorStr);
+		});
+	});
+
+	stateTermsConfirmed.subscribe((value) => {
+		termsConfirmed = value;
+		ready = isReady();
+	});
+
+	stateWalletConfirmed.subscribe((value) => {
+		if (!value || !walletAddress) return;
+		(async () => loginCheck())().catch((error) => {
+			const errorStr = `${error}`.toLowerCase();
+			console.log(errorStr);
+		});
+	});
 </script>
 
 <form bind:this={form} on:submit={submit}>
