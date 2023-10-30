@@ -3,31 +3,31 @@
 	import { FormMode } from '../types';
 
 	export let required = true;
+	export let incorrect = false;
 	export let mode: FormMode = FormMode.Login;
 
-	let _element: HTMLInputElement;
-	let _valid = false;
-	let _incorrect = false;
-	let _revealed = false;
+	let element: HTMLInputElement;
+	let valid = false;
+	let revealed = false;
 
 	const onChange = () => {
-		_valid = _element.value.length > 0 && _element.checkValidity();
-		_incorrect = false;
-		statePassword.set(_valid ? _element.value : '');
-		statePasswordSet.set(_valid);
+		valid = element.value.length > 0 && element.checkValidity();
+		incorrect = false;
+		statePassword.set(valid ? element.value : '');
+		statePasswordSet.set(valid);
 	};
 
 	const onBlur = (event: Event) => {
-		if (!_incorrect) {
-			_valid = _element.value.length > 0 && _element.checkValidity();
-			statePassword.set(_valid ? _element.value : '');
-			statePasswordSet.set(_valid);
+		if (!incorrect) {
+			valid = element.value.length > 0 && element.checkValidity();
+			statePassword.set(valid ? element.value : '');
+			statePasswordSet.set(valid);
 		}
 	};
 
 	const onRevealToggle = (event: Event) => {
-		_revealed = !_revealed;
-		_element.type = _revealed ? 'text' : 'password';
+		revealed = !revealed;
+		element.type = revealed ? 'text' : 'password';
 	};
 </script>
 
@@ -57,7 +57,7 @@
 			placeholder={mode === FormMode.Register ? `choose password` : `password`}
 			minlength="8"
 			{required}
-			bind:this={_element}
+			bind:this={element}
 			on:change={onChange}
 			on:input={onChange}
 			on:blur={onBlur}
@@ -77,7 +77,19 @@
 			</svg>
 		</a>
 	</div>
-	{#if _valid}
+	{#if incorrect}
+		<svg
+			class="incorrect"
+			aria-hidden="true"
+			xmlns="http://www.w3.org/2000/svg"
+			fill="currentColor"
+			viewBox="0 0 20 20"
+		>
+			<path
+				d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM10 15a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm1-4a1 1 0 0 1-2 0V6a1 1 0 0 1 2 0v5Z"
+			/>
+		</svg>
+	{:else if valid}
 		<svg
 			class="check"
 			aria-hidden="true"
@@ -107,7 +119,10 @@
 		@apply absolute inset-y-0 right-0 flex items-center pr-3.5 pointer-events-auto;
 	}
 	.check {
-		@apply w-6 h-6 text-green-400 pt-3;
+		@apply w-6 h-6 text-green-400 pt-3 pl-2;
+	}
+	.incorrect {
+		@apply w-8 h-8 text-red-400 pt-3 pl-2;
 	}
 	.icon-svg {
 		@apply w-6 h-6 text-white;

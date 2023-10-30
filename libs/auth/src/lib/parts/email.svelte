@@ -6,8 +6,9 @@
 	import { onMount } from 'svelte';
 	import { stateEmail, stateEmailConfirmed, stateMagicToken } from '../state';
 
-	let _element: HTMLInputElement;
-	let _confirmed = false;
+	let element: HTMLInputElement;
+	let confirmed = false;
+	let value = '';
 
 	export let required = true;
 
@@ -15,35 +16,36 @@
 		extensions: [new OAuthExtension()]
 	});
 
-	const onEmailChange = () => {
-		const _valid = _element.checkValidity();
-		if (_valid) stateEmail.set(_element.value);
+	const onChange = () => {
+		const _valid = element.checkValidity();
+		if (_valid) stateEmail.set(element.value);
 		else stateEmail.set('');
 	};
 
+	const onBlur = (event: Event) => {
+		const _valid = element.value.length > 0 && element.checkValidity();
+		if (_valid && !confirmed) {
+			confirmWithMagicLink(event);
+		}
+	};
+
 	stateEmail.subscribe((value) => {
-		if (value && _element) {
-			_element.value = value;
+		if (value) {
+			value = value;
+			if (element) element.value = value;
 		}
 	});
 
 	stateEmailConfirmed.subscribe((value) => {
-		_confirmed = value;
+		confirmed = value;
 	});
-
-	const onEmailBlur = (event: Event) => {
-		const _valid = _element.value.length > 0 && _element.checkValidity();
-		if (_valid && !_confirmed) {
-			confirmWithMagicLink(event);
-		}
-	};
 
 	const setMagicLinkToken = (email: string, token: string) => {
 		if (!token || token.length === 0) return;
 		try {
 			stateMagicToken.set(token);
 			stateEmailConfirmed.set(true);
-			_confirmed = true;
+			confirmed = true;
 		} catch (e) {
 			console.log(`error setting magiclink token: ${e}`);
 		}
@@ -60,9 +62,9 @@
 		event.preventDefault();
 		return new Promise((resolve) => {
 			let resolved = false;
-			if (!_element.checkValidity() || _confirmed) return;
+			if (!element.checkValidity() || confirmed) return;
 			try {
-				let __email = _element.value;
+				let __email = element.value;
 				const handle = magic.auth.loginWithEmailOTP({ email: __email, showUI: true });
 				handle
 					// .on('email-otp-sent', () => {
@@ -120,14 +122,15 @@
 			id="email"
 			placeholder={`email address`}
 			{required}
-			bind:this={_element}
-			on:change={onEmailChange}
-			on:input={onEmailChange}
-			on:blur={onEmailBlur}
-			disabled={_confirmed}
+			bind:this={element}
+			on:change={onChange}
+			on:input={onChange}
+			on:blur={onBlur}
+			disabled={confirmed}
+			{value}
 		/>
 	</div>
-	{#if _confirmed}
+	{#if confirmed}
 		<svg
 			class="check"
 			aria-hidden="true"
@@ -145,7 +148,7 @@
 		</svg>
 	{/if}
 </span>
-{#if !_confirmed}
+{#if !confirmed}
 	<div class="google">
 		<Google />
 	</div>
@@ -165,7 +168,7 @@
 		@apply w-4 h-4 text-white;
 	}
 	.check {
-		@apply w-6 h-6 text-green-400 pt-3;
+		@apply w-6 h-6 text-green-400 pt-3 pl-2;
 	}
 	input,
 	input:disabled {

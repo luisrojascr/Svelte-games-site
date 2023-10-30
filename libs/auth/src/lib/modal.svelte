@@ -1,10 +1,14 @@
 <script lang="ts">
-	import { AsyncLoginCheck, Login } from '$lib/api/api';
+	import { AsyncLoginCheck, Login, LoginCheck } from '$lib/api/api';
 	import Email from '$lib/parts/email.svelte';
 	import Password from '$lib/parts/password.svelte';
+	import Terms from '$lib/parts/terms.svelte';
 	import Totp from '$lib/parts/totp.svelte';
+	import Username from '$lib/parts/username.svelte';
 	import Wallet from '$lib/parts/wallet.svelte';
 	import { deleteToken, loggedIn, verifyToken } from '$lib/token';
+	import type { Log } from 'ethers';
+	import { checkContractWalletSignature } from 'siwe';
 	import {
 		stateEmail,
 		stateGoogleToken,
@@ -21,20 +25,21 @@
 	} from './state';
 	import { FormMode } from './types';
 
-	let _form: HTMLFormElement;
-	let _email: Email;
-	let _wallet: Wallet;
-	let _password: Password;
-	let _totp: Totp;
-	let _form_mode: FormMode = FormMode.Login;
+	let form: HTMLFormElement;
+	let formMode: FormMode = FormMode.Login;
+	let formPage = 1;
+	let isLoggedIn: boolean | undefined = undefined;
+	let showPassword = false;
+	let showTotp = false;
+	let ready = true; // false;
+	let submitting = false;
+	let check: LoginCheck | undefined = undefined;
 
-	let _loggedIn: boolean | undefined = undefined;
-	let _showPassword = false;
-	let _showTotp = false;
-	let _ready = false;
-	let _submitting = false;
-	let _email_required = true;
-	let _password_required = true;
+	let emailIncorrect = false;
+	let emailRequired = true;
+	let passwordIncorrect = false;
+	let passwordRequired = false;
+	let totpIncorrect = false;
 
 	let emailAddress = '';
 	let googleAuthToken = '';
@@ -43,7 +48,7 @@
 	let totp = '';
 	let walletAddress = '';
 
-	loggedIn.subscribe((value: boolean | undefined) => (_loggedIn = value));
+	loggedIn.subscribe((value: boolean | undefined) => (isLoggedIn = value));
 
 	stateEmail.subscribe((value) => {
 		emailAddress = value;
@@ -53,35 +58,34 @@
 	});
 	stateTotp.subscribe((value) => {
 		totp = value;
-		if (totp.length > 0) console.log(`top: ${totp}`);
 	});
 	stateWalletAddress.subscribe((value) => {
 		walletAddress = value;
 	});
 	stateShowPassword.subscribe((value) => {
-		_showPassword = value;
+		showPassword = value;
 	});
 	stateShowTotp.subscribe((value) => {
-		_showTotp = value;
+		showTotp = value;
 	});
 
 	statePasswordSet.subscribe((value) => {
 		if (value) {
-			if (_form.checkValidity()) {
-				_ready = true;
+			if (form.checkValidity()) {
+				ready = true;
 			}
 		} else {
-			_ready = false;
+			ready = false;
 		}
 	});
 
 	stateTotpSet.subscribe((value) => {
 		if (value) {
-			if (_form.checkValidity()) {
-				_ready = true;
+			if (form.checkValidity()) {
+				ready = true;
 			}
 		} else {
-			_ready = false;
+			ready = false;
 		}
 	});
 
@@ -117,9 +121,9 @@
 		const result = await AsyncLoginCheck(vars);
 		console.log(`LoginCheck result: ${JSON.stringify(result, null, 2)}`);
 		if (result.data?.loginCheck) {
-			const check = result.data.loginCheck;
+			check = result.data.loginCheck;
 			if (check.isRegistered === true) {
-				_form_mode = FormMode.Login;
+				formMode = FormMode.Login;
 				// check if ready to log in
 				if (
 					check.hasPassword &&
@@ -134,15 +138,15 @@
 					stateShowTotp.set(true);
 				}
 				if (walletAddress.length > 0 && check.walletConfirmed) {
-					_email_required = false;
-					_password_required = false;
+					emailRequired = false;
+					passwordRequired = false;
 				}
 				if (
 					walletAddress.length > 0 &&
 					check.walletConfirmed &&
 					(!check.hasTotp || totp.length > 0)
 				) {
-					_ready = true;
+					ready = true;
 				}
 				if (
 					emailAddress.length > 0 &&
@@ -150,15 +154,15 @@
 					(!check.hasTotp || totp.length > 0) &&
 					(!check.hasPassword || password.length > 0 || (check.hasGoogle && googleAuthToken))
 				) {
-					_ready = true;
+					ready = true;
 				}
 			} else if (check.isRegistered === false) {
-				_form_mode = FormMode.Register;
+				formMode = FormMode.Register;
 
 				// check if ready to go to next step of registration
 				if (walletAddress.length > 0 && check.walletConfirmed) {
-					_email_required = false;
-					_password_required = false;
+					emailRequired = false;
+					passwordRequired = false;
 				}
 				if (emailAddress.length > 0 && check.emailConfirmed) {
 					stateShowPassword.set(true);
@@ -167,25 +171,42 @@
 		}
 	};
 
-	const submit = (event: Event) => {
-		if (_loggedIn) {
+	const switchMode = (event: Event, _mode: FormMode): void => {
+		if (check?.isRegistered === true && _mode === FormMode.Register) {
+			event.preventDefault();
+			return;
+		}
+		if (check?.isRegistered === false && _mode === FormMode.Login) {
+			event.preventDefault();
+			return;
+		}
+		formMode = _mode;
+	};
+
+	const submit = (event: Event): void => {
+		if (isLoggedIn) {
 			event.preventDefault();
 			const url = import.meta.env.VITE_AUTH_URL;
 			window.location.replace(url);
 			return;
 		}
-		if (!_ready) {
+		if (!ready) {
 			event.preventDefault();
-			_form.reportValidity();
+			form.reportValidity();
 			return;
 		}
-		if (_form_mode === FormMode.Register) {
-			console.log(`go to registration page 2`);
-			return;
+		if (formMode === FormMode.Register) {
+			if (formPage === 1) {
+				formPage = 2;
+				ready = false;
+				return;
+			} else if (formPage === 2) {
+				console.log(`submit registration`);
+			}
 		}
-		if (_ready && _form.checkValidity()) {
+		if (form.checkValidity()) {
 			event.preventDefault();
-			_submitting = true;
+			submitting = true;
 			try {
 				(async () => {
 					const vars = {
@@ -201,18 +222,21 @@
 					console.log(`posting ${JSON.stringify(vars)}`);
 					const result = await Login(vars);
 					console.log(`Login result: ${JSON.stringify(result, null, 2)}`);
-					setTimeout(() => (_submitting = false), 1000);
+					setTimeout(() => (submitting = false), 1000);
 					if (result.data?.login) {
 						const login = result.data.login;
 						if (login.token) {
 							if (verifyToken(login.token)) {
 								setTimeout(() => {
-									if (_loggedIn) {
+									if (isLoggedIn) {
 										const url = import.meta.env.VITE_AUTH_URL;
 										window.location.replace(url);
 									}
 								}, 10);
 							}
+						} else {
+							if (login.passwordConfirmed === false) passwordIncorrect = true;
+							if (login.totpConfirmed === false) totpIncorrect = true;
 						}
 					} else {
 						console.log(`Login error: ${JSON.stringify(result, null, 2)}`);
@@ -220,27 +244,17 @@
 				})().catch((error) => {
 					const errorStr = `${error}`.toLowerCase();
 					console.log(errorStr);
-					_submitting = false;
+					submitting = false;
 				});
 			} catch (e) {
 				console.log(`LoginCheck error ${e}`);
-				_submitting = false;
+				submitting = false;
 			}
 		} else {
 			event.preventDefault();
-			_form.reportValidity();
-			_submitting = false;
+			form.reportValidity();
+			submitting = false;
 		}
-		// (async () => {
-		// 	console.log(`login as ${email}`);
-		// })().catch((error) => {
-		// 	const errorStr = `${error}`.toLowerCase();
-		// 	if (errorStr.includes('user')) {
-		// 		console.log(`user not found`);
-		// 	} else if (errorStr.includes('password')) {
-		// 		console.log(`invalid password`);
-		// 	} else console.log(`got an error: ${errorStr}`);
-		// });
 	};
 
 	const logout = (): void => {
@@ -249,46 +263,52 @@
 	};
 </script>
 
-<form bind:this={_form} on:submit={submit}>
+<form bind:this={form} on:submit={submit}>
 	<div class="underlay" />
 	<div class="overlay">
 		<div class="center">
 			<div class="modal">
 				<h1 class="welcome">Welcome</h1>
-				{#if _loggedIn === false}
+				{#if isLoggedIn === false}
 					<div class="mode">
 						<a
 							href={'#'}
-							on:click={() => (_form_mode = FormMode.Login)}
-							class={`mode${_form_mode === FormMode.Login ? '_selected' : ''}`}>Login</a
+							on:click={(e) => switchMode(e, FormMode.Login)}
+							class={`mode${formMode === FormMode.Login ? '_selected' : ''}`}>Login</a
 						>
 						<a
 							href={'#'}
-							on:click={() => (_form_mode = FormMode.Register)}
-							class={`mode${_form_mode === FormMode.Register ? '_selected' : ''}`}>Register</a
+							on:click={(e) => switchMode(e, FormMode.Register)}
+							class={`mode${formMode === FormMode.Register ? '_selected' : ''}`}>Register</a
 						>
 					</div>
-					<Email bind:this={_email} bind:required={_email_required} />
-					<hr />
-					<Wallet bind:this={_wallet} />
-					{#if _showPassword}
+					{#if formMode === FormMode.Register && formPage === 2}
+						<Username />
 						<hr />
-						<Password
-							bind:this={_password}
-							bind:required={_password_required}
-							bind:mode={_form_mode}
-						/>
-					{/if}
-					{#if _showTotp}
+						<Terms />
+					{:else}
+						<Email bind:required={emailRequired} />
 						<hr />
-						<Totp bind:this={_totp} />
+						<Wallet />
+						{#if showPassword}
+							<hr />
+							<Password
+								bind:required={passwordRequired}
+								bind:mode={formMode}
+								bind:incorrect={passwordIncorrect}
+							/>
+						{/if}
+						{#if showTotp}
+							<hr />
+							<Totp />
+						{/if}
 					{/if}
 				{/if}
 				<hr />
-				<button class="playnow" on:click={submit} disabled={!_ready && !_submitting && !_loggedIn}
+				<button class="playnow" on:click={submit} disabled={!ready && !submitting && !isLoggedIn}
 					>Play Now</button
 				>
-				{#if _loggedIn === true}
+				{#if isLoggedIn === true}
 					<div class="logout">
 						<a href={'#'} on:click={logout} class="logout">logout</a>
 					</div>

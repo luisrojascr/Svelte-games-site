@@ -6,8 +6,9 @@
 	import { SiweMessage } from 'siwe';
 	import { stateWalletAddress, stateWalletConfirmed } from '../state';
 
-	let _element: HTMLInputElement;
-	let _confirmed = false;
+	let element: HTMLInputElement;
+	let confirmed = false;
+	let value = '';
 
 	let walletProvider: any = undefined;
 	let walletSigner: any = undefined;
@@ -41,21 +42,22 @@
 		disableFontDownload: true // Inter font is already loaded
 	});
 
-	stateWalletAddress.subscribe((value) => {
-		if (value && _element) {
-			_element.value = value;
+	stateWalletAddress.subscribe((_value) => {
+		if (value) {
+			value = _value;
+			if (element) element.value = _value;
 		}
 	});
 
 	stateWalletConfirmed.subscribe((value) => {
-		_confirmed = value;
+		confirmed = value;
 	});
 
 	export const confirm = async (): Promise<boolean> => {
 		return new Promise(async (resolve) => {
 			try {
-				const __address = _element.value;
-				if (_element.value.length === 0) {
+				const __address = element.value;
+				if (element.value.length === 0) {
 					resolve(false);
 					return;
 				}
@@ -76,7 +78,7 @@
 				const fields = await siweMessage.verify({ signature });
 				console.log(`fields: ${JSON.stringify(fields, null, 2)}`);
 				if (fields.success) {
-					_confirmed = true;
+					confirmed = true;
 					stateWalletConfirmed.set(true);
 				}
 				resolve(fields.success);
@@ -94,7 +96,7 @@
 		if (wallets?.length > 0 && wallets[0].accounts?.length > 0) {
 			try {
 				stateWalletAddress.set(wallets[0].accounts[0].address);
-				if (_element) _element.value = getAddress(wallets[0].accounts[0].address);
+				if (element) element.value = getAddress(wallets[0].accounts[0].address);
 				walletProvider = wallets[0].provider;
 				walletProvider = new ethers.BrowserProvider(wallets[0].provider);
 				walletSigner = await walletProvider.getSigner();
@@ -130,12 +132,13 @@
 				type="text"
 				name="address"
 				id="address"
-				bind:this={_element}
+				bind:this={element}
 				placeholder={` connect crypto wallet`}
 				disabled
+				{value}
 			/>
 		</div>
-		{#if _confirmed}
+		{#if confirmed}
 			<svg
 				class="check"
 				aria-hidden="true"
@@ -153,7 +156,7 @@
 			</svg>
 		{/if}
 	</span>
-	{#if !_confirmed}
+	{#if !confirmed}
 		<div class="button">
 			<button class={'enabled'} on:click={connect}>
 				<div class="inner-button">
@@ -334,7 +337,7 @@
 		@apply w-6 h-6 text-white;
 	}
 	.check {
-		@apply w-6 h-6 text-green-400 pt-3;
+		@apply w-6 h-6 text-green-400 pt-3 pl-2;
 	}
 	.inner-button {
 		@apply flex justify-center justify-items-center;
