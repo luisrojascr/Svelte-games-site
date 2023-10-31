@@ -1,21 +1,21 @@
-mutation Login(
+mutation Registration(
 	$emailAddress: String
 	$googleAuthToken: String
 	$language: String
 	$magicLinkToken: String
 	$password: String
 	$stag: String
-	$totp: String
+	$username: String!
 	$walletAddress: String
 ) {
-	login(
+	registration(
 		emailAddress: $emailAddress
 		googleAuthToken: $googleAuthToken
 		language: $language
 		magicLinkToken: $magicLinkToken
 		password: $password
 		stag: $stag
-		totp: $totp
+		username: $username
 		walletAddress: $walletAddress
 	) {
 		emailAddress

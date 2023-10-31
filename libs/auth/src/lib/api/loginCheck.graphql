@@ -1,33 +1,38 @@
-query LoginCheck(
-	$language: String
+mutation LoginCheck(
 	$emailAddress: String
-	$magicLinkToken: String
 	$googleAuthToken: String
+	$language: String
+	$magicLinkToken: String
 	$stag: String
 	$walletAddress: String
 ) {
 	loginCheck(
-		language: $language
 		emailAddress: $emailAddress
-		magicLinkToken: $magicLinkToken
 		googleAuthToken: $googleAuthToken
+		language: $language
+		magicLinkToken: $magicLinkToken
 		stag: $stag
 		walletAddress: $walletAddress
 	) {
 		emailAddress
-		walletAddress
+		emailBanned
 		emailConfirmed
-		walletConfirmed
-		isRegistered
+		geoBlock
 		hasGoogle
+		hasPassword
 		hasTotp
 		hasWallet
-		hasPassword
-		emailBanned
-		walletBanned
-		isDuplicate
-		seonReject
-		geoBlock
 		ipReject
+		isDuplicate
+		isRegistered
+		passwordConfirmed
+		seonReject
+		success
+		token
+		totpConfirmed
+		username
+		walletAddress
+		walletBanned
+		walletConfirmed
 	}
 }

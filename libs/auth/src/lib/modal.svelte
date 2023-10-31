@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { AsyncLoginCheck, Login, LoginCheck } from '$lib/api/api';
+	import type { LoginResult } from '$lib/api/api';
+	import { Login, LoginCheck, Registration } from '$lib/api/api';
 	import Email from '$lib/parts/email.svelte';
 	import Password from '$lib/parts/password.svelte';
 	import Terms from '$lib/parts/terms.svelte';
@@ -35,7 +36,7 @@
 	let showTotp = false;
 	let ready = false;
 	let submitting = false;
-	let check: LoginCheck | undefined = undefined;
+	let check: LoginResult | undefined = undefined;
 
 	let emailIncorrect = false;
 	let emailRequired = true;
@@ -55,7 +56,7 @@
 	const loginCheck = async () => {
 		const vars = { variables: { emailAddress, magicLinkToken, googleAuthToken, walletAddress } };
 		console.log(`posting ${JSON.stringify(vars)}`);
-		const result = await AsyncLoginCheck(vars);
+		const result = await LoginCheck(vars);
 		console.log(`LoginCheck result: ${JSON.stringify(result, null, 2)}`);
 		if (result.data?.loginCheck) {
 			check = result.data.loginCheck;
@@ -149,7 +150,43 @@
 				ready = false;
 				return;
 			} else if (formPage === 2) {
-				console.log(`submit registration`);
+				(async () => {
+					const vars = {
+						variables: {
+							emailAddress,
+							magicLinkToken,
+							googleAuthToken,
+							password,
+							username,
+							walletAddress
+						}
+					};
+					console.log(`posting ${JSON.stringify(vars)}`);
+					const result = await Registration(vars);
+					console.log(`Registration result: ${JSON.stringify(result, null, 2)}`);
+					setTimeout(() => (submitting = false), 1000);
+					if (result.data?.registration) {
+						check = result.data.registration;
+						if (check.token) {
+							if (verifyToken(check.token)) {
+								setTimeout(() => {
+									if (isLoggedIn) {
+										const url = import.meta.env.VITE_AUTH_URL;
+										window.location.replace(url);
+									}
+								}, 10);
+							}
+						} else {
+							if (check.passwordConfirmed === false) passwordIncorrect = true;
+							if (check.totpConfirmed === false) totpIncorrect = true;
+						}
+					} else {
+						console.log(`Registration error: ${JSON.stringify(result, null, 2)}`);
+					}
+				})().catch((error) => {
+					const errorStr = `${error}`.toLowerCase();
+					console.log(errorStr);
+				});
 				return;
 			}
 		}
@@ -172,9 +209,9 @@
 					console.log(`Login result: ${JSON.stringify(result, null, 2)}`);
 					setTimeout(() => (submitting = false), 1000);
 					if (result.data?.login) {
-						const login = result.data.login;
-						if (login.token) {
-							if (verifyToken(login.token)) {
+						check = result.data.login;
+						if (check.token) {
+							if (verifyToken(check.token)) {
 								setTimeout(() => {
 									if (isLoggedIn) {
 										const url = import.meta.env.VITE_AUTH_URL;
@@ -183,8 +220,8 @@
 								}, 10);
 							}
 						} else {
-							if (login.passwordConfirmed === false) passwordIncorrect = true;
-							if (login.totpConfirmed === false) totpIncorrect = true;
+							if (check.passwordConfirmed === false) passwordIncorrect = true;
+							if (check.totpConfirmed === false) totpIncorrect = true;
 						}
 					} else {
 						console.log(`Login error: ${JSON.stringify(result, null, 2)}`);

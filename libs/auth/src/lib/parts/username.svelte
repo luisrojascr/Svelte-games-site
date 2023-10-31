@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { AsyncUsernameCheck } from '$lib/api/api';
+	import { UsernameCheck } from '$lib/api/api';
 	import { stateUsername, stateUsernameConfirmed } from '../state';
 
 	const MINLEN = 6;
@@ -38,7 +38,7 @@
 	const usernameCheck = async (username: string): Promise<boolean> => {
 		const vars = { variables: { username } };
 		console.log(`posting ${JSON.stringify(vars)}`);
-		const result = await AsyncUsernameCheck(vars);
+		const result = await UsernameCheck(vars);
 		console.log(`Username result: ${JSON.stringify(result, null, 2)}`);
 		if (result.data?.usernameCheck) {
 			const check = result.data.usernameCheck;

@@ -1,6 +1,6 @@
 import client from "$lib/api/api_client";
 import type {
-        ApolloQueryResult, ObservableQuery, WatchQueryOptions, QueryOptions, MutationOptions
+        MutationOptions
       } from "@apollo/client";
 import { readable } from "svelte/store";
 import type { Readable } from "svelte/store";
@@ -26,27 +26,8 @@ export type Context = {
   get: Context;
 };
 
-export type LoginCheck = {
-  __typename?: 'LoginCheck';
-  emailAddress?: Maybe<Scalars['String']['output']>;
-  emailBanned: Scalars['Boolean']['output'];
-  emailConfirmed?: Maybe<Scalars['Boolean']['output']>;
-  geoBlock: Scalars['Boolean']['output'];
-  hasGoogle: Scalars['Boolean']['output'];
-  hasPassword: Scalars['Boolean']['output'];
-  hasTotp: Scalars['Boolean']['output'];
-  hasWallet: Scalars['Boolean']['output'];
-  ipReject: Scalars['Boolean']['output'];
-  isDuplicate: Scalars['Boolean']['output'];
-  isRegistered: Scalars['Boolean']['output'];
-  seonReject: Scalars['Boolean']['output'];
-  walletAddress?: Maybe<Scalars['String']['output']>;
-  walletBanned: Scalars['Boolean']['output'];
-  walletConfirmed?: Maybe<Scalars['Boolean']['output']>;
-};
-
-export type LoginDeviceCheck = {
-  __typename?: 'LoginDeviceCheck';
+export type LoginDeviceCheckResult = {
+  __typename?: 'LoginDeviceCheckResult';
   deviceId: Scalars['String']['output'];
   sessionId: Scalars['String']['output'];
 };
@@ -57,8 +38,15 @@ export type LoginResult = {
   emailBanned: Scalars['Boolean']['output'];
   emailConfirmed?: Maybe<Scalars['Boolean']['output']>;
   geoBlock: Scalars['Boolean']['output'];
+  googleConfirmed?: Maybe<Scalars['Boolean']['output']>;
+  hasGoogle: Scalars['Boolean']['output'];
+  hasPassword: Scalars['Boolean']['output'];
+  hasTotp: Scalars['Boolean']['output'];
+  hasWallet: Scalars['Boolean']['output'];
   ipReject: Scalars['Boolean']['output'];
   isDuplicate: Scalars['Boolean']['output'];
+  isRegistered: Scalars['Boolean']['output'];
+  magiclinkConfirmed?: Maybe<Scalars['Boolean']['output']>;
   passwordConfirmed?: Maybe<Scalars['Boolean']['output']>;
   seonReject: Scalars['Boolean']['output'];
   success: Scalars['Boolean']['output'];
@@ -74,6 +62,10 @@ export type MutationRoot = {
   __typename?: 'MutationRoot';
   getContext: Context;
   login: LoginResult;
+  loginCheck: LoginResult;
+  loginDeviceCheck: LoginDeviceCheckResult;
+  registration: LoginResult;
+  usernameCheck: UsernameCheckResult;
 };
 
 
@@ -91,24 +83,8 @@ export type MutationRootLoginArgs = {
   walletAddress?: InputMaybe<Scalars['String']['input']>;
 };
 
-export type QueryRoot = {
-  __typename?: 'QueryRoot';
-  /** Returns the sum of a and b */
-  add: Scalars['Int']['output'];
-  getContext: Context;
-  loginCheck: LoginCheck;
-  loginDeviceCheck: LoginDeviceCheck;
-  usernameCheck: UsernameCheck;
-};
 
-
-export type QueryRootAddArgs = {
-  a: Scalars['Int']['input'];
-  b: Scalars['Int']['input'];
-};
-
-
-export type QueryRootLoginCheckArgs = {
+export type MutationRootLoginCheckArgs = {
   deviceId?: InputMaybe<Scalars['String']['input']>;
   emailAddress?: InputMaybe<Scalars['String']['input']>;
   googleAuthToken?: InputMaybe<Scalars['String']['input']>;
@@ -121,7 +97,7 @@ export type QueryRootLoginCheckArgs = {
 };
 
 
-export type QueryRootLoginDeviceCheckArgs = {
+export type MutationRootLoginDeviceCheckArgs = {
   deviceId?: InputMaybe<Scalars['String']['input']>;
   ipAddress?: InputMaybe<Scalars['String']['input']>;
   language: Scalars['String']['input'];
@@ -136,8 +112,37 @@ export type QueryRootLoginDeviceCheckArgs = {
 };
 
 
-export type QueryRootUsernameCheckArgs = {
+export type MutationRootRegistrationArgs = {
+  deviceId?: InputMaybe<Scalars['String']['input']>;
+  emailAddress?: InputMaybe<Scalars['String']['input']>;
+  googleAuthToken?: InputMaybe<Scalars['String']['input']>;
+  language?: InputMaybe<Scalars['String']['input']>;
+  magicLinkToken?: InputMaybe<Scalars['String']['input']>;
+  password?: InputMaybe<Scalars['String']['input']>;
+  seonFingerprint?: InputMaybe<Scalars['String']['input']>;
+  sessionId?: InputMaybe<Scalars['String']['input']>;
+  stag?: InputMaybe<Scalars['String']['input']>;
+  totp?: InputMaybe<Scalars['String']['input']>;
   username: Scalars['String']['input'];
+  walletAddress?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type MutationRootUsernameCheckArgs = {
+  username: Scalars['String']['input'];
+};
+
+export type QueryRoot = {
+  __typename?: 'QueryRoot';
+  /** Returns the sum of a and b */
+  add: Scalars['Int']['output'];
+  getContext: Context;
+};
+
+
+export type QueryRootAddArgs = {
+  a: Scalars['Int']['input'];
+  b: Scalars['Int']['input'];
 };
 
 export type SubscriptionRoot = {
@@ -150,109 +155,168 @@ export type SubscriptionRootIntervalArgs = {
   n?: Scalars['Int']['input'];
 };
 
-export type UsernameCheck = {
-  __typename?: 'UsernameCheck';
+export type UsernameCheckResult = {
+  __typename?: 'UsernameCheckResult';
   available: Scalars['Boolean']['output'];
   username: Scalars['String']['output'];
 };
 
 export type LoginMutationVariables = Exact<{
-  language?: InputMaybe<Scalars['String']['input']>;
   emailAddress?: InputMaybe<Scalars['String']['input']>;
-  magicLinkToken?: InputMaybe<Scalars['String']['input']>;
   googleAuthToken?: InputMaybe<Scalars['String']['input']>;
-  stag?: InputMaybe<Scalars['String']['input']>;
+  language?: InputMaybe<Scalars['String']['input']>;
+  magicLinkToken?: InputMaybe<Scalars['String']['input']>;
   password?: InputMaybe<Scalars['String']['input']>;
+  stag?: InputMaybe<Scalars['String']['input']>;
   totp?: InputMaybe<Scalars['String']['input']>;
   walletAddress?: InputMaybe<Scalars['String']['input']>;
 }>;
 
 
-export type LoginMutation = { __typename?: 'MutationRoot', login: { __typename?: 'LoginResult', success: boolean, username?: string | null, token?: string | null, emailAddress?: string | null, walletAddress?: string | null, emailConfirmed?: boolean | null, walletConfirmed?: boolean | null, passwordConfirmed?: boolean | null, totpConfirmed?: boolean | null, emailBanned: boolean, walletBanned: boolean, isDuplicate: boolean, seonReject: boolean, geoBlock: boolean, ipReject: boolean } };
+export type LoginMutation = { __typename?: 'MutationRoot', login: { __typename?: 'LoginResult', emailAddress?: string | null, emailBanned: boolean, emailConfirmed?: boolean | null, geoBlock: boolean, hasGoogle: boolean, hasPassword: boolean, hasTotp: boolean, hasWallet: boolean, ipReject: boolean, isDuplicate: boolean, isRegistered: boolean, passwordConfirmed?: boolean | null, seonReject: boolean, success: boolean, token?: string | null, totpConfirmed?: boolean | null, username?: string | null, walletAddress?: string | null, walletBanned: boolean, walletConfirmed?: boolean | null } };
 
-export type LoginCheckQueryVariables = Exact<{
-  language?: InputMaybe<Scalars['String']['input']>;
+export type LoginCheckMutationVariables = Exact<{
   emailAddress?: InputMaybe<Scalars['String']['input']>;
-  magicLinkToken?: InputMaybe<Scalars['String']['input']>;
   googleAuthToken?: InputMaybe<Scalars['String']['input']>;
+  language?: InputMaybe<Scalars['String']['input']>;
+  magicLinkToken?: InputMaybe<Scalars['String']['input']>;
   stag?: InputMaybe<Scalars['String']['input']>;
   walletAddress?: InputMaybe<Scalars['String']['input']>;
 }>;
 
 
-export type LoginCheckQuery = { __typename?: 'QueryRoot', loginCheck: { __typename?: 'LoginCheck', emailAddress?: string | null, walletAddress?: string | null, emailConfirmed?: boolean | null, walletConfirmed?: boolean | null, isRegistered: boolean, hasGoogle: boolean, hasTotp: boolean, hasWallet: boolean, hasPassword: boolean, emailBanned: boolean, walletBanned: boolean, isDuplicate: boolean, seonReject: boolean, geoBlock: boolean, ipReject: boolean } };
+export type LoginCheckMutation = { __typename?: 'MutationRoot', loginCheck: { __typename?: 'LoginResult', emailAddress?: string | null, emailBanned: boolean, emailConfirmed?: boolean | null, geoBlock: boolean, hasGoogle: boolean, hasPassword: boolean, hasTotp: boolean, hasWallet: boolean, ipReject: boolean, isDuplicate: boolean, isRegistered: boolean, passwordConfirmed?: boolean | null, seonReject: boolean, success: boolean, token?: string | null, totpConfirmed?: boolean | null, username?: string | null, walletAddress?: string | null, walletBanned: boolean, walletConfirmed?: boolean | null } };
 
-export type UsernameCheckQueryVariables = Exact<{
+export type RegistrationMutationVariables = Exact<{
+  emailAddress?: InputMaybe<Scalars['String']['input']>;
+  googleAuthToken?: InputMaybe<Scalars['String']['input']>;
+  language?: InputMaybe<Scalars['String']['input']>;
+  magicLinkToken?: InputMaybe<Scalars['String']['input']>;
+  password?: InputMaybe<Scalars['String']['input']>;
+  stag?: InputMaybe<Scalars['String']['input']>;
+  username: Scalars['String']['input'];
+  walletAddress?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type RegistrationMutation = { __typename?: 'MutationRoot', registration: { __typename?: 'LoginResult', emailAddress?: string | null, emailBanned: boolean, emailConfirmed?: boolean | null, geoBlock: boolean, hasGoogle: boolean, hasPassword: boolean, hasTotp: boolean, hasWallet: boolean, ipReject: boolean, isDuplicate: boolean, isRegistered: boolean, passwordConfirmed?: boolean | null, seonReject: boolean, success: boolean, token?: string | null, totpConfirmed?: boolean | null, username?: string | null, walletAddress?: string | null, walletBanned: boolean, walletConfirmed?: boolean | null } };
+
+export type UsernameCheckMutationVariables = Exact<{
   username: Scalars['String']['input'];
 }>;
 
 
-export type UsernameCheckQuery = { __typename?: 'QueryRoot', usernameCheck: { __typename?: 'UsernameCheck', username: string, available: boolean } };
+export type UsernameCheckMutation = { __typename?: 'MutationRoot', usernameCheck: { __typename?: 'UsernameCheckResult', available: boolean, username: string } };
 
 
 export const LoginDoc = gql`
-    mutation Login($language: String, $emailAddress: String, $magicLinkToken: String, $googleAuthToken: String, $stag: String, $password: String, $totp: String, $walletAddress: String) {
+    mutation Login($emailAddress: String, $googleAuthToken: String, $language: String, $magicLinkToken: String, $password: String, $stag: String, $totp: String, $walletAddress: String) {
   login(
-    language: $language
     emailAddress: $emailAddress
-    magicLinkToken: $magicLinkToken
     googleAuthToken: $googleAuthToken
-    stag: $stag
+    language: $language
+    magicLinkToken: $magicLinkToken
     password: $password
+    stag: $stag
     totp: $totp
     walletAddress: $walletAddress
   ) {
-    success
-    username
-    token
     emailAddress
-    walletAddress
-    emailConfirmed
-    walletConfirmed
-    passwordConfirmed
-    totpConfirmed
     emailBanned
-    walletBanned
-    isDuplicate
-    seonReject
+    emailConfirmed
     geoBlock
+    hasGoogle
+    hasPassword
+    hasTotp
+    hasWallet
     ipReject
+    isDuplicate
+    isRegistered
+    passwordConfirmed
+    seonReject
+    success
+    token
+    totpConfirmed
+    username
+    walletAddress
+    walletBanned
+    walletConfirmed
   }
 }
     `;
 export const LoginCheckDoc = gql`
-    query LoginCheck($language: String, $emailAddress: String, $magicLinkToken: String, $googleAuthToken: String, $stag: String, $walletAddress: String) {
+    mutation LoginCheck($emailAddress: String, $googleAuthToken: String, $language: String, $magicLinkToken: String, $stag: String, $walletAddress: String) {
   loginCheck(
-    language: $language
     emailAddress: $emailAddress
-    magicLinkToken: $magicLinkToken
     googleAuthToken: $googleAuthToken
+    language: $language
+    magicLinkToken: $magicLinkToken
     stag: $stag
     walletAddress: $walletAddress
   ) {
     emailAddress
-    walletAddress
+    emailBanned
     emailConfirmed
-    walletConfirmed
-    isRegistered
+    geoBlock
     hasGoogle
+    hasPassword
     hasTotp
     hasWallet
-    hasPassword
-    emailBanned
-    walletBanned
-    isDuplicate
-    seonReject
-    geoBlock
     ipReject
+    isDuplicate
+    isRegistered
+    passwordConfirmed
+    seonReject
+    success
+    token
+    totpConfirmed
+    username
+    walletAddress
+    walletBanned
+    walletConfirmed
+  }
+}
+    `;
+export const RegistrationDoc = gql`
+    mutation Registration($emailAddress: String, $googleAuthToken: String, $language: String, $magicLinkToken: String, $password: String, $stag: String, $username: String!, $walletAddress: String) {
+  registration(
+    emailAddress: $emailAddress
+    googleAuthToken: $googleAuthToken
+    language: $language
+    magicLinkToken: $magicLinkToken
+    password: $password
+    stag: $stag
+    username: $username
+    walletAddress: $walletAddress
+  ) {
+    emailAddress
+    emailBanned
+    emailConfirmed
+    geoBlock
+    hasGoogle
+    hasPassword
+    hasTotp
+    hasWallet
+    ipReject
+    isDuplicate
+    isRegistered
+    passwordConfirmed
+    seonReject
+    success
+    token
+    totpConfirmed
+    username
+    walletAddress
+    walletBanned
+    walletConfirmed
   }
 }
     `;
 export const UsernameCheckDoc = gql`
-    query UsernameCheck($username: String!) {
+    mutation UsernameCheck($username: String!) {
   usernameCheck(username: $username) {
-    username
     available
+    username
   }
 }
     `;
@@ -270,89 +334,37 @@ export const Login = (
           }
 export const LoginCheck = (
             options: Omit<
-              WatchQueryOptions<LoginCheckQueryVariables>, 
-              "query"
+              MutationOptions<any, LoginCheckMutationVariables>, 
+              "mutation"
             >
-          ): Readable<
-            ApolloQueryResult<LoginCheckQuery> & {
-              query: ObservableQuery<
-                LoginCheckQuery,
-                LoginCheckQueryVariables
-              >;
-            }
-          > => {
-            const q = client.watchQuery({
-              query: LoginCheckDoc,
+          ) => {
+            const m = client.mutate<LoginCheckMutation, LoginCheckMutationVariables>({
+              mutation: LoginCheckDoc,
               ...options,
             });
-            var result = readable<
-              ApolloQueryResult<LoginCheckQuery> & {
-                query: ObservableQuery<
-                  LoginCheckQuery,
-                  LoginCheckQueryVariables
-                >;
-              }
-            >(
-              { data: {} as any, loading: true, error: undefined, networkStatus: 1, query: q },
-              (set) => {
-                q.subscribe((v: any) => {
-                  set({ ...v, query: q });
-                });
-              }
-            );
-            return result;
+            return m;
           }
-        
-              export const AsyncLoginCheck = (
-                options: Omit<
-                  QueryOptions<LoginCheckQueryVariables>,
-                  "query"
-                >
-              ) => {
-                return client.query<LoginCheckQuery>({query: LoginCheckDoc, ...options})
-              }
-            
+export const Registration = (
+            options: Omit<
+              MutationOptions<any, RegistrationMutationVariables>, 
+              "mutation"
+            >
+          ) => {
+            const m = client.mutate<RegistrationMutation, RegistrationMutationVariables>({
+              mutation: RegistrationDoc,
+              ...options,
+            });
+            return m;
+          }
 export const UsernameCheck = (
             options: Omit<
-              WatchQueryOptions<UsernameCheckQueryVariables>, 
-              "query"
+              MutationOptions<any, UsernameCheckMutationVariables>, 
+              "mutation"
             >
-          ): Readable<
-            ApolloQueryResult<UsernameCheckQuery> & {
-              query: ObservableQuery<
-                UsernameCheckQuery,
-                UsernameCheckQueryVariables
-              >;
-            }
-          > => {
-            const q = client.watchQuery({
-              query: UsernameCheckDoc,
+          ) => {
+            const m = client.mutate<UsernameCheckMutation, UsernameCheckMutationVariables>({
+              mutation: UsernameCheckDoc,
               ...options,
             });
-            var result = readable<
-              ApolloQueryResult<UsernameCheckQuery> & {
-                query: ObservableQuery<
-                  UsernameCheckQuery,
-                  UsernameCheckQueryVariables
-                >;
-              }
-            >(
-              { data: {} as any, loading: true, error: undefined, networkStatus: 1, query: q },
-              (set) => {
-                q.subscribe((v: any) => {
-                  set({ ...v, query: q });
-                });
-              }
-            );
-            return result;
+            return m;
           }
-        
-              export const AsyncUsernameCheck = (
-                options: Omit<
-                  QueryOptions<UsernameCheckQueryVariables>,
-                  "query"
-                >
-              ) => {
-                return client.query<UsernameCheckQuery>({query: UsernameCheckDoc, ...options})
-              }
-            
