@@ -8,8 +8,6 @@
 	import Username from '$lib/parts/username.svelte';
 	import Wallet from '$lib/parts/wallet.svelte';
 	import { deleteToken, loggedIn, verifyToken } from '$lib/token';
-	import type { Log } from 'ethers';
-	import { checkContractWalletSignature } from 'siwe';
 	import {
 		stateEmail,
 		stateGoogleToken,
@@ -53,42 +51,62 @@
 	let username = '';
 	let walletAddress = '';
 
-	const loginCheck = async () => {
-		const vars = { variables: { emailAddress, magicLinkToken, googleAuthToken, walletAddress } };
-		console.log(`posting ${JSON.stringify(vars)}`);
-		const result = await LoginCheck(vars);
-		console.log(`LoginCheck result: ${JSON.stringify(result, null, 2)}`);
-		if (result.data?.loginCheck) {
-			check = result.data.loginCheck;
-			if (check.isRegistered === true) {
-				formMode = FormMode.Login;
-				// check if ready to log in
-				if (
-					check.hasPassword &&
-					!check.hasGoogle
-					// && (password.length > 0 || !check.walletConfirmed)
-				) {
-					stateShowPassword.set(true);
-				} else {
-					statePassword.set('');
-				}
-				if (check.hasTotp) {
-					stateShowTotp.set(true);
-				}
-				ready = isReady();
-			} else if (check.isRegistered === false) {
-				formMode = FormMode.Register;
+	// allows subcomponents to update of form validation check, for changes is required fields
+	const forRender = (ms: number = 0): Promise<void> => {
+		return new Promise((resolve) => setTimeout(resolve, ms));
+	};
 
-				// check if ready to go to next step of registration
-				if (walletAddress.length > 0 && check.walletConfirmed) {
-					emailRequired = false;
-					passwordRequired = false;
-				}
-				if (emailAddress.length > 0 && check.emailConfirmed) {
-					stateShowPassword.set(true);
+	const loginCheck = async () => {
+		submitting = true;
+		await forRender();
+		try {
+			const vars = { variables: { emailAddress, magicLinkToken, googleAuthToken, walletAddress } };
+			console.log(`posting ${JSON.stringify(vars)}`);
+			const result = await LoginCheck(vars);
+			console.log(`LoginCheck2 result: ${JSON.stringify(result, null, 2)}`);
+			if (result.data?.loginCheck) {
+				check = result.data.loginCheck;
+				if (check.isRegistered === true) {
+					formMode = FormMode.Login;
+					// check if ready to log in
+					if (
+						check.hasPassword &&
+						!check.hasGoogle
+						// && (password.length > 0 || !check.walletConfirmed)
+					) {
+						stateShowPassword.set(true);
+					} else {
+						statePassword.set('');
+					}
+					if (check.hasTotp) {
+						stateShowTotp.set(true);
+					}
+					if (walletAddress.length > 0 && check.walletConfirmed) {
+						emailRequired = false;
+						passwordRequired = false;
+					}
+					ready = await isReady();
+					console.log(`ready: ${ready}`);
+				} else if (check.isRegistered === false) {
+					// check if ready to go to next step of registration
+					formMode = FormMode.Register;
+					if (walletAddress.length > 0 && check.walletConfirmed) {
+						console.log(`set email as not required`);
+						emailRequired = false;
+						passwordRequired = false;
+					}
+					if (emailAddress.length > 0 && check.emailConfirmed) {
+						stateShowPassword.set(true);
+					}
+					ready = await isReady();
+					console.log(`ready: ${ready}`);
 				}
 			}
+		} catch (e) {
+			console.log(`LoginCheck error ${e}`);
 		}
+		submitting = false;
+		console.log('submitting false');
 	};
 
 	const switchMode = (event: Event, _mode: FormMode): void => {
@@ -103,12 +121,20 @@
 		formMode = _mode;
 	};
 
-	const isReady = (): boolean => {
+	const isReady = async (): Promise<boolean> => {
 		if (isLoggedIn) return true;
-		if (form && !form.checkValidity()) return false;
+		await forRender();
+		if (form && !form.checkValidity()) {
+			console.log(`fail form validity`);
+			return false;
+		}
 		if (check?.isRegistered === false) {
-			if (check.emailConfirmed || check.walletConfirmed) {
+			if (check.walletConfirmed) {
 				if (formPage === 1) return true;
+				if (formPage === 2 && username.length > 0 && termsConfirmed) return true;
+			}
+			if (check.emailConfirmed) {
+				if (formPage === 1 && (googleAuthToken || password.length > 0)) return true;
 				if (formPage === 2 && username.length > 0 && termsConfirmed) return true;
 			}
 		} else if (check?.isRegistered === true) {
@@ -131,14 +157,15 @@
 		return false;
 	};
 
-	const submit = (event: Event): void => {
+	const submit = async (event: Event): Promise<void> => {
 		event.preventDefault();
+		if (submitting) return;
 		if (isLoggedIn) {
 			const url = import.meta.env.VITE_AUTH_URL;
 			window.location.replace(url);
 			return;
 		}
-		ready = isReady();
+		ready = await isReady();
 		if (!ready && form.checkValidity()) {
 			submitting = false;
 			form.reportValidity();
@@ -150,7 +177,10 @@
 				ready = false;
 				return;
 			} else if (formPage === 2) {
-				(async () => {
+				submitting = true;
+				console.log(`submitting ${submitting}`);
+				await forRender(10);
+				try {
 					const vars = {
 						variables: {
 							emailAddress,
@@ -183,59 +213,54 @@
 					} else {
 						console.log(`Registration error: ${JSON.stringify(result, null, 2)}`);
 					}
-				})().catch((error) => {
-					const errorStr = `${error}`.toLowerCase();
-					console.log(errorStr);
-				});
-				return;
+					return;
+				} catch (e) {
+					console.log(`Registration error ${e}`);
+				}
 			}
 		}
 		if (formMode === FormMode.Login) {
 			submitting = true;
+			await forRender();
 			try {
-				(async () => {
-					const vars = {
-						variables: {
-							emailAddress,
-							magicLinkToken,
-							googleAuthToken,
-							password,
-							totp,
-							walletAddress
-						}
-					};
-					console.log(`posting ${JSON.stringify(vars)}`);
-					const result = await Login(vars);
-					console.log(`Login result: ${JSON.stringify(result, null, 2)}`);
-					setTimeout(() => (submitting = false), 1000);
-					if (result.data?.login) {
-						check = result.data.login;
-						if (check.token) {
-							if (verifyToken(check.token)) {
-								setTimeout(() => {
-									if (isLoggedIn) {
-										const url = import.meta.env.VITE_AUTH_URL;
-										window.location.replace(url);
-									}
-								}, 10);
-							}
-						} else {
-							if (check.passwordConfirmed === false) passwordIncorrect = true;
-							if (check.totpConfirmed === false) totpIncorrect = true;
+				const vars = {
+					variables: {
+						emailAddress,
+						magicLinkToken,
+						googleAuthToken,
+						password,
+						totp,
+						walletAddress
+					}
+				};
+				console.log(`posting ${JSON.stringify(vars)}`);
+				const result = await Login(vars);
+				console.log(`Login result: ${JSON.stringify(result, null, 2)}`);
+				setTimeout(() => (submitting = false), 1000);
+				if (result.data?.login) {
+					check = result.data.login;
+					if (check.token) {
+						if (verifyToken(check.token)) {
+							setTimeout(() => {
+								if (isLoggedIn) {
+									const url = import.meta.env.VITE_AUTH_URL;
+									window.location.replace(url);
+								}
+							}, 10);
 						}
 					} else {
-						console.log(`Login error: ${JSON.stringify(result, null, 2)}`);
+						if (check.passwordConfirmed === false) passwordIncorrect = true;
+						if (check.totpConfirmed === false) totpIncorrect = true;
 					}
-				})().catch((error) => {
-					const errorStr = `${error}`.toLowerCase();
-					console.log(errorStr);
-					submitting = false;
-				});
+				} else {
+					console.log(`Login error: ${JSON.stringify(result, null, 2)}`);
+				}
 			} catch (e) {
 				console.log(`LoginCheck error ${e}`);
-				submitting = false;
 			}
 		}
+		submitting = false;
+		console.log('submitting false');
 	};
 
 	const logout = (): void => {
@@ -254,9 +279,9 @@
 	stateTotp.subscribe((value) => {
 		totp = value;
 	});
-	stateUsername.subscribe((value) => {
+	stateUsername.subscribe(async (value) => {
 		username = value;
-		ready = isReady();
+		ready = await isReady();
 	});
 	stateWalletAddress.subscribe((value) => {
 		walletAddress = value;
@@ -268,17 +293,17 @@
 		showTotp = value;
 	});
 
-	statePasswordSet.subscribe((value) => {
+	statePasswordSet.subscribe(async (value) => {
 		if (value) {
-			ready = isReady();
+			ready = await isReady();
 		} else {
 			ready = false;
 		}
 	});
 
-	stateTotpSet.subscribe((value) => {
+	stateTotpSet.subscribe(async (value) => {
 		if (value) {
-			ready = isReady();
+			ready = await isReady();
 		} else {
 			ready = false;
 		}
@@ -302,9 +327,9 @@
 		});
 	});
 
-	stateTermsConfirmed.subscribe((value) => {
+	stateTermsConfirmed.subscribe(async (value) => {
 		termsConfirmed = value;
-		ready = isReady();
+		ready = await isReady();
 	});
 
 	stateWalletConfirmed.subscribe((value) => {
@@ -358,7 +383,7 @@
 					{/if}
 				{/if}
 				<hr />
-				<button class="playnow" on:click={submit} disabled={!ready && !submitting && !isLoggedIn}
+				<button class="playnow" on:click={submit} disabled={submitting || !(isLoggedIn || ready)}
 					>Play Now</button
 				>
 				{#if isLoggedIn === true}
