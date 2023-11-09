@@ -63,7 +63,7 @@
 <aside
 	id="sidebar"
 	class="{!isMenuAutoCollapse || !isMenuAutoCollapsed || isMenuMobileOpen
-		? 'w-64'
+		? 'w-60'
 		: 'w-16'} {isMenuMobileOpen
 		? 'visible'
 		: 'hidden'} bg-[#111A41] lg:visible lg:flex fixed top-0 left-0 z-0 flex-col flex-shrink-0 pt-16 h-full duration-75 transition-width"

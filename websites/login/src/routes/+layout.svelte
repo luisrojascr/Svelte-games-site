@@ -32,7 +32,7 @@
 			id="main-content"
 			class="overflow-y-auto h-full absolute bottom-0 right-0 top-16 left-0 border-t border-100 {_menuAutoCollapsed
 				? 'lg:ml-16'
-				: 'lg:ml-64'}"
+				: 'lg:ml-60'}"
 		>
 			<slot />
 		</div>
