@@ -9,3 +9,5 @@ export const menuAutoCollapsed = writable<boolean>(false);
 // this is set by the hamburger menu button in the topnav when in mobile (xs/sm/md) viewarea
 // and is closed by the X menu button in the topnav when in mobile (xs/sm/md) viewarea
 export const menuMobileOpen = writable<boolean>(false);
+
+export const navigatePage = writable<string>('/');

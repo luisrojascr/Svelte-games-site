@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Sidebar from '$lib/nav/sidebar.svelte';
-	import { menuAutoCollapsed } from '$lib/nav/state';
+	import { menuAutoCollapsed, navigatePage } from '$lib/nav/state';
 	import Topnav from '$lib/nav/topnav.svelte';
 	import '../app.postcss';
 
@@ -9,8 +9,31 @@
 	let _menuAutoCollapsed: boolean = false;
 	menuAutoCollapsed.subscribe((value: boolean) => (_menuAutoCollapsed = value));
 
-	const iframeSrc = import.meta.env.VITE_INNER_URL;
+	let iframe: HTMLIFrameElement | null | undefined = null;
+	let contentWindow: Window | null | undefined = null;
+	const iframeHost = import.meta.env.VITE_INNER_URL;
 	console.log(`postauth website version ${import.meta.env.VITE_APP_VERSION}`);
+
+	function iframe_loaded(event: Event) {
+		contentWindow = iframe?.contentWindow;
+	}
+
+	navigatePage.subscribe((page: string) => {
+		if (contentWindow && contentWindow.postMessage) {
+			contentWindow.postMessage('this is the parent', '*');
+			// console.log(`posted message to ${iframeHost}`);
+		}
+		if (iframe && iframe.contentWindow) {
+			iframe.contentWindow.postMessage('this is the parent', '*');
+			// console.log(`posted message to ${iframeHost}`);
+		}
+		console.log(`posted message to ${iframeHost}`);
+	});
+
+	window.addEventListener('message', (event) => {
+		// if (event.origin !== iframeHost) return;
+		console.log(`iframe parent got message from event.orgin ${event.origin} ${event.data}`);
+	});
 </script>
 
 <svelte:head>
@@ -33,7 +56,17 @@
 				? 'lg:ml-16'
 				: 'lg:ml-60'}"
 		>
-			<iframe src={iframeSrc} class="w-full h-full" title="Casino" />
+			<iframe
+				id="iframe"
+				src={iframeHost}
+				class="w-full h-full"
+				title="Casino"
+				bind:this={iframe}
+				on:load={iframe_loaded}
+				on:message={(event) => {
+					console.log(`iframe got message from event.orgin ${event.origin} ${event.data}`);
+				}}
+			/>
 		</div>
 	</div>
 </body>

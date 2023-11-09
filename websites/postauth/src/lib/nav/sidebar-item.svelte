@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { Category } from '$lib/data/categories';
 	import IconPicker from '$lib/icons/icon-picker.svelte';
+	import { navigatePage } from '$lib/nav/state';
 
 	export let category: Category;
 	export let isMenuAutoCollapse: boolean;
@@ -17,10 +18,16 @@
 	const link_out = (event: Event) => {
 		hover = false;
 	};
+	const navigate = (event: Event, page: string) => {
+		event.preventDefault();
+		alert(`outer navigate to ${page}`);
+		navigatePage.set(page);
+	};
 </script>
 
 <a
-	href={category.href}
+	href={'#'}
+	on:click={(event) => navigate(event, category.href)}
 	class="flex items-center text-base font-normal rounded-lg hover:text-white group"
 	on:mouseenter={link_over}
 	on:mouseleave={link_out}
