@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { LoginResult } from '$lib/api/api';
-	import { Login, LoginCheck, Registration } from '$lib/api/api';
+	import { Login, Registration } from '$lib/api/api';
 	import Email from '$lib/parts/email.svelte';
 	import Password from '$lib/parts/password.svelte';
 	import Terms from '$lib/parts/terms.svelte';
@@ -62,13 +62,26 @@
 		try {
 			const vars = { variables: { emailAddress, magicLinkToken, googleAuthToken, walletAddress } };
 			console.log(`posting ${JSON.stringify(vars)}`);
-			const result = await LoginCheck(vars);
+			const result = await Login(vars);
 			console.log(`LoginCheck2 result: ${JSON.stringify(result, null, 2)}`);
-			if (result.data?.loginCheck) {
-				check = result.data.loginCheck;
+			if (result.data?.login) {
+				check = result.data.login;
 				if (check.isRegistered === true) {
 					formMode = FormMode.Login;
 					// check if ready to log in
+					if (check.token) {
+						if (verifyToken(check.token)) {
+							setTimeout(() => {
+								if (isLoggedIn) {
+									const url = import.meta.env.VITE_AUTH_URL;
+									window.location.replace(url);
+								}
+							}, 10);
+						}
+					} else {
+						if (check.passwordConfirmed === false) passwordIncorrect = true;
+						if (check.totpConfirmed === false) totpIncorrect = true;
+					}
 					if (
 						check.hasPassword &&
 						!check.hasGoogle

@@ -27,5 +27,4 @@
 
 <body>
 	<AuthModal />
-	<slot />
 </body>
