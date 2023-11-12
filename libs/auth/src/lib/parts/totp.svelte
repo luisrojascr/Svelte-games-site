@@ -1,4 +1,8 @@
 <script lang="ts">
+	import CheckIcon from '$lib/icons/check.svelte';
+	import IncorrectIcon from '$lib/icons/incorrect.svelte';
+	import LockIcon from '$lib/icons/lock.svelte';
+	import RemoveIcon from '$lib/icons/remove.svelte';
 	import { stateTotp, stateTotpSet } from '../state';
 
 	export let incorrect = false;
@@ -6,6 +10,7 @@
 	let element: HTMLInputElement;
 	let valid = false;
 	let allowed = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+	let value = '';
 
 	const onChange = () => {
 		valid = element.checkValidity();
@@ -36,15 +41,24 @@
 			console.log(`error handling paste: ${e}`);
 		}
 	};
+
+	const onRemove = (event: Event) => {
+		event.preventDefault();
+		stateTotp.set('');
+		value = '';
+	};
 </script>
 
 <span class="section">
 	<div class="relative w-full">
+		<div class="leading-icon">
+			<LockIcon />
+		</div>
 		<input
 			type="text"
 			name="totp"
 			id="totp"
-			placeholder={`TOTP code`}
+			placeholder={`2FA TOTP code`}
 			minlength="6"
 			maxlength="6"
 			required
@@ -55,47 +69,22 @@
 			on:blur={onBlur}
 			on:keypress={onKeyPress}
 			on:paste={onPaste}
+			{value}
 		/>
 	</div>
-	{#if incorrect}
-		<svg
-			class="incorrect"
-			aria-hidden="true"
-			xmlns="http://www.w3.org/2000/svg"
-			fill="currentColor"
-			viewBox="0 0 20 20"
-		>
-			<path
-				d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM10 15a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm1-4a1 1 0 0 1-2 0V6a1 1 0 0 1 2 0v5Z"
-			/>
-		</svg>
-	{:else if valid}
-		<svg
-			class="check"
-			aria-hidden="true"
-			xmlns="http://www.w3.org/2000/svg"
-			fill="none"
-			viewBox="0 0 16 12"
-		>
-			<path
-				stroke="currentColor"
-				stroke-linecap="round"
-				stroke-linejoin="round"
-				stroke-width="2"
-				d="M1 5.917 5.724 10.5 15 1.5"
-			/>
-		</svg>
+	{#if incorrect}<IncorrectIcon />{:else if valid}
+		<CheckIcon />
 	{/if}
 </span>
 
 <style lang="postcss">
 	.section {
-		@apply pt-6 flex;
+		@apply pt-4 flex;
+	}
+	.leading-icon {
+		@apply absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none;
 	}
 	input {
-		@apply border bg-background-900 border-100 text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 px-12;
-	}
-	.check {
-		@apply w-6 h-6 text-green-400 pt-3 pl-2;
+		@apply border bg-background-900 border-100 text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 px-10;
 	}
 </style>

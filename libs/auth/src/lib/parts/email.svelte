@@ -1,5 +1,7 @@
 <script lang="ts">
-	import Google from '$lib/parts/google.svelte';
+	import CheckIcon from '$lib/icons/check.svelte';
+	import EmailIcon from '$lib/icons/email.svelte';
+	import RemoveIcon from '$lib/icons/remove.svelte';
 	import { OAuthExtension } from '@magic-ext/oauth';
 	import jwt_decode from 'jwt-decode';
 	import { Magic } from 'magic-sdk';
@@ -29,11 +31,9 @@
 		}
 	};
 
-	stateEmail.subscribe((value) => {
-		if (value) {
-			value = value;
-			if (element) element.value = value;
-		}
+	stateEmail.subscribe((_value) => {
+		value = _value;
+		if (element) element.value = _value;
 	});
 
 	stateEmailConfirmed.subscribe((value) => {
@@ -96,31 +96,27 @@
 			}
 		});
 	};
+
+	const onRemove = (event: Event) => {
+		event.preventDefault();
+		stateEmail.set('');
+		value = '';
+		stateEmailConfirmed.set(false);
+		stateMagicToken.set('');
+		confirmed = false;
+	};
 </script>
 
 <span class="section">
 	<div class="relative w-full">
 		<div class="leading-icon">
-			<svg
-				class="leading-icon-svg"
-				aria-hidden="true"
-				xmlns="http://www.w3.org/2000/svg"
-				fill="currentColor"
-				viewBox="0 0 20 16"
-			>
-				<path
-					d="m10.036 8.278 9.258-7.79A1.979 1.979 0 0 0 18 0H2A1.987 1.987 0 0 0 .641.541l9.395 7.737Z"
-				/>
-				<path
-					d="M11.241 9.817c-.36.275-.801.425-1.255.427-.428 0-.845-.138-1.187-.395L0 2.6V14a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V2.5l-8.759 7.317Z"
-				/>
-			</svg>
+			<EmailIcon />
 		</div>
 		<input
 			type="email"
 			name="email"
 			id="email"
-			placeholder={`email address`}
+			placeholder={`email address` + (required ? `` : ` (optional)`)}
 			{required}
 			bind:this={element}
 			on:change={onChange}
@@ -129,46 +125,24 @@
 			disabled={confirmed}
 			{value}
 		/>
+		{#if confirmed}
+			<a class="trailing-icon" href={'#'} on:click={onRemove} tabindex="-1">
+				<RemoveIcon />
+			</a>
+		{/if}
 	</div>
-	{#if confirmed}
-		<svg
-			class="check"
-			aria-hidden="true"
-			xmlns="http://www.w3.org/2000/svg"
-			fill="none"
-			viewBox="0 0 16 12"
-		>
-			<path
-				stroke="currentColor"
-				stroke-linecap="round"
-				stroke-linejoin="round"
-				stroke-width="2"
-				d="M1 5.917 5.724 10.5 15 1.5"
-			/>
-		</svg>
-	{/if}
+	{#if confirmed}<CheckIcon />{/if}
 </span>
-{#if !confirmed}
-	<div class="google">
-		<Google />
-	</div>
-{/if}
 
 <style lang="postcss">
-	.google {
-		@apply pt-2;
-	}
 	.section {
 		@apply pt-6 flex;
 	}
 	.leading-icon {
 		@apply absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none;
 	}
-	.leading-icon-svg {
-		@apply w-4 h-4 text-white;
-	}
-	.check {
-		@apply w-6 h-6 text-green-400 pt-3 pl-2;
+	.trailing-icon {
+		@apply absolute inset-y-0 right-0 flex items-center pr-3.5 pointer-events-auto;
 	}
 	input,
 	input:disabled {

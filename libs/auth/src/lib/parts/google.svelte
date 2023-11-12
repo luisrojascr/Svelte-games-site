@@ -30,20 +30,24 @@
 	data-ux_mode="popup"
 	data-callback="onGoogleSignIn"
 	data-itp_support="true"
+	style="display: none"
 />
 
-<div
-	data-type="standard"
-	data-shape="pill"
-	data-theme="filled_blue"
-	data-size="large"
-	data-logo_alignment="left"
-	data-width="184"
-	class="g_id_signin"
-/>
+<button class="google">
+	<button
+		data-type="icon"
+		data-shape="rectangular"
+		data-theme="filled_blue"
+		data-size="large"
+		class="g_id_signin googleplex"
+	/>
+</button>
 
 <style lang="postcss">
-	/* .google {
-		@apply w-full text-white bg-[#1a73e8] hover:bg-[#4d92ed] focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center;
-	} */
+	.google {
+		@apply bg-blue-500 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 rounded-lg text-center align-middle px-1;
+	}
+	.googleplex {
+		@apply relative top-1;
+	}
 </style>

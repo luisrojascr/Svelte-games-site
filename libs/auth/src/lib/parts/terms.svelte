@@ -7,7 +7,7 @@
 
 <span class="section">
 	<span class="terms">
-		<input type="checkbox" name="terms" id="terms" bind:this={_element} on:click={onCheck} />
+		<!-- <input type="checkbox" name="terms" id="terms" bind:this={_element} on:click={onCheck} /> -->
 		I agree with the Privacy Policy, Terms of Use, Gambling isn't forbidden by my local authorities,
 		I'm at least 18 years old, and the use of multiple accounts is prohibited.
 	</span>
@@ -15,12 +15,12 @@
 
 <style lang="postcss">
 	.section {
-		@apply pt-2 flex flex-col items-baseline;
+		@apply py-4 flex flex-col items-baseline;
 	}
-	input {
+	/* input {
 		@apply w-5 h-5 sm:w-8 sm:h-8 mr-2 relative top-1;
-	}
+	} */
 	.terms {
-		@apply text-white text-sm sm:text-base;
+		@apply text-white text-sm sm:text-base border-t-[1px] border-b-[1px] border-blue-500 py-2;
 	}
 </style>

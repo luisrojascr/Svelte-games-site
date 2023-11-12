@@ -1,5 +1,9 @@
 <script lang="ts">
 	import { UsernameCheck } from '$lib/api/api';
+	import CheckIcon from '$lib/icons/check.svelte';
+	import IncorrectIcon from '$lib/icons/incorrect.svelte';
+	import RemoveIcon from '$lib/icons/remove.svelte';
+	import UserIcon from '$lib/icons/user.svelte';
 	import { stateUsername, stateUsernameConfirmed } from '../state';
 
 	const MINLEN = 6;
@@ -24,10 +28,10 @@
 		});
 	};
 
-	stateUsername.subscribe((value) => {
-		if (value) {
-			value = value;
-			if (element) element.value = value;
+	stateUsername.subscribe((_value) => {
+		if (_value) {
+			value = _value;
+			if (element) element.value = _value;
 		}
 	});
 
@@ -52,22 +56,20 @@
 		}
 		return false;
 	};
+
+	const onRemove = (event: Event) => {
+		event.preventDefault();
+		stateUsername.set('');
+		value = '';
+		stateUsernameConfirmed.set(false);
+		confirmed = false;
+	};
 </script>
 
 <span class="section">
 	<div class="relative w-full">
 		<div class="leading-icon">
-			<svg
-				class="leading-icon-svg"
-				aria-hidden="true"
-				xmlns="http://www.w3.org/2000/svg"
-				fill="currentColor"
-				viewBox="0 0 14 18"
-			>
-				<path
-					d="M7 9a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9Zm2 1H5a5.006 5.006 0 0 0-5 5v2a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2a5.006 5.006 0 0 0-5-5Z"
-				/>
-			</svg>
+			<UserIcon />
 		</div>
 		<input
 			type="username"
@@ -83,54 +85,28 @@
 			on:input={onChange}
 			on:blur={onBlur}
 			disabled={confirmed}
+			{value}
 		/>
+		{#if confirmed}
+			<a class="trailing-icon" href={'#'} on:click={onRemove} tabindex="-1">
+				<RemoveIcon />
+			</a>
+		{/if}
 	</div>
-	{#if incorrect}
-		<svg
-			class="incorrect"
-			aria-hidden="true"
-			xmlns="http://www.w3.org/2000/svg"
-			fill="currentColor"
-			viewBox="0 0 20 20"
-		>
-			<path
-				d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM10 15a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm1-4a1 1 0 0 1-2 0V6a1 1 0 0 1 2 0v5Z"
-			/>
-		</svg>
-	{:else if confirmed}
-		<svg
-			class="check"
-			aria-hidden="true"
-			xmlns="http://www.w3.org/2000/svg"
-			fill="none"
-			viewBox="0 0 16 12"
-		>
-			<path
-				stroke="currentColor"
-				stroke-linecap="round"
-				stroke-linejoin="round"
-				stroke-width="2"
-				d="M1 5.917 5.724 10.5 15 1.5"
-			/>
-		</svg>
+	{#if incorrect}<IncorrectIcon />{:else if confirmed}
+		<CheckIcon />
 	{/if}
 </span>
 
 <style lang="postcss">
 	.section {
-		@apply pt-6 flex;
+		@apply pt-4 flex;
 	}
 	.leading-icon {
 		@apply absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none;
 	}
-	.leading-icon-svg {
-		@apply w-4 h-4 text-white;
-	}
-	.check {
-		@apply w-6 h-6 text-green-400 pt-3 pl-2;
-	}
-	.incorrect {
-		@apply w-8 h-8 text-red-400 pt-3 pl-2;
+	.trailing-icon {
+		@apply absolute inset-y-0 right-0 flex items-center pr-3.5 pointer-events-auto;
 	}
 	input,
 	input:disabled {

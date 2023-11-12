@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { LoginResult } from '$lib/api/api';
 	import { Login, Registration } from '$lib/api/api';
+	import Connects from '$lib/parts/connects.svelte';
 	import Email from '$lib/parts/email.svelte';
 	import Password from '$lib/parts/password.svelte';
 	import Terms from '$lib/parts/terms.svelte';
@@ -8,8 +9,11 @@
 	import Username from '$lib/parts/username.svelte';
 	import Wallet from '$lib/parts/wallet.svelte';
 	import { deleteToken, loggedIn, verifyToken } from '$lib/token';
+	import BonusCode from './parts/bonuscode.svelte';
 	import {
+		stateBonusCode,
 		stateEmail,
+		stateEmailConfirmed,
 		stateGoogleToken,
 		stateMagicToken,
 		statePassword,
@@ -17,7 +21,7 @@
 		stateReset,
 		stateShowPassword,
 		stateShowTotp,
-		stateTermsConfirmed,
+		// stateTermsConfirmed,
 		stateTotp,
 		stateTotpSet,
 		stateUsername,
@@ -28,10 +32,10 @@
 
 	let form: HTMLFormElement;
 	let formMode: FormMode = FormMode.Login;
-	let formPage = 1;
 	let isLoggedIn: boolean | undefined = undefined;
 	let showPassword = false;
 	let showTotp = false;
+	let showWallet = false;
 	let ready = false;
 	let submitting = false;
 	let check: LoginResult | undefined = undefined;
@@ -42,6 +46,7 @@
 	let passwordRequired = false;
 	let totpIncorrect = false;
 
+	let bonusCode = '';
 	let emailAddress = '';
 	let googleAuthToken = '';
 	let magicLinkToken = '';
@@ -103,13 +108,10 @@
 				} else if (check.isRegistered === false) {
 					// check if ready to go to next step of registration
 					formMode = FormMode.Register;
+					passwordRequired = false;
 					if (walletAddress.length > 0 && check.walletConfirmed) {
 						console.log(`set email as not required`);
 						emailRequired = false;
-						passwordRequired = false;
-					}
-					if (emailAddress.length > 0 && check.emailConfirmed) {
-						stateShowPassword.set(true);
 					}
 					ready = await isReady();
 					console.log(`ready: ${ready}`);
@@ -123,32 +125,28 @@
 	};
 
 	const switchMode = (event: Event, _mode: FormMode): void => {
+		console.log(`want to switch to ${_mode}`);
 		if (check?.isRegistered === true && _mode === FormMode.Register) {
-			event.preventDefault();
 			return;
 		}
 		if (check?.isRegistered === false && _mode === FormMode.Login) {
-			event.preventDefault();
-			return;
+			if (emailAddress) {
+				stateEmail.set('');
+				stateEmailConfirmed.set(false);
+				stateGoogleToken.set('');
+				stateMagicToken.set('');
+			}
 		}
+		console.log(`switching to ${_mode}`);
 		formMode = _mode;
 	};
 
 	const isReady = async (): Promise<boolean> => {
 		if (isLoggedIn) return true;
 		await forRender();
-		if (form && !form.checkValidity()) {
-			console.log(`fail form validity`);
-			return false;
-		}
 		if (check?.isRegistered === false) {
-			if (check.walletConfirmed) {
-				if (formPage === 1) return true;
-				if (formPage === 2 && username.length > 0 && termsConfirmed) return true;
-			}
-			if (check.emailConfirmed) {
-				if (formPage === 1 && (googleAuthToken || password.length > 0)) return true;
-				if (formPage === 2 && username.length > 0 && termsConfirmed) return true;
+			if (check.walletConfirmed || check.emailConfirmed) {
+				if (username.length > 0) return true;
 			}
 		} else if (check?.isRegistered === true) {
 			if (
@@ -185,51 +183,45 @@
 			return;
 		}
 		if (formMode === FormMode.Register) {
-			if (formPage === 1) {
-				formPage = 2;
-				ready = false;
-				return;
-			} else if (formPage === 2) {
-				submitting = true;
-				console.log(`submitting ${submitting}`);
-				await forRender(10);
-				try {
-					const vars = {
-						variables: {
-							emailAddress,
-							magicLinkToken,
-							googleAuthToken,
-							password,
-							username,
-							walletAddress
-						}
-					};
-					console.log(`posting ${JSON.stringify(vars)}`);
-					const result = await Registration(vars);
-					console.log(`Registration result: ${JSON.stringify(result, null, 2)}`);
-					setTimeout(() => (submitting = false), 1000);
-					if (result.data?.registration) {
-						check = result.data.registration;
-						if (check.token) {
-							if (verifyToken(check.token)) {
-								setTimeout(() => {
-									if (isLoggedIn) {
-										const url = import.meta.env.VITE_AUTH_URL;
-										window.location.replace(url);
-									}
-								}, 10);
-							}
-						} else {
-							if (check.passwordConfirmed === false) passwordIncorrect = true;
-							if (check.totpConfirmed === false) totpIncorrect = true;
+			submitting = true;
+			console.log(`submitting ${submitting}`);
+			await forRender(10);
+			try {
+				const vars = {
+					variables: {
+						emailAddress,
+						magicLinkToken,
+						googleAuthToken,
+						password,
+						username,
+						walletAddress
+					}
+				};
+				console.log(`posting ${JSON.stringify(vars)}`);
+				const result = await Registration(vars);
+				console.log(`Registration result: ${JSON.stringify(result, null, 2)}`);
+				setTimeout(() => (submitting = false), 1000);
+				if (result.data?.registration) {
+					check = result.data.registration;
+					if (check.token) {
+						if (verifyToken(check.token)) {
+							setTimeout(() => {
+								if (isLoggedIn) {
+									const url = import.meta.env.VITE_AUTH_URL;
+									window.location.replace(url);
+								}
+							}, 10);
 						}
 					} else {
-						console.log(`Registration error: ${JSON.stringify(result, null, 2)}`);
+						if (check.passwordConfirmed === false) passwordIncorrect = true;
+						if (check.totpConfirmed === false) totpIncorrect = true;
 					}
-					return;
-				} catch (e) {
-					console.log(`Registration error ${e}`);
+				} else {
+					console.log(`Registration error: ${JSON.stringify(result, null, 2)}`);
 				}
+				return;
+			} catch (e) {
+				console.log(`Registration error ${e}`);
 			}
 		}
 		if (formMode === FormMode.Login) {
@@ -283,6 +275,9 @@
 
 	loggedIn.subscribe((value: boolean | undefined) => (isLoggedIn = value));
 
+	stateBonusCode.subscribe((value) => {
+		bonusCode = value;
+	});
 	stateEmail.subscribe((value) => {
 		emailAddress = value;
 	});
@@ -322,35 +317,27 @@
 		}
 	});
 
-	stateMagicToken.subscribe((value) => {
+	stateMagicToken.subscribe(async (value) => {
 		magicLinkToken = value;
 		if (!emailAddress || !magicLinkToken) return;
-		(async () => loginCheck())().catch((error) => {
-			const errorStr = `${error}`.toLowerCase();
-			console.log(errorStr);
-		});
+		await loginCheck();
 	});
 
-	stateGoogleToken.subscribe((value) => {
+	stateGoogleToken.subscribe(async (value) => {
 		googleAuthToken = value;
 		if (!emailAddress || !googleAuthToken) return;
-		(async () => loginCheck())().catch((error) => {
-			const errorStr = `${error}`.toLowerCase();
-			console.log(errorStr);
-		});
+		await loginCheck();
 	});
 
-	stateTermsConfirmed.subscribe(async (value) => {
-		termsConfirmed = value;
-		ready = await isReady();
-	});
+	// stateTermsConfirmed.subscribe(async (value) => {
+	// 	termsConfirmed = value;
+	// 	ready = await isReady();
+	// });
 
-	stateWalletConfirmed.subscribe((value) => {
+	stateWalletConfirmed.subscribe(async (value) => {
+		showWallet = value;
 		if (!value || !walletAddress) return;
-		(async () => loginCheck())().catch((error) => {
-			const errorStr = `${error}`.toLowerCase();
-			console.log(errorStr);
-		});
+		await loginCheck();
 	});
 </script>
 
@@ -359,7 +346,6 @@
 	<div class="overlay">
 		<div class="center">
 			<div class="modal">
-				<h1 class="welcome">Welcome</h1>
 				{#if isLoggedIn === false}
 					<div class="mode">
 						<a
@@ -373,32 +359,49 @@
 							class={`mode${formMode === FormMode.Register ? '_selected' : ''}`}>Register</a
 						>
 					</div>
-					{#if formMode === FormMode.Register && formPage === 2}
+					<Email bind:required={emailRequired} />
+					<!-- {#if formMode === FormMode.Register}
+							<a href={'#'} class="link" on:click={(e) => switchMode(e, FormMode.Login)}
+								>I already have an account</a
+							>
+						{:else}
+							<a href={'#'} class="link" on:click={(e) => switchMode(e, FormMode.Register)}
+								>I don't have an account</a
+							>
+						{/if} -->
+					{#if formMode === FormMode.Register}
 						<Username />
-						<hr />
-						<Terms />
-					{:else}
-						<Email bind:required={emailRequired} />
-						<hr />
-						<Wallet />
-						{#if showPassword}
-							<hr />
-							<Password
-								bind:required={passwordRequired}
-								bind:mode={formMode}
-								bind:incorrect={passwordIncorrect}
-							/>
-						{/if}
-						{#if showTotp}
-							<hr />
-							<Totp />
-						{/if}
+						<BonusCode />
 					{/if}
+					{#if showPassword}
+						<Password
+							bind:required={passwordRequired}
+							bind:mode={formMode}
+							bind:incorrect={passwordIncorrect}
+						/>
+					{/if}
+					{#if showTotp}
+						<Totp />
+					{/if}
+					{#if showWallet}
+						<Wallet />
+					{/if}
+					<Terms />
+					{#if isLoggedIn}
+						<button
+							class="playnow"
+							on:click={submit}
+							disabled={submitting || !(isLoggedIn || ready)}>{`Play Now`}</button
+						>
+					{:else if formMode === FormMode.Register}
+						<button
+							class="playnow"
+							on:click={submit}
+							disabled={submitting || !(isLoggedIn || ready)}>{`Create Account`}</button
+						>
+					{/if}
+					<Connects />
 				{/if}
-				<hr />
-				<button class="playnow" on:click={submit} disabled={submitting || !(isLoggedIn || ready)}
-					>Play Now</button
-				>
 				{#if isLoggedIn === true}
 					<div class="logout">
 						<a href={'#'} on:click={logout} class="logout">logout</a>
@@ -423,10 +426,7 @@
 		@apply relative w-full max-w-lg max-h-full m-auto top-auto;
 	}
 	.modal {
-		@apply relative bg-background-950 rounded-lg shadow p-10 border border-100 flex  flex-col justify-between space-y-6;
-	}
-	.welcome {
-		@apply text-white text-5xl font-bold py-2;
+		@apply relative bg-background-950 rounded-lg shadow p-10 border border-100 flex  flex-col justify-between space-y-6 text-white;
 	}
 	.playnow {
 		@apply w-full text-white bg-[#01D180] disabled:bg-gray-300 hover:bg-[#00B16c] focus:ring-4 focus:outline-none focus:ring-green-100 font-medium rounded-lg text-sm px-5 py-2.5 text-center;
@@ -439,6 +439,9 @@
 	}
 	div.mode {
 		@apply border-b-2 border-100 pb-3;
+	}
+	a.link {
+		@apply text-white underline text-sm top-[-20px] relative;
 	}
 	a.mode_selected {
 		@apply text-white text-sm uppercase font-extrabold pr-3 pl-3 pb-3 border-b-4 border-blue-500;
