@@ -20,7 +20,7 @@
 		projectId: import.meta.env.VITE_WALLET_CONNECT,
 		// requiredChains: [1],
 		// optionalChains: [42161, 8453, 10, 137, 56],
-		dappUrl: import.meta.env.VITE_AUTH_URL
+		dappUrl: import.meta.env.VITE_PREAUTH_URL
 	});
 
 	const onboard = Onboard({

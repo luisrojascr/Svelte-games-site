@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { LoginResult } from '$lib/api/api';
 	import { Login, Registration } from '$lib/api/api';
-	import { t } from '$lib/locale/i18n';
+	import { locale, t } from '$lib/locale/i18n';
 	import Connects from '$lib/parts/connects.svelte';
 	import Currency from '$lib/parts/currency.svelte';
 	import Email from '$lib/parts/email.svelte';
@@ -33,6 +33,8 @@
 	} from './state';
 	import { FormMode } from './types';
 
+	const post_auth_url = import.meta.env.VITE_POSTAUTH_URL;
+
 	let form: HTMLFormElement;
 	let formMode: FormMode = FormMode.Login;
 	let isLoggedIn: boolean | undefined = undefined;
@@ -52,6 +54,7 @@
 	let bonusCode = '';
 	let emailAddress = '';
 	let googleAuthToken = '';
+	let language = 'en';
 	let magicLinkToken = '';
 	let password = '';
 	let termsConfirmed = false;
@@ -62,6 +65,11 @@
 	// allows subcomponents to update of form validation check, for changes is required fields
 	const forRender = (ms: number = 0): Promise<void> => {
 		return new Promise((resolve) => setTimeout(resolve, ms));
+	};
+
+	const goToPostAuth = () => {
+		const url = `${post_auth_url}${language}`;
+		window.location.replace(url);
 	};
 
 	const loginCheck = async () => {
@@ -78,14 +86,7 @@
 					formMode = FormMode.Login;
 					// check if ready to log in
 					if (check.token) {
-						if (verifyToken(check.token)) {
-							setTimeout(() => {
-								if (isLoggedIn) {
-									const url = import.meta.env.VITE_AUTH_URL;
-									window.location.replace(url);
-								}
-							}, 10);
-						}
+						if (verifyToken(check.token) && isLoggedIn) goToPostAuth();
 					} else {
 						if (check.passwordConfirmed === false) passwordIncorrect = true;
 						if (check.totpConfirmed === false) totpIncorrect = true;
@@ -172,8 +173,7 @@
 		event.preventDefault();
 		if (submitting) return;
 		if (isLoggedIn) {
-			const url = import.meta.env.VITE_AUTH_URL;
-			window.location.replace(url);
+			goToPostAuth();
 			return;
 		}
 		ready = await isReady();
@@ -203,14 +203,7 @@
 				if (result.data?.registration) {
 					check = result.data.registration;
 					if (check.token) {
-						if (verifyToken(check.token)) {
-							setTimeout(() => {
-								if (isLoggedIn) {
-									const url = import.meta.env.VITE_AUTH_URL;
-									window.location.replace(url);
-								}
-							}, 10);
-						}
+						if (verifyToken(check.token) && isLoggedIn) goToPostAuth();
 					} else {
 						if (check.passwordConfirmed === false) passwordIncorrect = true;
 						if (check.totpConfirmed === false) totpIncorrect = true;
@@ -244,14 +237,7 @@
 				if (result.data?.login) {
 					check = result.data.login;
 					if (check.token) {
-						if (verifyToken(check.token)) {
-							setTimeout(() => {
-								if (isLoggedIn) {
-									const url = import.meta.env.VITE_AUTH_URL;
-									window.location.replace(url);
-								}
-							}, 10);
-						}
+						if (verifyToken(check.token) && isLoggedIn) goToPostAuth();
 					} else {
 						if (check.passwordConfirmed === false) passwordIncorrect = true;
 						if (check.totpConfirmed === false) totpIncorrect = true;
@@ -278,6 +264,9 @@
 	});
 	stateEmail.subscribe((value) => {
 		emailAddress = value;
+	});
+	locale.subscribe((value) => {
+		language = value;
 	});
 	statePassword.subscribe((value) => {
 		password = value;
