@@ -1,8 +1,8 @@
 import { writable } from 'svelte/store';
 
-export const stateLanguage = writable<string>('en');
 export const stateBonusCode = writable<string>('');
 export const stateBonusCodeConfirmed = writable<boolean>(false);
+export const stateCurrency = writable<string>('EUR');
 export const stateEmail = writable<string>('');
 export const stateEmailConfirmed = writable<boolean>(false);
 export const stateGoogleToken = writable<string>('');
@@ -25,6 +25,7 @@ export const stateWalletSignature = writable<string>('');
 export const stateReset = () => {
 	stateBonusCode.set('');
 	stateBonusCodeConfirmed.set(false);
+	stateCurrency.set('EUR');
 	stateEmail.set('');
 	stateEmailConfirmed.set(false);
 	stateGoogleToken.set('');

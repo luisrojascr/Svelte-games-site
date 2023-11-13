@@ -3,6 +3,7 @@
 	import { Login, Registration } from '$lib/api/api';
 	import { t } from '$lib/locale/i18n';
 	import Connects from '$lib/parts/connects.svelte';
+	import Currency from '$lib/parts/currency.svelte';
 	import Email from '$lib/parts/email.svelte';
 	import Password from '$lib/parts/password.svelte';
 	import Terms from '$lib/parts/terms.svelte';
@@ -382,6 +383,9 @@
 					{/if}
 					{#if showWallet}
 						<Wallet />
+					{/if}
+					{#if formMode === FormMode.Register}
+						<Currency />
 					{/if}
 					<Language />
 					<Terms />
