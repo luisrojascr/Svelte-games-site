@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "gen_games": "env-cmd -f .env ts-node ./src/gen_games.ts"
+    "gen_games": "env-cmd -f .env ts-node ./src/gen_games.ts",
+    "gen_locale": "env-cmd -f .env ts-node ./src/gen_locale.ts"
   },
   "keywords": [],
   "author": "dev1",
@@ -16,6 +17,6 @@
   },
   "dependencies": {
     "mongodb": "^6.1.0",
-    "openai": "^4.11.1"
+    "openai": "^4.17.4"
   }
 }
