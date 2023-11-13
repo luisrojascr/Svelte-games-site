@@ -1,0 +1,18 @@
+{
+	"bonus_code": "ボーナスコード",
+	"choose_a_password": "パスワードを選択",
+	"choose_a_username": "ユーザー名を選択",
+	"create_account": "アカウントを作成",
+	"email": "メール",
+	"email_address": "メールアドレス",
+	"login": "ログイン",
+	"logout": "ログアウト",
+	"optional": "任意",
+	"password": "パスワード",
+	"play_now": "今すぐプレイ",
+	"register": "登録",
+	"terms": "プライバシーポリシーに同意します、利用規約に同意します、賭博が地元の当局によって禁止されていないことを確認します、少なくとも18歳以上であることを確認します、複数のアカウントの使用が禁止されていることを確認します。",
+	"twofa_totp_code": "2段階認証 TOTPコード",
+	"username": "ユーザー名",
+	"wallet_address": "ウォレットアドレス"
+}

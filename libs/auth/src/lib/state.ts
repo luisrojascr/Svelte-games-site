@@ -1,5 +1,6 @@
 import { writable } from 'svelte/store';
 
+export const stateLanguage = writable<string>('en');
 export const stateBonusCode = writable<string>('');
 export const stateBonusCodeConfirmed = writable<boolean>(false);
 export const stateEmail = writable<string>('');

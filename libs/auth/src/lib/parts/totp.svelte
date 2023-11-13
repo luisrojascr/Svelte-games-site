@@ -3,6 +3,7 @@
 	import IncorrectIcon from '$lib/icons/incorrect.svelte';
 	import LockIcon from '$lib/icons/lock.svelte';
 	import RemoveIcon from '$lib/icons/remove.svelte';
+	import { t } from '$lib/locale/i18n';
 	import { stateTotp, stateTotpSet } from '../state';
 
 	export let incorrect = false;
@@ -58,7 +59,7 @@
 			type="text"
 			name="totp"
 			id="totp"
-			placeholder={`2FA TOTP code`}
+			placeholder={$t('twofa_totp_code')}
 			minlength="6"
 			maxlength="6"
 			required

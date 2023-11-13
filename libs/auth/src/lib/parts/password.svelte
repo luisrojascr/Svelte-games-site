@@ -5,6 +5,7 @@
 	import IncorrectIcon from '$lib/icons/incorrect.svelte';
 	import LockIcon from '$lib/icons/lock.svelte';
 	import RemoveIcon from '$lib/icons/remove.svelte';
+	import { t } from '$lib/locale/i18n';
 	import { statePassword, statePasswordSet } from '../state';
 	import { FormMode } from '../types';
 
@@ -57,7 +58,7 @@
 			type="password"
 			name="password"
 			id="password"
-			placeholder={mode === FormMode.Register ? `choose password` : `password`}
+			placeholder={mode === FormMode.Register ? $t('choose_a_password') : $t('password')}
 			minlength="8"
 			{required}
 			bind:this={element}

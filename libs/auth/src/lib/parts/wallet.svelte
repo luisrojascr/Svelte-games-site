@@ -2,6 +2,7 @@
 	import CheckIcon from '$lib/icons/check.svelte';
 	import RemoveIcon from '$lib/icons/remove.svelte';
 	import WalletIcon from '$lib/icons/wallet.svelte';
+	import { t } from '$lib/locale/i18n';
 	import { stateWalletAddress, stateWalletConfirmed } from '../state';
 
 	let element: HTMLInputElement;
@@ -39,7 +40,7 @@
 			autocomplete="off"
 			disabled={true}
 			bind:this={element}
-			placeholder={`wallet address`}
+			placeholder={$t('wallet_address')}
 			{value}
 		/>
 		{#if confirmed}

@@ -8,6 +8,7 @@
 	import { ethers, getAddress } from 'ethers';
 	import { SiweMessage } from 'siwe';
 	import { stateWalletAddress, stateWalletConfirmed } from '../state';
+
 	let confirmed = false;
 	let wallet_address: string | undefined = undefined;
 

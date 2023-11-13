@@ -4,6 +4,7 @@
 	import IncorrectIcon from '$lib/icons/incorrect.svelte';
 	import RemoveIcon from '$lib/icons/remove.svelte';
 	import UserIcon from '$lib/icons/user.svelte';
+	import { t } from '$lib/locale/i18n';
 	import { stateUsername, stateUsernameConfirmed } from '../state';
 
 	const MINLEN = 6;
@@ -79,7 +80,7 @@
 			maxlength={MAXLEN}
 			required
 			autocomplete="off"
-			placeholder={`choose username`}
+			placeholder={$t('choose_a_username')}
 			bind:this={element}
 			on:change={onChange}
 			on:input={onChange}

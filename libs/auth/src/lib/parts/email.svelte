@@ -2,12 +2,12 @@
 	import CheckIcon from '$lib/icons/check.svelte';
 	import EmailIcon from '$lib/icons/email.svelte';
 	import RemoveIcon from '$lib/icons/remove.svelte';
+	import { t } from '$lib/locale/i18n';
 	import { OAuthExtension } from '@magic-ext/oauth';
 	import jwt_decode from 'jwt-decode';
 	import { Magic } from 'magic-sdk';
 	import { onMount } from 'svelte';
 	import { stateEmail, stateEmailConfirmed, stateMagicToken } from '../state';
-
 	let element: HTMLInputElement;
 	let confirmed = false;
 	let value = '';
@@ -116,7 +116,7 @@
 			type="email"
 			name="email"
 			id="email"
-			placeholder={`email address` + (required ? `` : ` (optional)`)}
+			placeholder={`${$t('email_address')}` + (required ? `` : ` (${$t('optional')})`)}
 			{required}
 			bind:this={element}
 			on:change={onChange}

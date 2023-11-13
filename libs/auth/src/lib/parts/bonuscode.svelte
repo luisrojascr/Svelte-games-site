@@ -3,6 +3,7 @@
 	import GiftIcon from '$lib/icons/gift.svelte';
 	import IncorrectIcon from '$lib/icons/incorrect.svelte';
 	import RemoveIcon from '$lib/icons/remove.svelte';
+	import { t } from '$lib/locale/i18n';
 	import { stateBonusCode, stateBonusCodeConfirmed } from '../state';
 
 	let element: HTMLInputElement;
@@ -23,10 +24,10 @@
 		}
 	};
 
-	stateBonusCode.subscribe((value) => {
-		if (value) {
-			value = value;
-			if (element) element.value = value;
+	stateBonusCode.subscribe((_value) => {
+		if (_value) {
+			value = _value;
+			if (element) element.value = _value;
 		}
 	});
 
@@ -64,7 +65,7 @@
 			type="email"
 			name="email"
 			id="email"
-			placeholder={`bonus code (optional)`}
+			placeholder={`${$t('bonus_code')} (${$t('optional')})`}
 			bind:this={element}
 			on:change={onChange}
 			on:input={onChange}

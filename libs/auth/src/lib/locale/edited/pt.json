@@ -1,0 +1,18 @@
+{
+	"bonus_code": "código de bônus",
+	"choose_a_password": "escolha uma senha",
+	"choose_a_username": "escolha um nome de usuário",
+	"create_account": "Criar conta",
+	"email": "e-mail",
+	"email_address": "endereço de e-mail",
+	"login": "entrar",
+	"logout": "sair",
+	"optional": "opcional",
+	"password": "senha",
+	"play_now": "Jogar agora",
+	"register": "registrar",
+	"terms": "Concordo com a Política de Privacidade, Termos de Uso, O jogo não é proibido pelas autoridades locais, tenho pelo menos 18 anos e o uso de várias contas é proibido.",
+	"twofa_totp_code": "Código 2FA TOTP",
+	"username": "nome de usuário",
+	"wallet_address": "endereço da carteira"
+}

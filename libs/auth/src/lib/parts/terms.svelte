@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { t } from '$lib/locale/i18n';
 	import { stateTermsConfirmed } from '../state';
 
 	let _element: HTMLInputElement;
@@ -8,8 +9,7 @@
 <span class="section">
 	<span class="terms">
 		<!-- <input type="checkbox" name="terms" id="terms" bind:this={_element} on:click={onCheck} /> -->
-		I agree with the Privacy Policy, Terms of Use, Gambling isn't forbidden by my local authorities,
-		I'm at least 18 years old, and the use of multiple accounts is prohibited.
+		{$t('terms')}
 	</span>
 </span>
 

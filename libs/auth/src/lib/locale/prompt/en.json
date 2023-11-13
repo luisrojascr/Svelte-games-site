@@ -1,0 +1,18 @@
+{
+	"bonus_code": "bonus code",
+	"choose_a_password": "choose a password",
+	"choose_a_username": "choose a username",
+	"create_account": "Create Account",
+	"email": "email",
+	"email_address": "email address",
+	"login": "login",
+	"logout": "logout",
+	"optional": "optional",
+	"password": "password",
+	"play_now": "Play Now",
+	"register": "register",
+	"terms": "I agree with the Privacy Policy, Terms of Use, Gambling isn't forbidden by my local authorities, I'm at least 18 years old, and the use of multiple accounts is prohibited.",
+	"twofa_totp_code": "2FA TOTP code",
+	"username": "username",
+	"wallet_address": "wallet address"
+}

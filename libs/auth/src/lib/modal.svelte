@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { LoginResult } from '$lib/api/api';
 	import { Login, Registration } from '$lib/api/api';
+	import { t } from '$lib/locale/i18n';
 	import Connects from '$lib/parts/connects.svelte';
 	import Email from '$lib/parts/email.svelte';
 	import Password from '$lib/parts/password.svelte';
@@ -10,6 +11,7 @@
 	import Wallet from '$lib/parts/wallet.svelte';
 	import { deleteToken, loggedIn, verifyToken } from '$lib/token';
 	import BonusCode from './parts/bonuscode.svelte';
+	import Language from './parts/language.svelte';
 	import {
 		stateBonusCode,
 		stateEmail,
@@ -121,11 +123,9 @@
 			console.log(`LoginCheck error ${e}`);
 		}
 		submitting = false;
-		console.log('submitting false');
 	};
 
 	const switchMode = (event: Event, _mode: FormMode): void => {
-		console.log(`want to switch to ${_mode}`);
 		if (check?.isRegistered === true && _mode === FormMode.Register) {
 			return;
 		}
@@ -137,7 +137,6 @@
 				stateMagicToken.set('');
 			}
 		}
-		console.log(`switching to ${_mode}`);
 		formMode = _mode;
 	};
 
@@ -184,7 +183,6 @@
 		}
 		if (formMode === FormMode.Register) {
 			submitting = true;
-			console.log(`submitting ${submitting}`);
 			await forRender(10);
 			try {
 				const vars = {
@@ -265,7 +263,6 @@
 			}
 		}
 		submitting = false;
-		console.log('submitting false');
 	};
 
 	const logout = (): void => {
@@ -351,12 +348,12 @@
 						<a
 							href={'#'}
 							on:click={(e) => switchMode(e, FormMode.Login)}
-							class={`mode${formMode === FormMode.Login ? '_selected' : ''}`}>Login</a
+							class={`mode${formMode === FormMode.Login ? '_selected' : ''}`}>{$t('login')}</a
 						>
 						<a
 							href={'#'}
 							on:click={(e) => switchMode(e, FormMode.Register)}
-							class={`mode${formMode === FormMode.Register ? '_selected' : ''}`}>Register</a
+							class={`mode${formMode === FormMode.Register ? '_selected' : ''}`}>{$t('register')}</a
 						>
 					</div>
 					<Email bind:required={emailRequired} />
@@ -386,25 +383,26 @@
 					{#if showWallet}
 						<Wallet />
 					{/if}
+					<Language />
 					<Terms />
 					{#if isLoggedIn}
 						<button
 							class="playnow"
 							on:click={submit}
-							disabled={submitting || !(isLoggedIn || ready)}>{`Play Now`}</button
+							disabled={submitting || !(isLoggedIn || ready)}>{$t('play_now')}</button
 						>
 					{:else if formMode === FormMode.Register}
 						<button
 							class="playnow"
 							on:click={submit}
-							disabled={submitting || !(isLoggedIn || ready)}>{`Create Account`}</button
+							disabled={submitting || !(isLoggedIn || ready)}>{$t('create_account')}</button
 						>
 					{/if}
 					<Connects />
 				{/if}
 				{#if isLoggedIn === true}
 					<div class="logout">
-						<a href={'#'} on:click={logout} class="logout">logout</a>
+						<a href={'#'} on:click={logout} class="logout">{$t('logout')}</a>
 					</div>
 				{/if}
 			</div>
