@@ -123,7 +123,7 @@ export type MutationRootRegistrationArgs = {
   sessionId?: InputMaybe<Scalars['String']['input']>;
   stag?: InputMaybe<Scalars['String']['input']>;
   totp?: InputMaybe<Scalars['String']['input']>;
-  username: Scalars['String']['input'];
+  username?: InputMaybe<Scalars['String']['input']>;
   walletAddress?: InputMaybe<Scalars['String']['input']>;
 };
 
@@ -194,7 +194,7 @@ export type RegistrationMutationVariables = Exact<{
   magicLinkToken?: InputMaybe<Scalars['String']['input']>;
   password?: InputMaybe<Scalars['String']['input']>;
   stag?: InputMaybe<Scalars['String']['input']>;
-  username: Scalars['String']['input'];
+  username?: InputMaybe<Scalars['String']['input']>;
   walletAddress?: InputMaybe<Scalars['String']['input']>;
 }>;
 
@@ -278,7 +278,7 @@ export const LoginCheckDoc = gql`
 }
     `;
 export const RegistrationDoc = gql`
-    mutation Registration($emailAddress: String, $googleAuthToken: String, $language: String, $magicLinkToken: String, $password: String, $stag: String, $username: String!, $walletAddress: String) {
+    mutation Registration($emailAddress: String, $googleAuthToken: String, $language: String, $magicLinkToken: String, $password: String, $stag: String, $username: String, $walletAddress: String) {
   registration(
     emailAddress: $emailAddress
     googleAuthToken: $googleAuthToken

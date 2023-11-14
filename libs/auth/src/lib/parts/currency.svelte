@@ -3,14 +3,12 @@
 	import { stateCurrency } from '$lib/state';
 
 	let element: HTMLSelectElement;
-	let value = '';
 
 	const onChange = () => {
 		stateCurrency.set(element.value);
 	};
 
 	stateCurrency.subscribe((_value) => {
-		value = _value;
 		if (element) element.value = _value;
 	});
 </script>
@@ -26,7 +24,6 @@
 			bind:this={element}
 			on:change={onChange}
 			on:input={onChange}
-			{value}
 		>
 			<option value="EUR">EUR</option>
 			<option value="USD">USD</option>

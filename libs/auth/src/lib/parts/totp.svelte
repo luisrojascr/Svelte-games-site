@@ -11,7 +11,6 @@
 	let element: HTMLInputElement;
 	let valid = false;
 	let allowed = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
-	let value = '';
 
 	const onChange = () => {
 		valid = element.checkValidity();
@@ -46,7 +45,6 @@
 	const onRemove = (event: Event) => {
 		event.preventDefault();
 		stateTotp.set('');
-		value = '';
 	};
 </script>
 
@@ -70,7 +68,6 @@
 			on:blur={onBlur}
 			on:keypress={onKeyPress}
 			on:paste={onPaste}
-			{value}
 		/>
 	</div>
 	{#if incorrect}<IncorrectIcon />{:else if valid}

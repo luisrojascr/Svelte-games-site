@@ -16,7 +16,6 @@
 	let element: HTMLInputElement;
 	let valid = false;
 	let revealed = false;
-	let value = '';
 	let confirmed = false;
 
 	const onChange = () => {
@@ -42,7 +41,6 @@
 	const onRemove = (event: Event) => {
 		event.preventDefault();
 		statePassword.set('');
-		value = '';
 		// statePasswordConfirmed.set(false);
 		valid = false;
 		confirmed = false;
@@ -65,7 +63,6 @@
 			on:change={onChange}
 			on:input={onChange}
 			on:blur={onBlur}
-			{value}
 		/>
 		<a class="trailing-icon" href={'#'} on:click={onRevealToggle} tabindex="-1">
 			{#if revealed}

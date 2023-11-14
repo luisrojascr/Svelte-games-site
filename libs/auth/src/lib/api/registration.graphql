@@ -5,7 +5,7 @@ mutation Registration(
 	$magicLinkToken: String
 	$password: String
 	$stag: String
-	$username: String!
+	$username: String
 	$walletAddress: String
 ) {
 	registration(

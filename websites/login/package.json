@@ -1,6 +1,6 @@
 {
 	"name": "@infinitro/login",
-	"version": "0.1.25",
+	"version": "0.1.26",
 	"private": true,
 	"scripts": {
 		"dev:prod": "NODE_ENV=production VITE_GIT_VERSION=$(git rev-parse --short HEAD) VITE_APP_VERSION=$npm_package_version env-cmd -f .env.prod.env vite dev",

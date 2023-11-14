@@ -36,11 +36,15 @@ export const setCookie = (key: string, value: string): void => {
 };
 
 export const deleteCookie = (key: string): void => {
-	document.cookie = `${key}=; domain=${getDomain()}; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+	const cookie = `${key}=; domain=${getDomain()}; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+	console.log(`delete cookie ${cookie}`);
+	document.cookie = cookie;
+	console.log(`session ${getCookie('session')}`);
 };
 
 const initToken = (): Token | null => {
 	const _token = getCookie('session');
+	console.log(`initToken ${_token}`);
 	if (!_token) {
 		loggedIn.set(false);
 		return null;

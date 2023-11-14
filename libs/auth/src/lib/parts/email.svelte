@@ -10,7 +10,6 @@
 	import { stateEmail, stateEmailConfirmed, stateMagicToken } from '../state';
 	let element: HTMLInputElement;
 	let confirmed = false;
-	let value = '';
 
 	export let required = true;
 
@@ -21,7 +20,6 @@
 	const onChange = () => {
 		const _valid = element.checkValidity();
 		if (_valid) stateEmail.set(element.value);
-		else stateEmail.set('');
 	};
 
 	const onBlur = (event: Event) => {
@@ -32,7 +30,6 @@
 	};
 
 	stateEmail.subscribe((_value) => {
-		value = _value;
 		if (element) element.value = _value;
 	});
 
@@ -100,7 +97,6 @@
 	const onRemove = (event: Event) => {
 		event.preventDefault();
 		stateEmail.set('');
-		value = '';
 		stateEmailConfirmed.set(false);
 		stateMagicToken.set('');
 		confirmed = false;
@@ -123,7 +119,6 @@
 			on:input={onChange}
 			on:blur={onBlur}
 			disabled={confirmed}
-			{value}
 		/>
 		{#if confirmed}
 			<a class="trailing-icon" href={'#'} on:click={onRemove} tabindex="-1">

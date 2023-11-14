@@ -12,7 +12,7 @@
 	stateWalletAddress.subscribe((_value) => {
 		if (_value) {
 			value = _value;
-			if (element) element.value = value;
+			if (element) element.value = _value;
 		}
 	});
 	stateWalletConfirmed.subscribe((value) => {
@@ -22,7 +22,6 @@
 	const onRemove = (event: Event) => {
 		event.preventDefault();
 		stateWalletAddress.set('');
-		value = '';
 		stateWalletConfirmed.set(false);
 		confirmed = false;
 	};
@@ -40,7 +39,6 @@
 			autocomplete="off"
 			disabled={true}
 			bind:this={element}
-			placeholder={$t('wallet_address')}
 			{value}
 		/>
 		{#if confirmed}

@@ -9,7 +9,6 @@
 	let element: HTMLInputElement;
 	let confirmed = false;
 	let incorrect = false;
-	let value = '';
 
 	const onChange = () => {
 		const _valid = element.checkValidity();
@@ -26,7 +25,6 @@
 
 	stateBonusCode.subscribe((_value) => {
 		if (_value) {
-			value = _value;
 			if (element) element.value = _value;
 		}
 	});
@@ -52,7 +50,6 @@
 	const onRemove = (event: Event) => {
 		event.preventDefault();
 		stateBonusCode.set('');
-		value = '';
 		stateBonusCodeConfirmed.set(false);
 		confirmed = false;
 	};
@@ -71,7 +68,6 @@
 			on:input={onChange}
 			on:blur={onBlur}
 			disabled={confirmed}
-			{value}
 		/>
 		{#if confirmed}
 			<a class="trailing-icon" href={'#'} on:click={onRemove} tabindex="-1">
