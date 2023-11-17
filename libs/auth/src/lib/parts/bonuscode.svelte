@@ -56,7 +56,7 @@
 </script>
 
 <span class="section">
-	<div class="relative w-full">
+	<div class="input">
 		<div class="leading-icon"><GiftIcon /></div>
 		<input
 			type="email"
@@ -84,11 +84,14 @@
 	.section {
 		@apply pt-4 flex;
 	}
+	div.input {
+		@apply relative w-full;
+	}
 	.leading-icon {
-		@apply absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none;
+		@apply relative top-[28px] left-0 flex items-center pl-3.5 pointer-events-none;
 	}
 	.trailing-icon {
-		@apply absolute inset-y-0 right-0 flex items-center pr-3.5 pointer-events-auto;
+		@apply relative top-[28px] right-0 flex items-center pr-3.5 pointer-events-auto;
 	}
 	input,
 	input:disabled {

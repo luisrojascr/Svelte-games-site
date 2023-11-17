@@ -1,7 +1,6 @@
 <svg
 	version="1.1"
 	id="Layer_1"
-	class="button-icon"
 	viewBox="0 0 318.6 318.6"
 	style="enable-background:new 0 0 318.6 318.6;"
 	xml:space="preserve"
@@ -135,7 +134,7 @@
 </svg>
 
 <style lang="postcss">
-	.button-icon {
+	svg {
 		@apply w-10 h-10;
 	}
 </style>
