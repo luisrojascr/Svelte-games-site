@@ -34,7 +34,9 @@
 	} from './state';
 	import { FormMode } from './types';
 
-	const post_auth_url = import.meta.env.VITE_POSTAUTH_URL;
+	const postAuthUrl = import.meta.env.VITE_POSTAUTH_URL;
+	const isFramed = window.self !== window.top;
+	console.log(`isFramed: ${isFramed}`);
 
 	let form: HTMLFormElement;
 	let formMode: FormMode = FormMode.Login;
@@ -69,7 +71,11 @@
 	};
 
 	const goToPostAuth = () => {
-		const url = `${post_auth_url}${post_auth_url.endsWith('/') ? '' : '/'}${language}`;
+		if (window.self !== window.parent) {
+			window.parent.postMessage({ hardReload: true }, '*');
+			return;
+		}
+		const url = `${postAuthUrl}${postAuthUrl.endsWith('/') ? '' : '/'}${language}`;
 		window.location.replace(url);
 	};
 
@@ -259,6 +265,11 @@
 		stateReset();
 	};
 
+	const close = (event: Event): void => {
+		event?.preventDefault();
+		window.parent.postMessage({ showLogin: false }, '*');
+	};
+
 	loggedIn.subscribe((value: boolean | undefined) => (isLoggedIn = value));
 
 	stateBonusCode.subscribe((value) => {
@@ -339,12 +350,15 @@
 	});
 </script>
 
-<form bind:this={form} on:submit={submit}>
-	<div class="underlay" />
-	<div class="overlay">
-		<div class="center">
-			<div class="modal">
-				{#if isLoggedIn === false}
+{#if isLoggedIn === false}
+	<form bind:this={form} on:submit={submit}>
+		<div class="underlay" />
+		<div class="overlay">
+			<div class="center">
+				<div class="modal">
+					{#if isFramed}
+						<button class="close" on:click={close}>x</button>
+					{/if}
 					<div class="mode">
 						<a
 							href={'#'}
@@ -399,16 +413,11 @@
 						>
 					{/if}
 					<Connects />
-				{/if}
-				{#if isLoggedIn === true}
-					<div class="logout">
-						<a href={'#'} on:click={logout} class="logout">{$t('logout')}</a>
-					</div>
-				{/if}
+				</div>
 			</div>
 		</div>
-	</div>
-</form>
+	</form>
+{/if}
 
 <style lang="postcss">
 	.header {
@@ -446,5 +455,11 @@
 	}
 	a.mode {
 		@apply text-gray-400 text-sm uppercase font-extrabold pr-3 pl-3 pb-3;
+	}
+	button.close {
+		@apply absolute top-0 right-0 text-gray-500 text-base font-medium border-[1px] border-gray-600 w-8 h-8 flex items-center justify-center rounded-lg;
+	}
+	button.close:hover {
+		@apply text-gray-400  border-gray-500;
 	}
 </style>
