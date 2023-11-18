@@ -1,9 +1,13 @@
 {
-	"name": "chat",
-	"version": "0.0.1",
+	"name": "@infintro/chat",
+	"version": "0.0.6",
 	"scripts": {
-		"dev": "vite dev",
-		"build": "vite build && npm run package",
+		"dev:prod": "NODE_ENV=production VITE_GIT_VERSION=$(git rev-parse --short HEAD) VITE_APP_VERSION=$npm_package_version env-cmd -f .env.prod.env vite dev",
+		"dev:stage": "NODE_ENV=production VITE_GIT_VERSION=$(git rev-parse --short HEAD) VITE_APP_VERSION=$npm_package_version env-cmd -f .env.stage.env vite dev",
+		"dev:local": "NODE_ENV=production VITE_GIT_VERSION=$(git rev-parse --short HEAD) VITE_APP_VERSION=$npm_package_version env-cmd -f .env.local.env vite dev",
+		"build:prod": "NODE_ENV=production VITE_GIT_VERSION=$(git rev-parse --short HEAD) VITE_APP_VERSION=$npm_package_version env-cmd -f .env.prod.env vite build --base=/auth/ && npm run package",
+		"build:stage": "NODE_ENV=production VITE_GIT_VERSION=$(git rev-parse --short HEAD) VITE_APP_VERSION=$npm_package_version env-cmd -f .env.stage.env vite build --base=/auth/ && npm run package",
+		"build:local": "NODE_ENV=production VITE_GIT_VERSION=$(git rev-parse --short HEAD) VITE_APP_VERSION=$npm_package_version env-cmd -f .env.local.env vite build --base=/auth/ && npm run package",
 		"preview": "vite preview",
 		"package": "svelte-kit sync && svelte-package && publint",
 		"prepublishOnly": "npm run package",
@@ -42,7 +46,7 @@
 		"eslint": "^8.28.0",
 		"eslint-config-prettier": "^8.5.0",
 		"eslint-plugin-svelte": "^2.30.0",
-		"postcss": "^8.4.30",
+		"postcss": "^8.4.31",
 		"prettier": "^2.8.0",
 		"prettier-plugin-svelte": "^2.10.1",
 		"publint": "^0.1.9",
@@ -56,5 +60,10 @@
 	},
 	"svelte": "./dist/index.js",
 	"types": "./dist/index.d.ts",
-	"type": "module"
+	"type": "module",
+	"dependencies": {
+		"env-cmd": "^10.1.0",
+		"svelte-icons-pack": "^2.1.0",
+		"svelte-select": "^5.7.0"
+	}
 }

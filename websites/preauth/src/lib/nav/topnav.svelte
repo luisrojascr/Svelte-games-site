@@ -29,8 +29,10 @@
 	};
 </script>
 
-<nav class="fixed z-[1] w-full h-16 bg-[#111A41] align-middle px-0 lg:pl-3">
-	<div class="flex justify-between items-center">
+<nav
+	class="flex w-full h-16 bg-[#111A41] align-middle border-b border-[#2D3969] px-0 lg:pl-3 z-[100] justify-center"
+>
+	<div class="flex justify-between items-center w-full">
 		<div class="flex py-0 px-0 h-16 justify-start items-center">
 			<a href="./" class="flex mr-14 pl-7">
 				<FlushLogo />
@@ -38,7 +40,7 @@
 		</div>
 		<div class="flex py-0 px-0 items-center h-16">
 			<div class="relative flex items-center">
-				<div class="flex items-center -md:hidden pr-6">
+				<div class="hidden items-center sm:flex pr-6">
 					<div
 						class="flex h-10 items-center justify-center rounded-[20px] bg-[#182350] cursor-pointer py-2 px-4 hover:bg-[#172045] -sm:rounded-[15px] -smmr-[10px] -sm:py-[6px] -sm:px-[10px]"
 					>

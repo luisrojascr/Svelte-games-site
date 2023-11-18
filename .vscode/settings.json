@@ -8,11 +8,5 @@
   "editor.wordWrapColumn": 120,
   "editor.codeActionsOnSave": {
     "source.sortImports": true
-  },
-  "workbench.colorCustomizations": {
-    "titleBar.activeBackground": "#d122d9",
-    "titleBar.activeForeground": "#ffffff",
-    "titleBar.inactiveBackground": "#8115d9",
-    "titleBar.inactiveForeground": "#cccccc"
   }
 }

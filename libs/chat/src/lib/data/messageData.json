@@ -1,0 +1,72 @@
+{
+	"messagesData": [
+		{
+			"userLink": "#/user/profile/12305431",
+			"avatar": "https://img2.bc.game/avatar/12305431/s",
+			"username": "Mrym",
+
+			"messageTime": "17:10",
+			"messageGif": "https://media2.giphy.com/media/LYRSRTWa9oD8fdvV4C/100.gif",
+			"messageText": ""
+		},
+		{
+			"userLink": "#/user/profile/12305431",
+			"avatar": "https://img2.bc.game/avatar/12305431/s",
+			"username": "Oasds",
+
+			"messageTime": "17:14",
+			"messageGif": "",
+			"messageText": "This an example of a message text"
+		},
+		{
+			"userLink": "#/user/profile/12305431",
+			"avatar": "https://img2.bc.game/avatar/12305431/s",
+			"username": "Mdssd2",
+
+			"messageTime": "17:16",
+			"messageGif": "",
+			"messageText": "Ok this is another example bro"
+		},
+		{
+			"userLink": "#/user/profile/12305431",
+			"avatar": "https://img2.bc.game/avatar/12305431/s",
+			"username": "Dude",
+
+			"messageTime": "17:24",
+			"messageGif": "https://media2.giphy.com/media/LYRSRTWa9oD8fdvV4C/100.gif",
+			"messageText": ""
+		},
+		{
+			"userLink": "#/user/profile/12305431",
+			"avatar": "https://img2.bc.game/avatar/12305431/s",
+			"username": "Other Dude",
+			"messageTime": "17:30",
+			"messageGif": "",
+			"messageText": "Ok this is another example bro"
+		},
+		{
+			"userLink": "#/user/profile/12305431",
+			"avatar": "https://img2.bc.game/avatar/12305431/s",
+			"username": "Mdssd2",
+			"messageTime": "17:33",
+			"messageGif": "",
+			"messageText": "ljkadsbvjkbadfvljbefjhvbajhdfbvojhadsbvjohabdfsovjhbaojhsdbvjhbwdcjbawdvhjbapefvajpdvhbapjdvbpajbfdvpiabwervpijbapifvbaihpevbriap"
+		},
+		{
+			"userLink": "#/user/profile/12305431",
+			"avatar": "https://img2.bc.game/avatar/12305431/s",
+			"username": "Dude",
+			"messageTime": "17:39",
+			"messageGif": "",
+			"messageText": "ljkads adjoad nmopoakd test aosdk pao sdasdpoka posdkaopkd asdkoa dsoikapos diajsdp ajiofjpoao dkapo sdijaiopfkaskdpo asdipokjap djpoiasd js"
+		},
+		{
+			"userLink": "#/user/profile/12305431",
+			"avatar": "https://img2.bc.game/avatar/12305431/s",
+			"username": "Other Dude",
+			"messageTime": "17:44",
+			"messageGif": "",
+			"messageText": "Ok, that's good."
+		}
+	]
+}

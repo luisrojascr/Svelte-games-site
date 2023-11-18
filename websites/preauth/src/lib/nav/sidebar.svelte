@@ -66,14 +66,14 @@
 		? 'w-60'
 		: 'w-16'} {isMenuMobileOpen
 		? 'visible'
-		: 'hidden'} bg-[#111A41] lg:visible lg:flex fixed top-0 left-0 z-0 flex-col flex-shrink-0 pt-16 h-full duration-75 transition-width"
+		: 'hidden'} bg-[#111A41] lg:visible lg:flex relative flex overflow-visible left-auto z-0 flex-col flex-shrink-0 duration-75 transition-width h-screen"
 	aria-label="Sidebar"
 	bind:this={_element}
 	on:mouseenter={expand_over}
 	on:mouseleave={expand_out}
 >
 	<div
-		class="flex relative flex-col flex-1 pt-2 min-h-0 bg-[#111A41] text-[#a7abbb] fg-red border-r border-t border-[#2D3969]"
+		class="flex relative flex-col flex-1 pt-2 min-h-0 bg-[#111A41] text-[#a7abbb] fg-red border-r border-[#2D3969]"
 	>
 		{#each sidebarCategories as category}
 			<SidebarItem
