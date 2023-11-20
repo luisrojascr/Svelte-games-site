@@ -1,2 +1,2 @@
-import SettingsModal from './modal.svelte';
-export { SettingsModal };
+import Modal from './modal.svelte';
+export { Modal };

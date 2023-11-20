@@ -13,7 +13,7 @@ const config = {
 			precompress: false,
 			strict: true
 		}),
-		paths: { base: '/modal' }
+		paths: { base: '/cashier' }
 	}
 };
 
