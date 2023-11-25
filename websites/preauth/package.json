@@ -44,6 +44,7 @@
 	},
 	"type": "module",
 	"dependencies": {
-		"@infintro/chat": "file:../../libs/chat"
+		"@infintro/chat": "link:../../libs/chat",
+		"flowbite-svelte": "^0.44.19"
 	}
 }

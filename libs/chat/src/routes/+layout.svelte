@@ -19,5 +19,4 @@
 
 <body>
 	<Chat />
-	<slot />
 </body>

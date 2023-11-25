@@ -53,7 +53,7 @@
 
 <style type="postcss">
 	.main-container {
-		@apply flex bg-background-950 w-full h-full relative;
+		@apply flex bg-primary-900 w-full h-full relative;
 	}
 	.main-wrapper {
 		@apply w-full h-screen flex flex-col overflow-hidden relative;
@@ -62,12 +62,12 @@
 		@apply flex overflow-hidden h-screen bottom-0 right-0 top-16 left-0 flex-1;
 	}
 	.btn-chat-sidebar {
-		@apply fixed justify-center border-t border-t-background-500 border-l border-l-background-500 border-b border-b-background-500 py-3 px-2 right-0 bottom-4 cursor-pointer rounded-l;
+		@apply fixed justify-center border-t border-t-primary-600 border-l border-l-primary-600 border-b border-b-primary-600 py-3 px-2 right-0 bottom-4 cursor-pointer rounded-l;
 	}
 	.btn-chat-sidebar:hover {
 		@apply border-l-[#4769fc] border-t-[#4769fc] border-b-[#4769fc];
 	}
 	:global(body) {
-		@apply bg-background-950;
+		@apply bg-primary-900;
 	}
 </style>
