@@ -1,6 +1,6 @@
 {
 	"name": "advent-calendar",
-	"version": "0.0.3",
+	"version": "0.0.4",
 	"scripts": {
 		"dev:prod": "NODE_ENV=production VITE_GIT_VERSION=$(git rev-parse --short HEAD) VITE_APP_VERSION=$npm_package_version env-cmd -f .env.prod.env vite dev",
 		"dev:stage": "NODE_ENV=production VITE_GIT_VERSION=$(git rev-parse --short HEAD) VITE_APP_VERSION=$npm_package_version env-cmd -f .env.stage.env vite dev",
@@ -14,6 +14,7 @@
 		"test": "npm run test:integration && npm run test:unit",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
+		"codegen": "graphql-codegen",
 		"lint": "prettier --check . && eslint .",
 		"format": "prettier --write .",
 		"test:integration": "playwright test",
@@ -34,6 +35,9 @@
 		"svelte": "^4.0.0"
 	},
 	"devDependencies": {
+		"@graphql-codegen/cli": "^5.0.0",
+		"@graphql-codegen/typescript": "^4.0.1",
+		"@graphql-codegen/typescript-operations": "^4.0.1",
 		"@playwright/test": "^1.28.1",
 		"@sveltejs/adapter-static": "^2.0.3",
 		"@sveltejs/kit": "^1.20.4",
@@ -44,6 +48,8 @@
 		"eslint": "^8.28.0",
 		"eslint-config-prettier": "^9.0.0",
 		"eslint-plugin-svelte": "^2.30.0",
+		"graphql-tag": "^2.12.6",
+		"graphql-codegen-svelte-apollo": "^1.1.0",
 		"prettier": "^3.0.0",
 		"prettier-plugin-svelte": "^3.0.0",
 		"publint": "^0.1.9",
@@ -59,7 +65,9 @@
 	"types": "./dist/index.d.ts",
 	"type": "module",
 	"dependencies": {
-		"@sveltejs/adapter-auto": "^2.1.1",
-		"autoprefixer": "^10.4.16"
+		"@apollo/client": "^3.8.4",
+		"autoprefixer": "^10.4.16",
+		"jwt-decode": "^3.1.2",
+		"svelte-apollo": "^0.5.0"
 	}
 }

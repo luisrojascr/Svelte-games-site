@@ -1,0 +1,8 @@
+mutation CalendarOpenDay($month: Int!, $day: Int!) {
+	calendarOpenDay(month: $month, day: $day) {
+		month
+		day
+		title
+		description
+	}
+}

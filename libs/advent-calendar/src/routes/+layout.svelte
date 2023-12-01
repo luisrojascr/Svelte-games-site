@@ -1,8 +1,16 @@
 <script lang="ts">
+	import { client } from '$lib/api/api_client';
 	import Calendar from '$lib/calendar.svelte';
+	import { setClient } from 'svelte-apollo';
 	import '../app.postcss';
 
 	console.log(`AdventCalendar wrapper version ${import.meta.env.VITE_APP_VERSION}`);
+
+	try {
+		setClient(client);
+	} catch (e) {
+		console.log(`error setting client: ${e}`);
+	}
 </script>
 
 <svelte:head>

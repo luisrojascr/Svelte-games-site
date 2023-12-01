@@ -1,10 +1,12 @@
 <script lang="ts">
 	import CalendarBannerMobile from '$lib/images/calendar-banner-mobile.svelte';
 	import CalendarBanner from '$lib/images/calendar-banner.svelte';
+	import { loggedIn } from '$lib/token';
 	import { onMount } from 'svelte';
 	import Giftcard from './parts/giftcard.svelte';
 
 	let isMobile = false;
+	let _loggedIn: boolean | undefined = undefined;
 	// let testHoursOffset = 0;
 
 	let now = new Date();
@@ -44,6 +46,10 @@
 		return () => {
 			window.removeEventListener('resize', updateScreenSize);
 		};
+	});
+
+	loggedIn.subscribe((value) => {
+		_loggedIn = value;
 	});
 </script>
 

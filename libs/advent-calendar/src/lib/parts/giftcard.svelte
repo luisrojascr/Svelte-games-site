@@ -26,14 +26,22 @@
 	import Day_8 from '$lib/images/day-8.svelte';
 	import Day_9 from '$lib/images/day-9.svelte';
 	import Modal from '$lib/parts/modal.svelte';
+	import { loggedIn } from '$lib/token';
 
 	export let day: number;
 	export let state: string;
 
 	let isHovered = false;
 	let showModal = false;
+	let displayReward = false;
+	let _loggedIn: boolean | undefined = undefined;
+
 	const isReady = state === 'ready';
 	const isClaimed = state === 'claimed';
+
+	loggedIn.subscribe((value) => {
+		_loggedIn = value;
+	});
 
 	const days = [
 		Day_1,
@@ -64,7 +72,14 @@
 	];
 
 	function handleClaim() {
-		parent.postMessage({ showLogin: true }, '*');
+		if (_loggedIn === false) {
+			parent.postMessage({ showLogin: true }, '*');
+			console.log(`showLogin`);
+		} else if (_loggedIn === true) {
+			displayReward = true;
+		} else {
+			console.log('loggedIn is undefined');
+		}
 	}
 </script>
 
@@ -92,11 +107,11 @@
 				<svelte:component this={days[day - 1]} {state} />
 			</div>
 
-			<h2 class="modal-title">DAY {day}</h2>
-			{#if isClaimed}
-				<h3 class="modal-gift-claimed">Claimed</h3>
+			{#if displayReward}
+				<p><b>Double VIP Points</b></p>
+				<p>All games played for the rest of this day will earn double VIP points!</p>
 			{:else}
-				<!-- <p class="mt-3">{description}</p> -->
+				<h2 class="modal-title">DAY {day}</h2>
 				<button class="claim-btn" on:click={handleClaim}>Claim</button>
 			{/if}
 		</div>
