@@ -6,7 +6,8 @@ const config = {
 	theme: {
 		fontFamily: {
 			sans: ['Inter'],
-			'sans-2': ['Poppins']
+			'sans-2': ['Poppins'],
+			'mono': ['monospace'],
 		},
 		extend: {
 			borderColor: {

@@ -17,7 +17,7 @@
 	<!-- svelte-ignore a11y-img-redundant-alt a11y-no-static-element-interactions -->
 	<img src={snow} alt="Snow image" class="snow-image" />
 	<!-- svelte-ignore a11y-no-static-element-interactions -->
-	<div on:click|stopPropagation class="relative p-3">
+	<div on:click|stopPropagation class="close">
 		<button type="button" class="close-btn" on:click={() => dialog.close()}
 			><img src={close} alt="Close" /></button
 		>
@@ -28,6 +28,9 @@
 <style lang="postcss">
 	.snow-image {
 		@apply absolute top-[-15px] left-[-14px] max-w-fit;
+	}
+	div.close {
+		@apply relative p-3;
 	}
 	.close-btn {
 		@apply absolute right-0 top-1;

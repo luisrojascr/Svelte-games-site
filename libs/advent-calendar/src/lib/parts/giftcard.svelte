@@ -29,17 +29,11 @@
 
 	export let day: number;
 	export let state: string;
-	export let description: string;
 
 	let isHovered = false;
 	let showModal = false;
 	const isReady = state === 'ready';
 	const isClaimed = state === 'claimed';
-
-	// let currentDay = 1;
-
-	// const imagesPath = '$lib/images';
-	// const days = Array.from({ length: 25 }, (_, i) => import(`${imagesPath}/day-${i + 1}.svelte`));
 
 	const days = [
 		Day_1,
@@ -70,22 +64,21 @@
 	];
 
 	function handleClaim() {
-		console.log('handle claim...');
+		parent.postMessage({ showLogin: true }, '*');
 	}
 </script>
 
 <div class="giftcard">
 	{#if day >= 1 && day <= 25}
 		<button
-			class="flex w-full sm:w-auto {isHovered || isReady || isClaimed
-				? 'opacity-100'
-				: 'opacity-30'}"
-			on:mouseover={() => (isHovered = true)}
+			class="button {!isReady && !isClaimed ? 'disabled' : ''}"
+			on:mouseover={() => (isHovered = isReady || isClaimed)}
 			on:mouseout={() => (isHovered = false)}
 			on:mouseleave={() => (isHovered = false)}
 			on:focus={() => {}}
 			on:blur={() => {}}
-			on:click={() => (showModal = true)}
+			on:click={() => (showModal = isReady || isClaimed)}
+			disabled={!isReady && !isClaimed}
 		>
 			<svelte:component this={days[day - 1]} {state} />
 		</button>
@@ -103,7 +96,7 @@
 			{#if isClaimed}
 				<h3 class="modal-gift-claimed">Claimed</h3>
 			{:else}
-				<p class="mt-3">{description}</p>
+				<!-- <p class="mt-3">{description}</p> -->
 				<button class="claim-btn" on:click={handleClaim}>Claim</button>
 			{/if}
 		</div>
@@ -111,8 +104,14 @@
 {/if}
 
 <style lang="postcss">
+	.button {
+		@apply flex w-full sm:w-auto;
+	}
 	.giftcard {
 		@apply bg-transparent p-2 flex justify-center items-center h-[254px];
+	}
+	.disabled {
+		@apply opacity-30 cursor-default p-[19px];
 	}
 	.modal-content {
 		@apply text-white text-center p-5;
