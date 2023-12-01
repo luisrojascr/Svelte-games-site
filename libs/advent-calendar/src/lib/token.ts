@@ -44,7 +44,6 @@ export const deleteCookie = (key: string): void => {
 
 const initToken = (): Token | null => {
 	const _token = getCookie('session');
-	console.log(`initToken ${_token}`);
 	if (!_token) {
 		loggedIn.set(false);
 		return null;

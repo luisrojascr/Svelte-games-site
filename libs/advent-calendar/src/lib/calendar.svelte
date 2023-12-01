@@ -4,29 +4,35 @@
 	import { loggedIn } from '$lib/token';
 	import { onMount } from 'svelte';
 	import Giftcard from './parts/giftcard.svelte';
+	import { DayState } from './types';
 
+	import type { from } from '@apollo/client';
 	let isMobile = false;
 	let _loggedIn: boolean | undefined = undefined;
-	// let testHoursOffset = 0;
+	let testHoursOffset = 0;
+	let testMinuteOffset = 0;
 
 	let now = new Date();
+	now.setUTCHours(now.getUTCHours() + testHoursOffset);
+	now.setUTCMinutes(now.getUTCMinutes() + testMinuteOffset);
 	let timerString = now.toUTCString();
 	let currentDay = now.getUTCDate();
 
 	setInterval(() => {
 		now = new Date();
-		// now.setUTCHours(now.getUTCHours() + testHoursOffset);
+		now.setUTCHours(now.getUTCHours() + testHoursOffset);
+		now.setUTCMinutes(now.getUTCMinutes() + testMinuteOffset);
 		timerString = now.toUTCString();
 		currentDay = now.getUTCDate();
 	}, 1000);
 
 	const state = (day: number) => {
 		if (day === currentDay) {
-			return 'ready';
+			return DayState.Current;
 		} else if (day < currentDay) {
-			return 'default';
+			return DayState.Past;
 		} else {
-			return 'default';
+			return DayState.Future;
 		}
 	};
 
@@ -63,9 +69,11 @@
 	</div>
 	<div class="datetime">{timerString}</div>
 	<div class="grid-cols-custom">
-		{#each days as day}
-			<Giftcard {day} state={state(day)} />
-		{/each}
+		{#key currentDay}
+			{#each days as day}
+				<Giftcard {day} state={state(day)} {currentDay} />
+			{/each}
+		{/key}
 	</div>
 </div>
 

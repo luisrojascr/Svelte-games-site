@@ -2,15 +2,13 @@
 	import Day_3_opened from '$lib/images/day-3-opened.svelte';
 	import Day_3_ready from '$lib/images/day-3-ready.svelte';
 
-	export let state: string;
-
-	const isReady = state === 'ready';
-	const isClaimed = state === 'claimed';
+	import { DayState } from '$lib/types';
+	export let state: DayState;
 </script>
 
-{#if isReady}
+{#if state === DayState.Current}
 	<Day_3_ready />
-{:else if isClaimed}
+{:else if state === DayState.Past}
 	<Day_3_opened />
 {:else}
 	<svg

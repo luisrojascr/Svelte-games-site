@@ -1,5 +1,4 @@
 <script lang="ts">
-	// @ts-nocheck
 	import Day_1 from '$lib/images/day-1.svelte';
 	import Day_10 from '$lib/images/day-10.svelte';
 	import Day_11 from '$lib/images/day-11.svelte';
@@ -27,17 +26,19 @@
 	import Day_9 from '$lib/images/day-9.svelte';
 	import Modal from '$lib/parts/modal.svelte';
 	import { loggedIn } from '$lib/token';
+	import { DayState } from '../types';
 
 	export let day: number;
-	export let state: string;
+	export let state: DayState;
+	export let currentDay: number;
 
 	let isHovered = false;
 	let showModal = false;
 	let displayReward = false;
 	let _loggedIn: boolean | undefined = undefined;
 
-	const isReady = state === 'ready';
-	const isClaimed = state === 'claimed';
+	// TODO: get daysClaimed from user state API
+	let daysClaimed: number[] = [1, 2].filter((day) => day < currentDay);
 
 	loggedIn.subscribe((value) => {
 		_loggedIn = value;
@@ -71,14 +72,14 @@
 		Day_25
 	];
 
-	function handleClaim() {
+	function handleClaim(event: Event) {
+		console.log(`logged In ${_loggedIn}`);
+		event.preventDefault();
+		event.cancelBubble = true;
 		if (_loggedIn === false) {
 			parent.postMessage({ showLogin: true }, '*');
-			console.log(`showLogin`);
 		} else if (_loggedIn === true) {
 			displayReward = true;
-		} else {
-			console.log('loggedIn is undefined');
 		}
 	}
 </script>
@@ -86,14 +87,14 @@
 <div class="giftcard">
 	{#if day >= 1 && day <= 25}
 		<button
-			class="button {!isReady && !isClaimed ? 'disabled' : ''}"
-			on:mouseover={() => (isHovered = isReady || isClaimed)}
+			class="button {state !== DayState.Current && !daysClaimed.includes(day) ? 'disabled' : ''}"
+			on:mouseover={() => (isHovered = state === DayState.Past)}
 			on:mouseout={() => (isHovered = false)}
 			on:mouseleave={() => (isHovered = false)}
 			on:focus={() => {}}
 			on:blur={() => {}}
-			on:click={() => (showModal = isReady || isClaimed)}
-			disabled={!isReady && !isClaimed}
+			on:click={() => (showModal = state === DayState.Current || daysClaimed.includes(day))}
+			disabled={state !== DayState.Current && !daysClaimed.includes(day)}
 		>
 			<svelte:component this={days[day - 1]} {state} />
 		</button>
@@ -104,10 +105,10 @@
 	<Modal bind:showModal>
 		<div class="modal-content">
 			<div class="modal-gift-image">
-				<svelte:component this={days[day - 1]} {state} />
+				<svelte:component this={days[day - 1]} state={DayState.Current} />
 			</div>
 
-			{#if displayReward}
+			{#if displayReward || state === DayState.Past}
 				<p><b>Double VIP Points</b></p>
 				<p>All games played for the rest of this day will earn double VIP points!</p>
 			{:else}
