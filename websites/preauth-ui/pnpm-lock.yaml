@@ -5,6 +5,9 @@ settings:
   excludeLinksFromLockfile: false
 
 dependencies:
+  '@infintro/advent-calendar':
+    specifier: link:../../libs/advent-calendar
+    version: link:../../libs/advent-calendar
   '@infintro/auth':
     specifier: link:../../libs/auth
     version: link:../../libs/auth

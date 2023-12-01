@@ -1,5 +1,5 @@
 <script lang="ts">
-	import '../app.postcss';
+	import '../../app.postcss';
 
 	console.log(`pre-auth ui version ${import.meta.env.VITE_APP_VERSION}`);
 </script>

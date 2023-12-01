@@ -1,10 +1,12 @@
 <script lang="ts">
+	import Calendar from '$lib/calendar.svelte';
 	import '../app.postcss';
 
-	console.log(`pre-auth ui version ${import.meta.env.VITE_APP_VERSION}`);
+	console.log(`AdventCalendar wrapper version ${import.meta.env.VITE_APP_VERSION}`);
 </script>
 
 <svelte:head>
+	<base href="/advent-calendar" />
 	<link rel="preconnect" href="https://fonts.googleapis.com" />
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="true" />
 	<link
@@ -15,10 +17,6 @@
 	<meta name="google-signin-client_id" content={import.meta.env.VITE_GOOGLE_CLIENT_ID} />
 </svelte:head>
 
-<slot />
-
-<style type="postcss">
-	:global(body) {
-		@apply bg-transparent;
-	}
-</style>
+<div class="bg-primary-950">
+	<Calendar />
+</div>

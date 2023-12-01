@@ -1,0 +1,65 @@
+{
+	"name": "advent-calendar",
+	"version": "0.0.2",
+	"scripts": {
+		"dev:prod": "NODE_ENV=production VITE_GIT_VERSION=$(git rev-parse --short HEAD) VITE_APP_VERSION=$npm_package_version env-cmd -f .env.prod.env vite dev",
+		"dev:stage": "NODE_ENV=production VITE_GIT_VERSION=$(git rev-parse --short HEAD) VITE_APP_VERSION=$npm_package_version env-cmd -f .env.stage.env vite dev",
+		"dev:local": "NODE_ENV=production VITE_GIT_VERSION=$(git rev-parse --short HEAD) VITE_APP_VERSION=$npm_package_version env-cmd -f .env.local.env vite dev",
+		"build:prod": "NODE_ENV=production VITE_GIT_VERSION=$(git rev-parse --short HEAD) VITE_APP_VERSION=$npm_package_version env-cmd -f .env.prod.env vite build --base=/advent-calendar/ && npm run package",
+		"build:stage": "NODE_ENV=production VITE_GIT_VERSION=$(git rev-parse --short HEAD) VITE_APP_VERSION=$npm_package_version env-cmd -f .env.stage.env vite build --base=/advent-calendar/ && npm run package",
+		"build:local": "NODE_ENV=production VITE_GIT_VERSION=$(git rev-parse --short HEAD) VITE_APP_VERSION=$npm_package_version env-cmd -f .env.local.env vite build --base=/advent-calendar/ && npm run package",
+		"preview": "vite preview",
+		"package": "svelte-kit sync && svelte-package && publint",
+		"prepublishOnly": "npm run package",
+		"test": "npm run test:integration && npm run test:unit",
+		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
+		"lint": "prettier --check . && eslint .",
+		"format": "prettier --write .",
+		"test:integration": "playwright test",
+		"test:unit": "vitest"
+	},
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"svelte": "./dist/index.js"
+		}
+	},
+	"files": [
+		"dist",
+		"!dist/**/*.test.*",
+		"!dist/**/*.spec.*"
+	],
+	"peerDependencies": {
+		"svelte": "^4.0.0"
+	},
+	"devDependencies": {
+		"@playwright/test": "^1.28.1",
+		"@sveltejs/adapter-static": "^2.0.3",
+		"@sveltejs/kit": "^1.20.4",
+		"@sveltejs/package": "^2.0.0",
+		"@typescript-eslint/eslint-plugin": "^6.0.0",
+		"@typescript-eslint/parser": "^6.0.0",
+		"env-cmd": "^10.1.0",
+		"eslint": "^8.28.0",
+		"eslint-config-prettier": "^9.0.0",
+		"eslint-plugin-svelte": "^2.30.0",
+		"prettier": "^3.0.0",
+		"prettier-plugin-svelte": "^3.0.0",
+		"publint": "^0.1.9",
+		"svelte": "^4.0.5",
+		"svelte-check": "^3.4.3",
+		"tailwindcss": "^3.3.5",
+		"tslib": "^2.4.1",
+		"typescript": "^5.0.0",
+		"vite": "^4.4.2",
+		"vitest": "^0.32.2"
+	},
+	"svelte": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"type": "module",
+	"dependencies": {
+		"@sveltejs/adapter-auto": "^2.1.1",
+		"autoprefixer": "^10.4.16"
+	}
+}
