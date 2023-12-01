@@ -16,9 +16,3 @@
 </svelte:head>
 
 <slot />
-
-<style type="postcss">
-	:global(body) {
-		@apply bg-transparent;
-	}
-</style>

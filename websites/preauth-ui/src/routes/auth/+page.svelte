@@ -3,3 +3,9 @@
 </script>
 
 <AuthModal />
+
+<style type="postcss">
+	:global(body) {
+		@apply bg-transparent;
+	}
+</style>

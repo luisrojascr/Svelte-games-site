@@ -1,5 +1,5 @@
 {
-	"name": "@infinitro/preauth-ui",
+	"name": "@infinitro/postauth-ui",
 	"version": "0.1.27",
 	"private": true,
 	"scripts": {
@@ -18,8 +18,8 @@
 		"format": "prettier --plugin-search-dir . --write .",
 		"test:integration": "playwright test",
 		"test:unit": "vitest",
-		"upload:stage": "cd ../../libs/auth && pnpm run build:stage && pnpm run package && cd ../../websites/preauth-ui && pnpm run build:stage && aws-vault exec fe-dev -- aws s3 sync ./build s3://preauth-ui-stage.fe-dev.infinitro.dev-19a1ff9 && aws-vault exec fe-dev -- aws cloudfront create-invalidation --distribution-id E1GBTQNNBSR5Z4 --paths '/*'",
-		"upload:prod": "cd ../../libs/auth && pnpm run build:prod && pnpm run package && cd ../../websites/preauth-ui && pnpm run build:prod && aws-vault exec fe-dev -- aws s3 sync ./build s3://preauth-ui.fe-dev.infinitro.dev-4e8550f && aws-vault exec fe-dev -- aws cloudfront create-invalidation --distribution-id E191JI9M78X23S --paths '/*'"
+		"upload:stage": "pnpm run build:stage && aws-vault exec fe-dev -- aws s3 sync ./build s3://postauth-ui-stage.fe-dev.infinitro.dev-a552a30 && aws-vault exec fe-dev -- aws cloudfront create-invalidation --distribution-id E3O1LJ5X2SB4FA --paths '/*'",
+		"upload:prod": "pnpm run build:prod && aws-vault exec fe-dev -- aws s3 sync ./build s3://postauth-ui.fe-dev.infinitro.dev-0609b88 && aws-vault exec fe-dev -- aws cloudfront create-invalidation --distribution-id E2RKFCXO6C5UQ5 --paths '/*'"
 	},
 	"devDependencies": {
 		"@graphql-codegen/cli": "^5.0.0",
@@ -49,7 +49,6 @@
 	},
 	"type": "module",
 	"dependencies": {
-		"@infintro/auth": "link:../../libs/auth",
 		"@infintro/advent-calendar": "link:../../libs/advent-calendar"
 	}
 }

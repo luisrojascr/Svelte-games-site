@@ -3,3 +3,9 @@
 </script>
 
 <Calendar />
+
+<style type="postcss">
+	:global(body) {
+		@apply bg-primary-950;
+	}
+</style>

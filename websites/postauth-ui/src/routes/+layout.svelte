@@ -1,7 +1,7 @@
 <script lang="ts">
-	import '../../app.postcss';
+	import '../app.postcss';
 
-	console.log(`pre-auth ui version ${import.meta.env.VITE_APP_VERSION}`);
+	console.log(`post-auth ui version ${import.meta.env.VITE_APP_VERSION}`);
 </script>
 
 <svelte:head>
@@ -12,13 +12,6 @@
 		rel="stylesheet"
 	/>
 	<link href="https://fonts.googleapis.com/css?family=Poppins" rel="stylesheet" />
-	<meta name="google-signin-client_id" content={import.meta.env.VITE_GOOGLE_CLIENT_ID} />
 </svelte:head>
 
 <slot />
-
-<style type="postcss">
-	:global(body) {
-		@apply bg-primary-950;
-	}
-</style>
