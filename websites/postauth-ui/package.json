@@ -1,6 +1,6 @@
 {
 	"name": "@infinitro/postauth-ui",
-	"version": "0.1.30",
+	"version": "0.1.33",
 	"private": true,
 	"scripts": {
 		"dev:prod": "NODE_ENV=production VITE_GIT_VERSION=$(git rev-parse --short HEAD) VITE_APP_VERSION=$npm_package_version env-cmd -f .env.prod.env vite dev",
@@ -18,8 +18,8 @@
 		"format": "prettier --plugin-search-dir . --write .",
 		"test:integration": "playwright test",
 		"test:unit": "vitest",
-		"upload:stage": "cd ../../libs/advent-calendar && pnpm run build:prod && cd ../../websites/preauth-ui && pnpm run build:stage && aws-vault exec fe-dev -- aws s3 sync ./build s3://postauth-ui-stage.fe-dev.infinitro.dev-a552a30 && aws-vault exec fe-dev -- aws cloudfront create-invalidation --distribution-id E3O1LJ5X2SB4FA --paths '/*'",
-		"upload:prod": "cd ../../libs/advent-calendar && pnpm run build:prod && cd ../../websites/preauth-ui && pnpm run build:prod && aws-vault exec fe-dev -- aws s3 sync ./build s3://postauth-ui.fe-dev.infinitro.dev-0609b88 && aws-vault exec fe-dev -- aws cloudfront create-invalidation --distribution-id E2RKFCXO6C5UQ5 --paths '/*'"
+		"upload:stage": "cd ../../libs/advent-calendar && pnpm run build:prod && cd ../../websites/postauth-ui && pnpm run build:stage && aws-vault exec fe-dev -- aws s3 sync ./build s3://postauth-ui-stage.fe-dev.infinitro.dev-a552a30 && aws-vault exec fe-dev -- aws cloudfront create-invalidation --distribution-id E3O1LJ5X2SB4FA --paths '/*'",
+		"upload:prod": "cd ../../libs/advent-calendar && pnpm run build:prod && cd ../../websites/postauth-ui && pnpm run build:prod && aws-vault exec fe-dev -- aws s3 sync ./build s3://postauth-ui.fe-dev.infinitro.dev-0609b88 && aws-vault exec fe-dev -- aws cloudfront create-invalidation --distribution-id E2RKFCXO6C5UQ5 --paths '/*'"
 	},
 	"devDependencies": {
 		"@graphql-codegen/cli": "^5.0.0",

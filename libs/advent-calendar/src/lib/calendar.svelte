@@ -6,7 +6,6 @@
 	import Giftcard from './parts/giftcard.svelte';
 	import { DayState } from './types';
 
-	import type { from } from '@apollo/client';
 	let isMobile = false;
 	let _loggedIn: boolean | undefined = undefined;
 	let testHoursOffset = 0;
@@ -26,7 +25,7 @@
 		currentDay = now.getUTCDate();
 	}, 1000);
 
-	const state = (day: number) => {
+	const state = (day: number): DayState => {
 		if (day === currentDay) {
 			return DayState.Current;
 		} else if (day < currentDay) {
