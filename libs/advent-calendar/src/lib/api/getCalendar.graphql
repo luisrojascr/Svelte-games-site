@@ -1,0 +1,12 @@
+query GetCalendar($month: Int!) {
+	getCalendar(month: $month) {
+		month
+		startDay
+		endDay
+		daysOpened {
+			day
+			title
+			description
+		}
+	}
+}

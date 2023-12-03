@@ -11,10 +11,11 @@
 	export let currentDay: number;
 	export let title: string = '';
 	export let description: string = '';
+	export let claimed: boolean = false;
 
 	let isHovered: boolean = false;
 	let showModal: boolean = false;
-	let displayReward: boolean = false;
+	let displayReward: boolean = claimed === true;
 	let disclaimer: string = '';
 
 	let _loggedIn: boolean | undefined = undefined;
@@ -27,9 +28,13 @@
 	let hasTimer: boolean = false;
 	let timeRemaining: string = '';
 	const minTime = 2; // at least two hours to take action if promo claimed at 23:59 UTC
+	let testHoursOffset = 0;
+	let testMinuteOffset = 0;
 
 	const calcRemaining = () => {
 		let now = new Date();
+		now.setUTCHours(now.getUTCHours() + testHoursOffset);
+		now.setUTCMinutes(now.getUTCMinutes() + testMinuteOffset);
 		let expires = new Date();
 		expires.setUTCMonth(month - 1);
 		expires.setUTCDate(day + 1);
@@ -57,47 +62,48 @@
 		if (_loggedIn === false) {
 			parent.postMessage({ showLogin: true }, '*');
 		} else if (_loggedIn === true) {
-			if (day === 1 || day === 2) {
-				title = 'Double VIP Points';
-				description = 'All games played for the rest of this day will earn double VIP points!';
-				displayReward = true;
-				return;
-			}
 			try {
 				const vars = { variables: { day, month: 12 } };
 				console.log(`posting ${JSON.stringify(vars)}`);
 				const result = await CalendarOpenDay(vars);
 				title = result?.data?.calendarOpenDay?.title || '';
 				description = result?.data?.calendarOpenDay?.description || '';
-
-				if (day === 3) {
-					calcRemaining();
-					setInterval(() => calcRemaining(), 1000);
-					hasTimer = true;
-					title = 'Free Spins';
-					description = 'Deposit at least $20 before time expires and receive 50 free spins!';
-					disclaimer = 'Return here when time expires to play your free spins.';
-					displayReward = true;
-				}
-				displayReward = true;
+				claim();
 			} catch (e) {
 				console.log(`error claiming day: ${e}`);
 			}
 		}
 	};
+
+	const claim = () => {
+		if (day === 3) {
+			// TODO: return disclaimer and timer in metadata
+			calcRemaining();
+			setInterval(() => calcRemaining(), 1000);
+			hasTimer = true;
+			// title = 'Free Spins';
+			// description = 'Deposit at least $20 before time expires and receive 50 free spins!';
+			disclaimer = 'Return here when time expires to play your free spins.';
+			displayReward = true;
+		}
+		displayReward = true;
+	};
+	if (claimed) {
+		claim();
+	}
 </script>
 
 <div class="giftcard">
 	{#if day >= 1 && day <= 25}
 		<button
-			class="button {state !== DayState.Current && !daysClaimed.includes(day) ? 'disabled' : ''}"
+			class="button {state !== DayState.Current && !claimed ? 'disabled' : ''}"
 			on:mouseover={() => (isHovered = state === DayState.Past)}
 			on:mouseout={() => (isHovered = false)}
 			on:mouseleave={() => (isHovered = false)}
 			on:focus={() => {}}
 			on:blur={() => {}}
-			on:click={() => (showModal = state === DayState.Current || daysClaimed.includes(day))}
-			disabled={state !== DayState.Current && !daysClaimed.includes(day)}
+			on:click={() => (showModal = state === DayState.Current || claimed === true)}
+			disabled={state !== DayState.Current && !claimed}
 		>
 			<Day {day} {state} />
 		</button>

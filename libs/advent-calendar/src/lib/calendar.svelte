@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { AsyncGetCalendar } from '$lib/api/api';
 	import CalendarBannerMobile from '$lib/images/calendar-banner-mobile.svelte';
 	import CalendarBanner from '$lib/images/calendar-banner.svelte';
 	import { loggedIn } from '$lib/token';
@@ -6,8 +7,16 @@
 	import Giftcard from './parts/giftcard.svelte';
 	import { DayState } from './types';
 
+	type Day = {
+		day: number;
+		title?: string;
+		description?: string;
+		claimed?: boolean;
+	};
+
 	let isMobile = false;
 	let _loggedIn: boolean | undefined = undefined;
+
 	let testHoursOffset = 0;
 	let testMinuteOffset = 0;
 
@@ -37,24 +46,52 @@
 
 	const startDay = 1;
 	const endDay = 25;
-	const days = Array.from({ length: endDay + 1 }, (_, index) => index)
-		.map((day) => day + 1)
-		.filter((day) => day >= startDay);
+	let days: Day[] = Array.from({ length: endDay + 1 }, (_, index) => index)
+		.filter((day) => day + 1 >= startDay)
+		.map((day) => ({
+			day: day + 1
+		}));
 
 	function updateScreenSize() {
 		isMobile = window.innerWidth < 640;
 	}
 
+	loggedIn.subscribe(async (value) => {
+		_loggedIn = value;
+		if (_loggedIn) {
+			try {
+				const vars = { variables: { month: 12 } };
+				const result = await AsyncGetCalendar(vars);
+				days = Array.from({ length: endDay + 1 }, (_, index) => index)
+					.filter((day) => day + 1 >= startDay)
+					.map((day) => {
+						const claimed =
+							day === 0 || day === 1
+								? {
+										title: 'Double VIP Points',
+										description:
+											'All games played for the rest of this day will earn double VIP points!',
+										claimed: true
+								  }
+								: result?.data?.getCalendar?.daysOpened?.find((rec) => rec.day === day + 1);
+						return {
+							day: day + 1,
+							title: claimed?.title ?? '',
+							description: claimed?.description ?? '',
+							claimed: claimed != null
+						};
+					});
+			} catch (error) {
+				console.log(`error getting calendar: ${error}`);
+			}
+		}
+	});
 	onMount(() => {
 		updateScreenSize();
 		window.addEventListener('resize', updateScreenSize);
 		return () => {
 			window.removeEventListener('resize', updateScreenSize);
 		};
-	});
-
-	loggedIn.subscribe((value) => {
-		_loggedIn = value;
 	});
 </script>
 
@@ -68,9 +105,16 @@
 	</div>
 	<div class="datetime">{timerString}</div>
 	<div class="grid-cols-custom">
-		{#key currentDay}
+		{#key currentDay && days}
 			{#each days as day}
-				<Giftcard {day} state={state(day)} {currentDay} />
+				<Giftcard
+					day={day.day}
+					state={state(day.day)}
+					{currentDay}
+					title={day.title}
+					description={day.description}
+					claimed={day.claimed === true}
+				/>
 			{/each}
 		{/key}
 	</div>
