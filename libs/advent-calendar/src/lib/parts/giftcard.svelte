@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { CalendarOpenDay } from '$lib/api/api';
+	import { CalendarClaimDayEligible, CalendarOpenDay } from '$lib/api/api';
 	import Day from '$lib/images/day.svelte';
 	import Modal from '$lib/parts/modal.svelte';
 	import { loggedIn, token } from '$lib/token';
@@ -12,9 +12,13 @@
 	export let title: string = '';
 	export let description: string = '';
 	export let claimed: boolean = false;
+	export let opened: boolean = false;
+	export let freeSpins: number | undefined = undefined;
 
 	let isHovered: boolean = false;
 	let showModal: boolean = false;
+	let showClaim: boolean = false;
+	let showPlay: boolean = false;
 	let displayReward: boolean = claimed === true;
 	let disclaimer: string = '';
 
@@ -27,7 +31,7 @@
 	// timer (if promo has a time for player to take an action)
 	let hasTimer: boolean = false;
 	let timeRemaining: string = '';
-	const minTime = 2; // at least two hours to take action if promo claimed at 23:59 UTC
+	const minTime = 8; // at least two hours to take action if promo claimed at 23:59 UTC
 	let testHoursOffset = 0;
 	let testMinuteOffset = 0;
 
@@ -53,8 +57,45 @@
 						.padStart(2, '0')}s`;
 	};
 
-	// TODO: get daysClaimed from user state API
-	let daysClaimed: number[] = [1, 2].filter((day) => day < currentDay);
+	const handleOpen = async (event: Event): Promise<void> => {
+		event.preventDefault();
+		event.cancelBubble = true;
+		if (_loggedIn === false) {
+			parent.postMessage({ showLogin: true }, '*');
+		} else if (_loggedIn === true) {
+			try {
+				const vars = { variables: { day, month: 12 } };
+				console.log(`posting ${JSON.stringify(vars)}`);
+				const result = await CalendarOpenDay(vars);
+				console.log(`result: ${JSON.stringify(result, null, 2)}`);
+				title = result?.data?.calendarOpenDay?.title || '';
+				description = result?.data?.calendarOpenDay?.description || '';
+				open();
+			} catch (e) {
+				console.log(`error opening day: ${e}`);
+			}
+		}
+	};
+
+	const open = () => {
+		if (day === 3) {
+			// TODO: return disclaimer and timer in metadata
+			calcRemaining();
+			setInterval(() => calcRemaining(), 1000);
+			hasTimer = true;
+			// title = 'Free Spins';
+			// description = 'Deposit at least $20 before time expires and receive 50 free spins!';
+			disclaimer = 'Return here when time expires to play your free spins.';
+			// showClaim = !claimed;
+		}
+		if (day === 4) {
+			disclaimer = 'Return here to claim your free spins after the race begins.';
+		}
+		displayReward = true;
+	};
+	if (opened) {
+		open();
+	}
 
 	const handleClaim = async (event: Event): Promise<void> => {
 		event.preventDefault();
@@ -65,45 +106,29 @@
 			try {
 				const vars = { variables: { day, month: 12 } };
 				console.log(`posting ${JSON.stringify(vars)}`);
-				const result = await CalendarOpenDay(vars);
-				title = result?.data?.calendarOpenDay?.title || '';
-				description = result?.data?.calendarOpenDay?.description || '';
-				claim();
+				const result = await CalendarClaimDayEligible(vars);
+				console.log(`result: ${JSON.stringify(result, null, 2)}`);
+				// title = result?.data?.calendarClaimDayEligible?.title || '';
+				// description = result?.data?.calendarClaimDayEligible?.description || '';
+				open();
 			} catch (e) {
-				console.log(`error claiming day: ${e}`);
+				console.log(`error claiming day eligibility: ${e}`);
 			}
 		}
 	};
-
-	const claim = () => {
-		if (day === 3) {
-			// TODO: return disclaimer and timer in metadata
-			calcRemaining();
-			setInterval(() => calcRemaining(), 1000);
-			hasTimer = true;
-			// title = 'Free Spins';
-			// description = 'Deposit at least $20 before time expires and receive 50 free spins!';
-			disclaimer = 'Return here when time expires to play your free spins.';
-			displayReward = true;
-		}
-		displayReward = true;
-	};
-	if (claimed) {
-		claim();
-	}
 </script>
 
 <div class="giftcard">
 	{#if day >= 1 && day <= 25}
 		<button
-			class="button {state !== DayState.Current && !claimed ? 'disabled' : ''}"
+			class="button {state !== DayState.Current && !opened ? 'disabled' : ''}"
 			on:mouseover={() => (isHovered = state === DayState.Past)}
 			on:mouseout={() => (isHovered = false)}
 			on:mouseleave={() => (isHovered = false)}
 			on:focus={() => {}}
 			on:blur={() => {}}
-			on:click={() => (showModal = state === DayState.Current || claimed === true)}
-			disabled={state !== DayState.Current && !claimed}
+			on:click={() => (showModal = state === DayState.Current || opened === true)}
+			disabled={state !== DayState.Current && !opened}
 		>
 			<Day {day} {state} />
 		</button>
@@ -131,9 +156,12 @@
 				{#if disclaimer}
 					<p class="disclaimer">{disclaimer}</p>
 				{/if}
+				{#if showClaim}
+					<button class="claim-btn" on:click={handleClaim}>Claim</button>
+				{/if}
 			{:else}
 				<h2 class="modal-title">DAY {day}</h2>
-				<button class="claim-btn" on:click={handleClaim}>Claim</button>
+				<button class="claim-btn" on:click={handleOpen}>Open</button>
 			{/if}
 		</div>
 	</Modal>

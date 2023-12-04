@@ -1,6 +1,6 @@
 import client from "$lib/api/api_client";
 import type {
-        MutationOptions
+        ApolloQueryResult, ObservableQuery, WatchQueryOptions, QueryOptions, MutationOptions
       } from "@apollo/client";
 import { readable } from "svelte/store";
 import type { Readable } from "svelte/store";
@@ -19,6 +19,7 @@ export type Scalars = {
   Boolean: { input: boolean; output: boolean; }
   Int: { input: number; output: number; }
   Float: { input: number; output: number; }
+  DateTime: { input: any; output: any; }
   Decimal: { input: any; output: any; }
   UUID: { input: any; output: any; }
 };
@@ -33,8 +34,15 @@ export type Calendar = {
 
 export type CalendarDayUser = {
   __typename?: 'CalendarDayUser';
+  claimedAt?: Maybe<Scalars['DateTime']['output']>;
+  claimedEligibleAt?: Maybe<Scalars['DateTime']['output']>;
   day: Scalars['Int']['output'];
   description?: Maybe<Scalars['String']['output']>;
+  disclaimer?: Maybe<Scalars['String']['output']>;
+  freeSpinResult?: Maybe<Scalars['Decimal']['output']>;
+  freeSpins?: Maybe<Scalars['Int']['output']>;
+  hasEligibility?: Maybe<Scalars['Boolean']['output']>;
+  minDeposit?: Maybe<Scalars['Int']['output']>;
   month: Scalars['Int']['output'];
   title?: Maybe<Scalars['String']['output']>;
 };
@@ -46,9 +54,16 @@ export type Context = {
 
 export type MutationRoot = {
   __typename?: 'MutationRoot';
+  calendarClaimDayEligible?: Maybe<CalendarDayUser>;
   calendarOpenDay?: Maybe<CalendarDayUser>;
   getContext: Context;
   usernameCheck: UsernameCheckResult;
+};
+
+
+export type MutationRootCalendarClaimDayEligibleArgs = {
+  day: Scalars['Int']['input'];
+  month: Scalars['Int']['input'];
 };
 
 
@@ -104,15 +119,40 @@ export type Wallet = {
   type: Scalars['String']['output'];
 };
 
+export type CalendarClaimDayEligibleMutationVariables = Exact<{
+  month: Scalars['Int']['input'];
+  day: Scalars['Int']['input'];
+}>;
+
+
+export type CalendarClaimDayEligibleMutation = { __typename?: 'MutationRoot', calendarClaimDayEligible?: { __typename?: 'CalendarDayUser', month: number, day: number, claimedAt?: any | null, claimedEligibleAt?: any | null } | null };
+
 export type CalendarOpenDayMutationVariables = Exact<{
   month: Scalars['Int']['input'];
   day: Scalars['Int']['input'];
 }>;
 
 
-export type CalendarOpenDayMutation = { __typename?: 'MutationRoot', calendarOpenDay?: { __typename?: 'CalendarDayUser', month: number, day: number, title?: string | null, description?: string | null } | null };
+export type CalendarOpenDayMutation = { __typename?: 'MutationRoot', calendarOpenDay?: { __typename?: 'CalendarDayUser', month: number, day: number, title?: string | null, description?: string | null, hasEligibility?: boolean | null, minDeposit?: number | null, claimedAt?: any | null, claimedEligibleAt?: any | null, freeSpins?: number | null } | null };
+
+export type GetCalendarQueryVariables = Exact<{
+  month: Scalars['Int']['input'];
+}>;
 
 
+export type GetCalendarQuery = { __typename?: 'QueryRoot', getCalendar: { __typename?: 'Calendar', month: number, startDay: number, endDay: number, daysOpened: Array<{ __typename?: 'CalendarDayUser', day: number, title?: string | null, description?: string | null, hasEligibility?: boolean | null, minDeposit?: number | null, claimedAt?: any | null, claimedEligibleAt?: any | null, freeSpins?: number | null }> } };
+
+
+export const CalendarClaimDayEligibleDoc = gql`
+    mutation CalendarClaimDayEligible($month: Int!, $day: Int!) {
+  calendarClaimDayEligible(month: $month, day: $day) {
+    month
+    day
+    claimedAt
+    claimedEligibleAt
+  }
+}
+    `;
 export const CalendarOpenDayDoc = gql`
     mutation CalendarOpenDay($month: Int!, $day: Int!) {
   calendarOpenDay(month: $month, day: $day) {
@@ -120,9 +160,45 @@ export const CalendarOpenDayDoc = gql`
     day
     title
     description
+    hasEligibility
+    minDeposit
+    claimedAt
+    claimedEligibleAt
+    freeSpins
   }
 }
     `;
+export const GetCalendarDoc = gql`
+    query GetCalendar($month: Int!) {
+  getCalendar(month: $month) {
+    month
+    startDay
+    endDay
+    daysOpened {
+      day
+      title
+      description
+      hasEligibility
+      minDeposit
+      claimedAt
+      claimedEligibleAt
+      freeSpins
+    }
+  }
+}
+    `;
+export const CalendarClaimDayEligible = (
+            options: Omit<
+              MutationOptions<any, CalendarClaimDayEligibleMutationVariables>, 
+              "mutation"
+            >
+          ) => {
+            const m = client.mutate<CalendarClaimDayEligibleMutation, CalendarClaimDayEligibleMutationVariables>({
+              mutation: CalendarClaimDayEligibleDoc,
+              ...options,
+            });
+            return m;
+          }
 export const CalendarOpenDay = (
             options: Omit<
               MutationOptions<any, CalendarOpenDayMutationVariables>, 
@@ -135,3 +211,47 @@ export const CalendarOpenDay = (
             });
             return m;
           }
+export const GetCalendar = (
+            options: Omit<
+              WatchQueryOptions<GetCalendarQueryVariables>, 
+              "query"
+            >
+          ): Readable<
+            ApolloQueryResult<GetCalendarQuery> & {
+              query: ObservableQuery<
+                GetCalendarQuery,
+                GetCalendarQueryVariables
+              >;
+            }
+          > => {
+            const q = client.watchQuery({
+              query: GetCalendarDoc,
+              ...options,
+            });
+            var result = readable<
+              ApolloQueryResult<GetCalendarQuery> & {
+                query: ObservableQuery<
+                  GetCalendarQuery,
+                  GetCalendarQueryVariables
+                >;
+              }
+            >(
+              { data: {} as any, loading: true, error: undefined, networkStatus: 1, query: q },
+              (set) => {
+                q.subscribe((v: any) => {
+                  set({ ...v, query: q });
+                });
+              }
+            );
+            return result;
+          }
+        
+              export const AsyncGetCalendar = (
+                options: Omit<
+                  QueryOptions<GetCalendarQueryVariables>,
+                  "query"
+                >
+              ) => {
+                return client.query<GetCalendarQuery>({query: GetCalendarDoc, ...options})
+              }
+            

@@ -7,6 +7,11 @@ query GetCalendar($month: Int!) {
 			day
 			title
 			description
+			hasEligibility
+			minDeposit
+			claimedAt
+			claimedEligibleAt
+			freeSpins
 		}
 	}
 }

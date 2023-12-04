@@ -1,4 +1,5 @@
 <script lang="ts">
+	import type { CalendarDayUser } from '$lib/api/api';
 	import { AsyncGetCalendar } from '$lib/api/api';
 	import CalendarBannerMobile from '$lib/images/calendar-banner-mobile.svelte';
 	import CalendarBanner from '$lib/images/calendar-banner.svelte';
@@ -12,6 +13,8 @@
 		title?: string;
 		description?: string;
 		claimed?: boolean;
+		opened?: boolean;
+		freeSpins?: number;
 	};
 
 	let isMobile = false;
@@ -62,23 +65,25 @@
 			try {
 				const vars = { variables: { month: 12 } };
 				const result = await AsyncGetCalendar(vars);
+				console.log(`result: ${JSON.stringify(result, null, 2)}`);
 				days = Array.from({ length: endDay + 1 }, (_, index) => index)
 					.filter((day) => day + 1 >= startDay)
 					.map((day) => {
-						const claimed =
+						const opened =
 							day === 0 || day === 1
-								? {
+								? ({
 										title: 'Double VIP Points',
 										description:
-											'All games played for the rest of this day will earn double VIP points!',
-										claimed: true
-								  }
+											'All games played for the rest of this day will earn double VIP points!'
+								  } as CalendarDayUser)
 								: result?.data?.getCalendar?.daysOpened?.find((rec) => rec.day === day + 1);
 						return {
 							day: day + 1,
-							title: claimed?.title ?? '',
-							description: claimed?.description ?? '',
-							claimed: claimed != null
+							title: opened?.title ?? '',
+							description: opened?.description ?? '',
+							opened: opened != null,
+							claimed: opened?.claimedEligibleAt != null,
+							freeSpins: opened?.freeSpins ?? undefined
 						};
 					});
 			} catch (error) {
@@ -113,7 +118,9 @@
 					{currentDay}
 					title={day.title}
 					description={day.description}
+					opened={day.opened === true}
 					claimed={day.claimed === true}
+					freeSpins={day.freeSpins}
 				/>
 			{/each}
 		{/key}

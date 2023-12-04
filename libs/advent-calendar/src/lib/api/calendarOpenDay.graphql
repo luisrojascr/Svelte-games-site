@@ -4,5 +4,10 @@ mutation CalendarOpenDay($month: Int!, $day: Int!) {
 		day
 		title
 		description
+		hasEligibility
+		minDeposit
+		claimedAt
+		claimedEligibleAt
+		freeSpins
 	}
 }

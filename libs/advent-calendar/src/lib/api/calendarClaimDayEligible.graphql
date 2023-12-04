@@ -1,0 +1,8 @@
+mutation CalendarClaimDayEligible($month: Int!, $day: Int!) {
+	calendarClaimDayEligible(month: $month, day: $day) {
+		month
+		day
+		claimedAt
+		claimedEligibleAt
+	}
+}
