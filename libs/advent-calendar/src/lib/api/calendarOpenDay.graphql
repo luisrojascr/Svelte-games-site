@@ -5,6 +5,7 @@ mutation CalendarOpenDay($month: Int!, $day: Int!) {
 		title
 		description
 		hasEligibility
+		isEligible
 		minDeposit
 		claimedAt
 		claimedEligibleAt

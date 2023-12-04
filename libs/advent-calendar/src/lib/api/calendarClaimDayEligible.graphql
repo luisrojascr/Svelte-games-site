@@ -2,7 +2,13 @@ mutation CalendarClaimDayEligible($month: Int!, $day: Int!) {
 	calendarClaimDayEligible(month: $month, day: $day) {
 		month
 		day
+		title
+		description
+		hasEligibility
+		isEligible
+		minDeposit
 		claimedAt
 		claimedEligibleAt
+		freeSpins
 	}
 }

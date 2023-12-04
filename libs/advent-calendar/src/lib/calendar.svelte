@@ -8,15 +8,6 @@
 	import Giftcard from './parts/giftcard.svelte';
 	import { DayState } from './types';
 
-	type Day = {
-		day: number;
-		title?: string;
-		description?: string;
-		claimed?: boolean;
-		opened?: boolean;
-		freeSpins?: number;
-	};
-
 	let isMobile = false;
 	let _loggedIn: boolean | undefined = undefined;
 
@@ -49,9 +40,10 @@
 
 	const startDay = 1;
 	const endDay = 25;
-	let days: Day[] = Array.from({ length: endDay + 1 }, (_, index) => index)
+	let days: CalendarDayUser[] = Array.from({ length: endDay + 1 }, (_, index) => index)
 		.filter((day) => day + 1 >= startDay)
 		.map((day) => ({
+			month: 12,
 			day: day + 1
 		}));
 
@@ -68,23 +60,27 @@
 				console.log(`result: ${JSON.stringify(result, null, 2)}`);
 				days = Array.from({ length: endDay + 1 }, (_, index) => index)
 					.filter((day) => day + 1 >= startDay)
-					.map((day) => {
-						const opened =
-							day === 0 || day === 1
-								? ({
-										title: 'Double VIP Points',
-										description:
-											'All games played for the rest of this day will earn double VIP points!'
-								  } as CalendarDayUser)
-								: result?.data?.getCalendar?.daysOpened?.find((rec) => rec.day === day + 1);
-						return {
-							day: day + 1,
-							title: opened?.title ?? '',
-							description: opened?.description ?? '',
-							opened: opened != null,
-							claimed: opened?.claimedEligibleAt != null,
-							freeSpins: opened?.freeSpins ?? undefined
-						};
+					.map((day): CalendarDayUser => {
+						let data = result?.data?.getCalendar?.daysOpened?.find((rec) => rec.day === day + 1);
+						if (day === 0 || day === 1) {
+							data = {
+								...data,
+								month: 12,
+								day: day + 1,
+								title: 'Double VIP Points',
+								description:
+									'All games played for the rest of this day will earn double VIP points!',
+
+								claimedAt: new Date()
+							} as CalendarDayUser;
+						} else {
+							data = {
+								...data,
+								month: 12,
+								day: day + 1
+							} as CalendarDayUser;
+						}
+						return data;
 					});
 			} catch (error) {
 				console.log(`error getting calendar: ${error}`);
@@ -112,16 +108,7 @@
 	<div class="grid-cols-custom">
 		{#key currentDay && days}
 			{#each days as day}
-				<Giftcard
-					day={day.day}
-					state={state(day.day)}
-					{currentDay}
-					title={day.title}
-					description={day.description}
-					opened={day.opened === true}
-					claimed={day.claimed === true}
-					freeSpins={day.freeSpins}
-				/>
+				<Giftcard day={day.day} state={state(day.day)} {currentDay} data={day} />
 			{/each}
 		{/key}
 	</div>

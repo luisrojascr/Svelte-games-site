@@ -4,6 +4,7 @@ query GetCalendar($month: Int!) {
 		startDay
 		endDay
 		daysOpened {
+			month
 			day
 			title
 			description

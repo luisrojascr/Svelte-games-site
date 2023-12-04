@@ -42,6 +42,7 @@ export type CalendarDayUser = {
   freeSpinResult?: Maybe<Scalars['Decimal']['output']>;
   freeSpins?: Maybe<Scalars['Int']['output']>;
   hasEligibility?: Maybe<Scalars['Boolean']['output']>;
+  isEligible?: Maybe<Scalars['Boolean']['output']>;
   minDeposit?: Maybe<Scalars['Int']['output']>;
   month: Scalars['Int']['output'];
   title?: Maybe<Scalars['String']['output']>;
@@ -125,7 +126,7 @@ export type CalendarClaimDayEligibleMutationVariables = Exact<{
 }>;
 
 
-export type CalendarClaimDayEligibleMutation = { __typename?: 'MutationRoot', calendarClaimDayEligible?: { __typename?: 'CalendarDayUser', month: number, day: number, claimedAt?: any | null, claimedEligibleAt?: any | null } | null };
+export type CalendarClaimDayEligibleMutation = { __typename?: 'MutationRoot', calendarClaimDayEligible?: { __typename?: 'CalendarDayUser', month: number, day: number, title?: string | null, description?: string | null, hasEligibility?: boolean | null, isEligible?: boolean | null, minDeposit?: number | null, claimedAt?: any | null, claimedEligibleAt?: any | null, freeSpins?: number | null } | null };
 
 export type CalendarOpenDayMutationVariables = Exact<{
   month: Scalars['Int']['input'];
@@ -133,14 +134,14 @@ export type CalendarOpenDayMutationVariables = Exact<{
 }>;
 
 
-export type CalendarOpenDayMutation = { __typename?: 'MutationRoot', calendarOpenDay?: { __typename?: 'CalendarDayUser', month: number, day: number, title?: string | null, description?: string | null, hasEligibility?: boolean | null, minDeposit?: number | null, claimedAt?: any | null, claimedEligibleAt?: any | null, freeSpins?: number | null } | null };
+export type CalendarOpenDayMutation = { __typename?: 'MutationRoot', calendarOpenDay?: { __typename?: 'CalendarDayUser', month: number, day: number, title?: string | null, description?: string | null, hasEligibility?: boolean | null, isEligible?: boolean | null, minDeposit?: number | null, claimedAt?: any | null, claimedEligibleAt?: any | null, freeSpins?: number | null } | null };
 
 export type GetCalendarQueryVariables = Exact<{
   month: Scalars['Int']['input'];
 }>;
 
 
-export type GetCalendarQuery = { __typename?: 'QueryRoot', getCalendar: { __typename?: 'Calendar', month: number, startDay: number, endDay: number, daysOpened: Array<{ __typename?: 'CalendarDayUser', day: number, title?: string | null, description?: string | null, hasEligibility?: boolean | null, minDeposit?: number | null, claimedAt?: any | null, claimedEligibleAt?: any | null, freeSpins?: number | null }> } };
+export type GetCalendarQuery = { __typename?: 'QueryRoot', getCalendar: { __typename?: 'Calendar', month: number, startDay: number, endDay: number, daysOpened: Array<{ __typename?: 'CalendarDayUser', month: number, day: number, title?: string | null, description?: string | null, hasEligibility?: boolean | null, minDeposit?: number | null, claimedAt?: any | null, claimedEligibleAt?: any | null, freeSpins?: number | null }> } };
 
 
 export const CalendarClaimDayEligibleDoc = gql`
@@ -148,8 +149,14 @@ export const CalendarClaimDayEligibleDoc = gql`
   calendarClaimDayEligible(month: $month, day: $day) {
     month
     day
+    title
+    description
+    hasEligibility
+    isEligible
+    minDeposit
     claimedAt
     claimedEligibleAt
+    freeSpins
   }
 }
     `;
@@ -161,6 +168,7 @@ export const CalendarOpenDayDoc = gql`
     title
     description
     hasEligibility
+    isEligible
     minDeposit
     claimedAt
     claimedEligibleAt
@@ -175,6 +183,7 @@ export const GetCalendarDoc = gql`
     startDay
     endDay
     daysOpened {
+      month
       day
       title
       description
