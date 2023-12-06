@@ -89,8 +89,8 @@
 			// description = 'Deposit at least $20 before time expires and receive 50 free spins!';
 			// disclaimer = 'Return here when time expires to play your free spins.';
 		}
-		if (day === 4) {
-			disclaimer = 'Return here to claim your free spins after Day 1 of the race.';
+		if (disclaimer == '' && (data?.freeSpins ?? 0) > 0) {
+			disclaimer = `depositing players only`;
 		}
 		displayReward = true;
 	};
@@ -165,12 +165,11 @@
 				{:else}
 					<p>{data.description}</p>
 
-					{#if disclaimer}
-						<p class="disclaimer">{disclaimer}</p>
-					{/if}
-
 					{#if data.hasEligibility && data.claimedAt != null && data.claimedEligibleAt == null && !(data.isEligible === false)}
 						<button class="claim-btn" on:click={handleClaim} disabled={submitting}>Claim</button>
+					{/if}
+					{#if disclaimer}
+						<p class="disclaimer">{disclaimer}</p>
 					{/if}
 				{/if}
 			{:else}
