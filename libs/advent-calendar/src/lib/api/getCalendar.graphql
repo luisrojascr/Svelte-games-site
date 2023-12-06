@@ -4,16 +4,18 @@ query GetCalendar($month: Int!) {
 		startDay
 		endDay
 		daysOpened {
-			month
-			day
-			title
-			description
-			disclaimer
-			hasEligibility
-			minDeposit
 			claimedAt
 			claimedEligibleAt
+			claimEnd
+			claimStart
+			day
+			description
+			disclaimer
 			freeSpins
+			hasEligibility
+			minDeposit
+			month
+			title
 		}
 	}
 }

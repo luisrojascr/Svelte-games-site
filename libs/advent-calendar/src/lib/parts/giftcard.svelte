@@ -28,25 +28,27 @@
 		return new Promise((resolve) => setTimeout(resolve, ms));
 	};
 
-	// timer (if promo has a time for player to take an action)
-	let hasTimer: boolean = false;
-	let timeRemaining: string = '';
-	const minTime = 8; // at least two hours to take action if promo claimed at 23:59 UTC
 	let testHoursOffset = 0;
 	let testMinuteOffset = 0;
 
+	// timer (if promo has a time for player to take an action)
+	let hasTimer: boolean = false;
+	let now: Date = new Date();
+	now.setUTCHours(now.getUTCHours() + testHoursOffset);
+	now.setUTCMinutes(now.getUTCMinutes() + testMinuteOffset);
+	let timerEnds: Date = new Date();
+	let claimStart: Date = new Date();
+	let claimEnd: Date | undefined = undefined;
+	let timeRemaining: string = '';
+
 	const calcRemaining = () => {
-		let now = new Date();
+		now = new Date();
 		now.setUTCHours(now.getUTCHours() + testHoursOffset);
 		now.setUTCMinutes(now.getUTCMinutes() + testMinuteOffset);
-		let expires = new Date();
-		expires.setUTCMonth(month - 1);
-		expires.setUTCDate(day + 1);
-		expires.setUTCHours(minTime, 0, 0);
-		const remaining = (expires.valueOf() - now.valueOf()) / 1000;
+		const remaining = (timerEnds.valueOf() - now.valueOf()) / 1000;
 
 		timeRemaining =
-			expires < now
+			timerEnds < now
 				? '00:00:00'
 				: `${Math.floor(remaining / 3600)
 						.toString()
@@ -79,11 +81,15 @@
 	};
 
 	const open = () => {
-		if (day === 3) {
-			// TODO: return disclaimer and timer in metadata
-			calcRemaining();
-			setInterval(() => calcRemaining(), 1000);
-			hasTimer = true;
+		if (data.claimStart) {
+			const start = new Date(data.claimStart);
+			if (start > now) {
+				timerEnds = start;
+				claimStart = start;
+				calcRemaining();
+				setInterval(() => calcRemaining(), 1000);
+				hasTimer = true;
+			}
 		}
 		if (data.disclaimer == '' && (data?.freeSpins ?? 0) > 0) {
 			data.disclaimer = `depositing players only`;
@@ -140,13 +146,6 @@
 {#if showModal}
 	<Modal bind:showModal>
 		<div class="modal-content">
-			{#if displayReward || state === DayState.Past}
-				{#if hasTimer}
-					{#key timeRemaining}
-						<p class="timer">{timeRemaining}</p>
-					{/key}
-				{/if}
-			{/if}
 			<div class="modal-gift-image">
 				<Day {day} state={DayState.Current} />
 			</div>
@@ -160,9 +159,27 @@
 					</p>
 				{:else}
 					<p>{data.description}</p>
-
-					{#if data.hasEligibility && data.claimedAt != null && data.claimedEligibleAt == null && !(data.isEligible === false)}
-						<button class="claim-btn" on:click={handleClaim} disabled={submitting}>Claim</button>
+					{#if data.claimedEligibleAt != null}
+						<button class="claim claim-disabled" disabled={true}>Claimed</button>
+					{:else if hasTimer}
+						{#key timeRemaining && timerEnds > now}
+							{#if data.hasEligibility && data.claimedAt != null && data.claimedEligibleAt == null && !(data.isEligible === false)}
+								<button
+									class={`claim ${
+										submitting || claimStart > now ? ' claim-disabled' : ' claim-enabled'
+									}`}
+									on:click={handleClaim}
+									disabled={submitting || claimStart > now}>Claim</button
+								>
+							{/if}
+							<span class="timer">{timeRemaining}</span>
+						{/key}
+					{:else if data.hasEligibility && data.claimedAt != null && data.claimedEligibleAt == null && !(data.isEligible === false)}
+						<button
+							class={`claim ${submitting ? ' claim-disabled' : ' claim-enabled'}`}
+							on:click={handleClaim}
+							disabled={submitting}>Claim</button
+						>
 					{/if}
 					{#if data.disclaimer}
 						<p class="disclaimer">{data.disclaimer}</p>
@@ -170,7 +187,8 @@
 				{/if}
 			{:else}
 				<h2 class="modal-title">DAY {day}</h2>
-				<button class="claim-btn" on:click={handleOpen} disabled={submitting}>Open</button>
+				<button class="claim claim-enabled" on:click={handleOpen} disabled={submitting}>Open</button
+				>
 			{/if}
 		</div>
 	</Modal>
@@ -181,7 +199,7 @@
 		@apply text-gray-400 text-xs mt-3;
 	}
 	.timer {
-		@apply text-center text-white font-mono absolute top-8 w-4/5;
+		@apply text-center text-white font-mono;
 	}
 	.button {
 		@apply flex w-full sm:w-auto;
@@ -190,7 +208,7 @@
 		@apply bg-transparent p-2 flex justify-center items-center h-[254px];
 	}
 	.disabled {
-		@apply opacity-30 cursor-default p-[19px];
+		@apply opacity-30 cursor-default;
 	}
 	.modal-content {
 		@apply text-white text-center p-5;
@@ -204,7 +222,13 @@
 	.modal-gift-claimed {
 		@apply uppercase text-green-600;
 	}
-	.claim-btn {
-		@apply bg-[#fab259] px-3 py-2 rounded-lg mt-4 w-[129px] hover:bg-[#efa040] uppercase font-semibold;
+	.claim {
+		@apply px-3 py-2 rounded-lg mt-4 w-[129px] uppercase font-semibold;
+	}
+	.claim-enabled {
+		@apply bg-[#fab259] hover:bg-[#efa040];
+	}
+	.claim-disabled {
+		@apply bg-gray-400 opacity-30 cursor-default;
 	}
 </style>
