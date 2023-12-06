@@ -8,6 +8,7 @@ query GetCalendar($month: Int!) {
 			day
 			title
 			description
+			disclaimer
 			hasEligibility
 			minDeposit
 			claimedAt

@@ -15,7 +15,6 @@
 	let isHovered: boolean = false;
 	let showModal: boolean = false;
 	let displayReward: boolean = data.claimedAt != null;
-	let disclaimer: string = '';
 	let submitting: boolean = false;
 
 	let _loggedIn: boolean | undefined = undefined;
@@ -85,12 +84,9 @@
 			calcRemaining();
 			setInterval(() => calcRemaining(), 1000);
 			hasTimer = true;
-			// title = 'Free Spins';
-			// description = 'Deposit at least $20 before time expires and receive 50 free spins!';
-			// disclaimer = 'Return here when time expires to play your free spins.';
 		}
-		if (disclaimer == '' && (data?.freeSpins ?? 0) > 0) {
-			disclaimer = `depositing players only`;
+		if (data.disclaimer == '' && (data?.freeSpins ?? 0) > 0) {
+			data.disclaimer = `depositing players only`;
 		}
 		displayReward = true;
 	};
@@ -114,7 +110,7 @@
 				if (result?.data?.calendarClaimDayEligible) data = result!.data!.calendarClaimDayEligible;
 
 				if (data.claimedEligibleAt == null && !data.isEligible) {
-					disclaimer =
+					data.disclaimer =
 						'It appears you have not met the requirements to claim this reward. If you feel this is in error, contact customer support.';
 				}
 			} catch (e) {
@@ -168,8 +164,8 @@
 					{#if data.hasEligibility && data.claimedAt != null && data.claimedEligibleAt == null && !(data.isEligible === false)}
 						<button class="claim-btn" on:click={handleClaim} disabled={submitting}>Claim</button>
 					{/if}
-					{#if disclaimer}
-						<p class="disclaimer">{disclaimer}</p>
+					{#if data.disclaimer}
+						<p class="disclaimer">{data.disclaimer}</p>
 					{/if}
 				{/if}
 			{:else}
