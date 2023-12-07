@@ -7,6 +7,9 @@
 	import { DayState } from '../types';
 
 	const month = 12;
+	const ineligibleDisclaimer =
+		'It appears you have not met the requirements to claim this reward. If you feel this is in error, contact customer support.';
+
 	export let day: number;
 	export let state: DayState;
 	export let currentDay: number;
@@ -115,11 +118,6 @@
 				console.log(`result: ${JSON.stringify(result, null, 2)}`);
 				submitting = false;
 				if (result?.data?.calendarClaimDayEligible) data = result!.data!.calendarClaimDayEligible;
-
-				if (data.claimedEligibleAt == null && !data.isEligible) {
-					data.disclaimer =
-						'It appears you have not met the requirements to claim this reward. If you feel this is in error, contact customer support.';
-				}
 			} catch (e) {
 				console.log(`error claiming day eligibility: ${e}`);
 			}
@@ -167,25 +165,39 @@
 						<button class="claim claim-disabled" disabled={true}>Claimed</button>
 					{:else if hasTimer}
 						{#key timeRemaining && timerEnds > now}
-							{#if data.hasEligibility && data.claimedAt != null && data.claimedEligibleAt == null && !(data.isEligible === false)}
+							{#if data.hasEligibility && data.claimedAt != null && data.claimedEligibleAt == null}
 								<button
 									class={`claim ${
-										submitting || claimStart > now ? ' claim-disabled' : ' claim-enabled'
+										submitting || claimStart > now || data.isEligible === false
+											? ' claim-disabled'
+											: ' claim-enabled'
 									}`}
 									on:click={handleClaim}
-									disabled={submitting || claimStart > now}>Claim</button
+									disabled={submitting || claimStart > now || data.isEligible === false}
+									>Claim</button
 								>
 							{/if}
 							<span class="timer">{timeRemaining}</span>
 						{/key}
-					{:else if data.hasEligibility && data.claimedAt != null && data.claimedEligibleAt == null && !(data.isEligible === false)}
+					{:else if data.hasEligibility && data.claimedAt != null && data.claimedEligibleAt == null}
 						<button
-							class={`claim ${submitting ? ' claim-disabled' : ' claim-enabled'}`}
+							class={`claim ${
+								submitting || data.isEligible === false ? ' claim-disabled' : ' claim-enabled'
+							}`}
 							on:click={handleClaim}
-							disabled={submitting}>Claim</button
+							disabled={submitting || data.isEligible === false}>Claim</button
 						>
 					{/if}
-					{#if data.disclaimer}
+					{#if data.isEligible === false}
+						<p class="disclaimer">[{data.disclaimer}]<br />{ineligibleDisclaimer}</p>
+					{:else if data.claimedEligibleAt}
+						<p class="disclaimer">
+							{#if data.cashbackUsd}
+								You claimed ${Math.floor((data.cashbackUsd ?? 0) * 100) / 100} in {data.cashbackCurrency?.toUpperCase()}
+								cashback!
+							{/if}
+						</p>
+					{:else if data.disclaimer}
 						<p class="disclaimer">{data.disclaimer}</p>
 					{/if}
 				{/if}

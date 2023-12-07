@@ -1,5 +1,8 @@
 mutation CalendarClaimDayEligible($month: Int!, $day: Int!) {
 	calendarClaimDayEligible(month: $month, day: $day) {
+		cashbackCurrency
+		cashbackNative
+		cashbackUsd
 		claimedAt
 		claimedEligibleAt
 		claimEnd

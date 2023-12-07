@@ -4,6 +4,9 @@ query GetCalendar($month: Int!) {
 		startDay
 		endDay
 		daysOpened {
+			cashbackCurrency
+			cashbackNative
+			cashbackUsd
 			claimedAt
 			claimedEligibleAt
 			claimEnd
@@ -16,6 +19,7 @@ query GetCalendar($month: Int!) {
 			freeSpinGame
 			freeSpinSlug
 			hasEligibility
+			isEligible
 			minDeposit
 			month
 			title
