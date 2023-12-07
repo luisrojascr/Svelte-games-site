@@ -11,6 +11,9 @@ dependencies:
   '@infintro/auth':
     specifier: link:../../libs/auth
     version: link:../../libs/auth
+  '@infintro/vip':
+    specifier: link:../../libs/preauth/vip
+    version: link:../../libs/preauth/vip
 
 devDependencies:
   '@graphql-codegen/cli':

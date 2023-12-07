@@ -44,6 +44,7 @@
 		"@sveltejs/adapter-static": "^2.0.3",
 		"@sveltejs/kit": "^1.20.4",
 		"@sveltejs/package": "^2.0.0",
+		"@types/siema": "^1.4.11",
 		"@typescript-eslint/eslint-plugin": "^6.0.0",
 		"@typescript-eslint/parser": "^6.0.0",
 		"autoprefixer": "^10.4.16",
@@ -51,6 +52,7 @@
 		"eslint": "^8.28.0",
 		"eslint-config-prettier": "^8.5.0",
 		"eslint-plugin-svelte": "^2.30.0",
+		"flowbite-svelte": "^0.44.20",
 		"graphql-codegen-svelte-apollo": "^1.1.0",
 		"postcss": "^8.4.30",
 		"prettier": "^2.8.0",
@@ -71,6 +73,7 @@
 		"@apollo/client": "^3.8.4",
 		"fast-safe-stringify": "^2.1.1",
 		"graphql-tag": "^2.12.6",
+		"siema": "^1.5.1",
 		"svelte-apollo": "^0.5.0",
 		"tailwind-merge": "^1.14.0"
 	}

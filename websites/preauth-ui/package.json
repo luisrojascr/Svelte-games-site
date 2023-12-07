@@ -50,6 +50,7 @@
 	"type": "module",
 	"dependencies": {
 		"@infintro/auth": "link:../../libs/auth",
-		"@infintro/advent-calendar": "link:../../libs/advent-calendar"
+		"@infintro/advent-calendar": "link:../../libs/advent-calendar",
+		"@infintro/vip": "link:../../libs/preauth/vip"
 	}
 }
