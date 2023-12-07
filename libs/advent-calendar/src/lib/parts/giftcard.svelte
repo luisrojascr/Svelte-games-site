@@ -16,6 +16,7 @@
 	let showModal: boolean = false;
 	let displayReward: boolean = data.claimedAt != null;
 	let submitting: boolean = false;
+	let freeSpinGame: string = 'Sweet Bonanza Xmas';
 
 	let _loggedIn: boolean | undefined = undefined;
 	loggedIn.subscribe((value: boolean | undefined) => (_loggedIn = value));
@@ -155,7 +156,10 @@
 				{#if data.claimedEligibleAt != null && data.freeSpins}
 					You earned {data.freeSpins} free spins!
 					<p class="disclaimer">
-						Head over to Sweet Bonanza Xmas by Pragmatic to play them (max win: $100)
+						Head over to {data.freeSpinGame ?? `Sweet Bonanza Xmas`}{data.freeSpinCurrency
+							? ' in ' + data.freeSpinCurrency?.toLocaleUpperCase()
+							: ''}
+						to play them (max win: $100)
 					</p>
 				{:else}
 					<p>{data.description}</p>

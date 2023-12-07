@@ -8,6 +8,7 @@ mutation CalendarOpenDay($month: Int!, $day: Int!) {
 		description
 		disclaimer
 		freeSpins
+		freeSpinGame
 		hasEligibility
 		isEligible
 		minDeposit

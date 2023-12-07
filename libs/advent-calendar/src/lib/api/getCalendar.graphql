@@ -12,6 +12,9 @@ query GetCalendar($month: Int!) {
 			description
 			disclaimer
 			freeSpins
+			freeSpinCurrency
+			freeSpinGame
+			freeSpinSlug
 			hasEligibility
 			minDeposit
 			month
