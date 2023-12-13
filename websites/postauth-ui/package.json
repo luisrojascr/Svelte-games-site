@@ -49,6 +49,7 @@
 	},
 	"type": "module",
 	"dependencies": {
-		"@infintro/advent-calendar": "link:../../libs/advent-calendar"
+		"@infintro/advent-calendar": "link:../../libs/advent-calendar",
+		"@infintro/postauth-vip": "link:../../libs/postauth/vip"
 	}
 }

@@ -79,6 +79,12 @@
 	.tab-item-title {
 		@apply text-primary-300 font-medium text-xs;
 	}
+	:global(.ranking ul) {
+		@apply flex flex-wrap space-x-2;
+	}
+	:global(.ranking div:first-child) {
+		@apply rounded-2xl mt-4;
+	}
 	:global(.ranking ul li button) {
 		@apply p-2 px-5 mr-3;
 	}

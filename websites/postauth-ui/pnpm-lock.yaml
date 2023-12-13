@@ -8,9 +8,9 @@ dependencies:
   '@infintro/advent-calendar':
     specifier: link:../../libs/advent-calendar
     version: link:../../libs/advent-calendar
-  '@infintro/auth':
-    specifier: link:../../libs/auth
-    version: link:../../libs/auth
+  '@infintro/postauth-vip':
+    specifier: link:../../libs/postauth/vip
+    version: link:../../libs/postauth/vip
 
 devDependencies:
   '@graphql-codegen/cli':

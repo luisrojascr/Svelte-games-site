@@ -111,4 +111,10 @@
 			@apply col-span-1;
 		}
 	}
+	:global(.rank-progress-container div:first-child) {
+		@apply w-full bg-gray-200 rounded-full h-1.5;
+	}
+	:global(.rank-progress-container div:first-child div) {
+		@apply bg-primary-600 h-1.5 rounded-full;
+	}
 </style>
