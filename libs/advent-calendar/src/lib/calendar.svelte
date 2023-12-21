@@ -147,13 +147,13 @@
 		.grid-cols-custom {
 			@apply grid grid-cols-1 gap-4 p-8;
 		}
-		.extragifts-container {
-			@apply justify-end;
-		}
 	}
 	@media (min-width: 768px) {
 		.grid-cols-custom {
 			@apply grid grid-cols-3 gap-4 p-8;
+		}
+		.extragifts-container {
+			@apply justify-end;
 		}
 	}
 
