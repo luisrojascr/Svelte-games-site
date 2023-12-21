@@ -126,7 +126,7 @@
 </script>
 
 <div class="giftcard">
-	{#if day >= 1 && day <= 25}
+	{#if day >= 1 && day <= 31}
 		<button
 			class="button {state !== DayState.Current && data.claimedAt == null ? 'disabled' : ''}"
 			on:mouseover={() => (isHovered = state === DayState.Past)}
@@ -218,7 +218,7 @@
 		@apply text-center text-white font-mono;
 	}
 	.button {
-		@apply flex w-full sm:w-auto;
+		@apply flex w-auto;
 	}
 	.giftcard {
 		@apply bg-transparent p-2 flex justify-center items-center h-[254px];
@@ -242,9 +242,17 @@
 		@apply px-3 py-2 rounded-lg mt-4 w-[129px] uppercase font-semibold;
 	}
 	.claim-enabled {
-		@apply bg-[#fab259] hover:bg-[#efa040];
+		@apply bg-[#fab259];
+	}
+	.claim-enabled:hover {
+		@apply bg-[#efa040];
 	}
 	.claim-disabled {
 		@apply bg-gray-400 opacity-30 cursor-default;
+	}
+	@media (min-width: 768px) {
+		.button {
+			@apply w-full;
+		}
 	}
 </style>

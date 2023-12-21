@@ -5,10 +5,12 @@
 	import CalendarBanner from '$lib/images/calendar-banner.svelte';
 	import { loggedIn } from '$lib/token';
 	import { onMount } from 'svelte';
+	import ExtraGiftsPopup from './parts/extraGiftsPopup.svelte';
 	import Giftcard from './parts/giftcard.svelte';
 	import { DayState } from './types';
 
 	let isMobile = false;
+	let isExtraGiftsPopupOpen = true;
 	let _loggedIn: boolean | undefined = undefined;
 
 	let testHoursOffset = 0;
@@ -39,7 +41,7 @@
 	};
 
 	const startDay = 1;
-	const endDay = 25;
+	const endDay = 31;
 	let days: CalendarDayUser[] = Array.from({ length: endDay + 1 }, (_, index) => index)
 		.filter((day) => day + 1 >= startDay)
 		.map((day) => ({
@@ -87,6 +89,11 @@
 			}
 		}
 	});
+
+	const handleClosePopup = () => {
+		isExtraGiftsPopupOpen = false;
+	};
+
 	onMount(() => {
 		updateScreenSize();
 		window.addEventListener('resize', updateScreenSize);
@@ -114,6 +121,12 @@
 	</div>
 </div>
 
+{#if isExtraGiftsPopupOpen}
+	<div class="extragifts-container">
+		<ExtraGiftsPopup isMobile on:closePopup={handleClosePopup} />
+	</div>
+{/if}
+
 <style lang="postcss">
 	.banner {
 		@apply max-w-screen-xl mx-auto py-5;
@@ -127,9 +140,15 @@
 	.grid-cols-custom {
 		@apply grid grid-cols-2 auto-cols-fr gap-4 p-8;
 	}
+	.extragifts-container {
+		@apply flex max-w-screen-xl mx-auto px-9 pb-8 justify-center;
+	}
 	@media (max-width: 500px) {
 		.grid-cols-custom {
 			@apply grid grid-cols-1 gap-4 p-8;
+		}
+		.extragifts-container {
+			@apply justify-end;
 		}
 	}
 	@media (min-width: 768px) {
