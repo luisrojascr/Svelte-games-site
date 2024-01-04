@@ -38,7 +38,7 @@
 	};
 
 	const startAnimation = () => {
-		setAnimation(paused ? backgroundLastVal : -4035);
+		setAnimation(paused ? backgroundLastVal : -4024);
 		playing = true;
 		paused = false;
 	};
@@ -184,5 +184,9 @@
 
 	.layer {
 		@apply absolute w-full h-full bottom-0 left-0 will-change-transform;
+	}
+
+	.foreground-layer {
+		@apply z-20;
 	}
 </style>
