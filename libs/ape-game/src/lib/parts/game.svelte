@@ -41,9 +41,7 @@
 	};
 
 	const startAnimation = () => {
-		console.log('gameContainerWidth: ', gameContainerWidth);
-		const backgroundWidthValue = 5155 - gameContainerWidth; // Layer1 SVG width - gameContainerWidth
-		setAnimation(paused ? backgroundLastVal : -backgroundWidthValue);
+		setAnimation(paused ? backgroundLastVal : -4035);
 		playing = true;
 		paused = false;
 	};
@@ -194,8 +192,5 @@
 	}
 	.layer {
 		@apply absolute w-full h-full bottom-0 left-0 will-change-transform;
-	}
-	.foreground-layer {
-		@apply z-20;
 	}
 </style>
