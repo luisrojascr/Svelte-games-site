@@ -33,11 +33,37 @@
 	});
 	let foreground = tweened(foregroundLastVal, { duration: durationTime });
 
+	console.log(window.innerWidth);
+
 	const setAnimation = (value: number) => {
 		background.set(value);
 		midground.set(value * 1.6283); // 7690 - 1504
 		midfrontground.set(value * 3.5614); // 14370 --- 15490 - 1504
-		foreground.set(value * 5.5348); // 20260
+		// foreground.set(value * 5.5348); // 20260
+
+		let foregroundMultiplier;
+		if (window.innerWidth <= 1535 && window.innerWidth >= 1280) {
+			foregroundMultiplier = 5.204; // Value for screens between 1280px and 1535px
+		} else if (window.innerWidth <= 1279 && window.innerWidth >= 1024) {
+			foregroundMultiplier = 4.915; // Value for screens between 1024px and 1279px
+		} else if (window.innerWidth <= 1023 && window.innerWidth >= 768) {
+			foregroundMultiplier = 4.659; // Value for screens 1023px or smaller
+		} else if (window.innerWidth <= 767 && window.innerWidth >= 640) {
+			foregroundMultiplier = 4.542; // Value for screens 767px or smaller
+		} else if (window.innerWidth <= 640 && window.innerWidth >= 600) {
+			foregroundMultiplier = 4.516; // Value for screens 640px or smaller
+		} else if (window.innerWidth <= 567) {
+			// Dynamically calculate foregroundMultiplier for screens smaller than 567px
+			const baseSize = 567;
+			const baseMultiplier = 4.478;
+			const reductionPer10px = 0.00835;
+			const sizeDifference = baseSize - window.innerWidth;
+			const multiplierAdjustment = Math.floor(sizeDifference / 10) * reductionPer10px;
+			foregroundMultiplier = baseMultiplier - multiplierAdjustment;
+		} else {
+			foregroundMultiplier = 5.5348; // Default value for screens larger than 1535px
+		}
+		foreground.set(value * foregroundMultiplier); // Apply the calculated multiplier
 	};
 
 	const startAnimation = () => {
