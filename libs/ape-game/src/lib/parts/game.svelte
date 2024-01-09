@@ -33,6 +33,9 @@
 	});
 	let foreground = tweened(foregroundLastVal, { duration: durationTime });
 
+	let multiplier = 1.0;
+	let animationFrameId: number | undefined;
+
 	console.log(window.innerWidth);
 
 	const setAnimation = (value: number) => {
@@ -66,25 +69,60 @@
 		foreground.set(value * foregroundMultiplier); // Apply the calculated multiplier
 	};
 
+	// Function to calculate the crash probability based on the multiplier
+	function crashProbabilityAtMultiplier(multiplier: number): number {
+		// Define a base multiplier and the corresponding probability of not crashing
+		const baseMultiplier = 1.0;
+		const baseProbability = 1.0; // 100% chance of not crashing at 1.0x
+
+		// Calculate the decrease in the probability of not crashing per step
+		const decreasePerStep = 0.0001;
+
+		// Calculate the number of steps above the base multiplier
+		const stepsAboveBase = (multiplier - baseMultiplier) / 0.01;
+
+		// Calculate the current probability of not crashing
+		let currentProbability = baseProbability - stepsAboveBase * decreasePerStep;
+
+		// Ensure the probability doesn't fall below zero
+		currentProbability = Math.max(currentProbability, 0);
+		console.log(currentProbability);
+
+		return currentProbability;
+	}
+
+	// Function to decide if the game should crash at the current multiplier
+	function shouldCrash(): boolean {
+		const notCrashingProbability = crashProbabilityAtMultiplier(multiplier);
+		const randomChance = Math.random();
+		return randomChance > notCrashingProbability; // Crash if the random chance exceeds the probability of not crashing
+	}
+
 	const startAnimation = () => {
-		console.log('gameContainerWidth: ', gameContainerWidth);
-		const backgroundWidthValue = 5155 - gameContainerWidth; // Layer1 SVG width - gameContainerWidth
-		setAnimation(paused ? backgroundLastVal : -backgroundWidthValue);
+		resetGameState(); // Reset the game state before starting
+
+		function animate() {
+			if (playing && !crashing) {
+				// Increase the multiplier
+				multiplier += 0.01;
+
+				// Check if the game should crash
+				if (shouldCrash()) {
+					crashing = true;
+					handleCrash();
+				} else {
+					// Your existing animation logic
+					const backgroundWidthValue = 5155 - gameContainerWidth;
+					setAnimation(paused ? backgroundLastVal : -backgroundWidthValue);
+					// Continue the animation loop
+					animationFrameId = requestAnimationFrame(animate);
+				}
+			}
+		}
+
+		// Start the animation loop
+		animationFrameId = requestAnimationFrame(animate);
 		playing = true;
-		paused = false;
-	};
-
-	const resetAnimation = () => {
-		playing = false;
-		paused = false;
-		crashing = false;
-		clearInterval(crashInterval);
-		clearTimeout(crashTimeout);
-
-		background.set(0, { duration: 100 });
-		midground.set(0, { duration: 100 });
-		midfrontground.set(0, { duration: 100 });
-		foreground.set(0, { duration: 100 });
 	};
 
 	const pause = () => {
@@ -99,16 +137,59 @@
 		startAnimation();
 	};
 
-	const handleCrash = () => {
+	// Handle the game crash
+	function handleCrash() {
+		// Calculate the crash probability at the current multiplier
+		const currentCrashProbability = crashProbabilityAtMultiplier(multiplier);
+
+		// Log the crash probability and the multiplier at the moment of the crash
+		console.log(
+			`Game crashed at multiplier: ${multiplier.toFixed(
+				2
+			)}, Crash Probability: ${currentCrashProbability.toFixed(4)}`
+		);
+
+		// Stop the animation
 		if (playing) {
 			pause();
-			crashing = true;
 			crashTimeout = setTimeout(() => {
 				toggleApeCrashImage();
 				crashing = false;
 			}, pauseDuration);
 			resume();
 		}
+
+		crashing = true;
+	}
+
+	function resetGameState() {
+		// Stop any existing animation frame
+		if (animationFrameId) {
+			cancelAnimationFrame(animationFrameId);
+		}
+
+		multiplier = 1.0;
+		crashing = false;
+		paused = false;
+	}
+
+	function getRandomCrashPoint() {
+		// Generate a random millisecond within the durationTime
+		return Math.random() * durationTime;
+	}
+
+	const resetAnimation = () => {
+		playing = false;
+		paused = false;
+		crashing = false;
+		multiplier = 1.0;
+		clearInterval(crashInterval);
+		clearTimeout(crashTimeout);
+
+		background.set(0, { duration: 100 });
+		midground.set(0, { duration: 100 });
+		midfrontground.set(0, { duration: 100 });
+		foreground.set(0, { duration: 100 });
 	};
 
 	const toggleApeCrashImage = () => {
@@ -171,6 +252,10 @@
 		<img src={Layer4} alt="Layer 4" />
 	</div>
 </div>
+<div class="multiplier-display">
+	{multiplier.toFixed(2)}x
+</div>
+
 <div class="buttons">
 	<button class="play-button" on:click={startAnimation}> Start Animation </button>
 	<button class="rain-button" on:click={handleCrash}>Make it crash</button>
@@ -223,5 +308,9 @@
 	}
 	.foreground-layer {
 		@apply z-20;
+	}
+
+	.multiplier-display {
+		@apply text-white text-4xl;
 	}
 </style>
