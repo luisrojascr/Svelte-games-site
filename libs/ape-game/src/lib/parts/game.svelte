@@ -34,6 +34,7 @@
 	let foreground = tweened(foregroundLastVal, { duration: durationTime });
 
 	let multiplier = 1.0;
+	let betMultiplier = 1.1;
 	let animationFrameId: number | undefined;
 
 	console.log(window.innerWidth);
@@ -70,7 +71,7 @@
 	};
 
 	// Function to calculate the crash probability based on the multiplier
-	function crashProbabilityAtMultiplier(multiplier: number): number {
+	function calculateProbability(multiplier: number): number {
 		// Define a base multiplier and the corresponding probability of not crashing
 		const baseMultiplier = 1.0;
 		const baseProbability = 1.0; // 100% chance of not crashing at 1.0x
@@ -91,9 +92,27 @@
 		return currentProbability;
 	}
 
+	// Function to calculate the probability percentage
+	// function calculateProbability(multiplier: number): number {
+	// 	// Base values at 1.01x
+	// 	const baseMultiplier = 1.01;
+	// 	const baseProbability = 98.02; // 98.02% at 1.01x
+
+	// 	// Calculate the decrease rate per 0.01 increase in multiplier
+	// 	const decreasePerStep = 0.96; // Adjust this rate to match your actual data
+
+	// 	// Calculate how many steps above the base multiplier
+	// 	const steps = (multiplier - baseMultiplier) / 0.01;
+
+	// 	// Calculate and return the current probability
+	// 	return baseProbability - steps * decreasePerStep;
+	// }
+
+	$: probabilityPercentage = calculateProbability(betMultiplier).toFixed(2) + '%';
+
 	// Function to decide if the game should crash at the current multiplier
 	function shouldCrash(): boolean {
-		const notCrashingProbability = crashProbabilityAtMultiplier(multiplier);
+		const notCrashingProbability = calculateProbability(multiplier);
 		const randomChance = Math.random();
 		return randomChance > notCrashingProbability; // Crash if the random chance exceeds the probability of not crashing
 	}
@@ -111,10 +130,8 @@
 					crashing = true;
 					handleCrash();
 				} else {
-					// Your existing animation logic
 					const backgroundWidthValue = 5155 - gameContainerWidth;
 					setAnimation(paused ? backgroundLastVal : -backgroundWidthValue);
-					// Continue the animation loop
 					animationFrameId = requestAnimationFrame(animate);
 				}
 			}
@@ -123,14 +140,7 @@
 		// Start the animation loop
 		animationFrameId = requestAnimationFrame(animate);
 		playing = true;
-	};
-
-	const pause = () => {
-		paused = true;
-		backgroundLastVal = $background;
-		midgroundLastVal = $midground;
-		midfrontgroundLastVal = $midfrontground;
-		foregroundLastVal = $foreground;
+		paused = false;
 	};
 
 	const resume = () => {
@@ -138,29 +148,23 @@
 	};
 
 	// Handle the game crash
-	function handleCrash() {
-		// Calculate the crash probability at the current multiplier
-		const currentCrashProbability = crashProbabilityAtMultiplier(multiplier);
-
-		// Log the crash probability and the multiplier at the moment of the crash
-		console.log(
-			`Game crashed at multiplier: ${multiplier.toFixed(
-				2
-			)}, Crash Probability: ${currentCrashProbability.toFixed(4)}`
-		);
-
-		// Stop the animation
+	const handleCrash = () => {
 		if (playing) {
-			pause();
+			crashing = true;
+
+			// Immediately stop the animations and freeze the layers in their current positions
+			background.set($background, { duration: 0 });
+			midground.set($midground, { duration: 0 });
+			midfrontground.set($midfrontground, { duration: 0 });
+			foreground.set($foreground, { duration: 0 });
+
 			crashTimeout = setTimeout(() => {
 				toggleApeCrashImage();
 				crashing = false;
+				resetAnimation();
 			}, pauseDuration);
-			resume();
 		}
-
-		crashing = true;
-	}
+	};
 
 	function resetGameState() {
 		// Stop any existing animation frame
@@ -171,11 +175,6 @@
 		multiplier = 1.0;
 		crashing = false;
 		paused = false;
-	}
-
-	function getRandomCrashPoint() {
-		// Generate a random millisecond within the durationTime
-		return Math.random() * durationTime;
 	}
 
 	const resetAnimation = () => {
@@ -205,6 +204,16 @@
 		const style = getComputedStyle(gameContainer);
 		return parseFloat(style.width);
 	};
+
+	function increaseBet() {
+		betMultiplier += 0.1;
+	}
+
+	function decreaseBet() {
+		if (betMultiplier > 1.1) {
+			betMultiplier -= 0.1;
+		}
+	}
 
 	onMount(() => {
 		// Call the calculateWidth function after the component mounts
@@ -252,8 +261,16 @@
 		<img src={Layer4} alt="Layer 4" />
 	</div>
 </div>
+
 <div class="multiplier-display">
 	{multiplier.toFixed(2)}x
+</div>
+
+<div class="multiplier-container">
+	<button class="multiplier-button" on:click={increaseBet}>Add Bet</button>
+	<p class="multiplier-count">{betMultiplier.toFixed(1)}x</p>
+	<button class="multiplier-button" on:click={decreaseBet}>Decrease Bet</button>
+	<p class="probability-count">{probabilityPercentage}</p>
 </div>
 
 <div class="buttons">
@@ -298,11 +315,12 @@
 	.play-button,
 	.rain-button,
 	.reset-button {
-		@apply mt-4 bg-green-600 text-white px-4 py-2 rounded-md transition-colors mt-3 ml-0 text-sm px-6;
+		@apply mt-4 bg-green-600 text-white py-2 rounded-md transition-colors ml-0 text-sm px-6;
 	}
 	.rain-button {
 		@apply ml-3 mr-3;
 	}
+
 	.layer {
 		@apply absolute w-full h-full bottom-0 left-0 will-change-transform;
 	}
@@ -312,5 +330,21 @@
 
 	.multiplier-display {
 		@apply text-white text-4xl;
+	}
+
+	.multiplier-container {
+		@apply flex items-center gap-6;
+	}
+
+	.multiplier-button {
+		@apply my-4 bg-gray-700 text-white py-2 rounded-md transition-colors ml-0 text-sm px-6;
+	}
+
+	.multiplier-count {
+		@apply text-xl text-white;
+	}
+
+	.probability-count {
+		@apply text-base text-white;
 	}
 </style>
