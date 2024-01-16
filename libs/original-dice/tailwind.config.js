@@ -32,6 +32,10 @@ const config = {
 				white: '#ffffff',
 				primaryBlue: '#4769fc',
 				secondaryBlue: '#3f5de3',
+				deepBlue: '#1a2349',
+				lightBlue: '#7b8ac5',
+				hoverBlue: '#d4dcff',
+				lightGray: '#E5E7EB',
 				// flowbite-svelte
 				primary: {
 					50: '#eceffa',
