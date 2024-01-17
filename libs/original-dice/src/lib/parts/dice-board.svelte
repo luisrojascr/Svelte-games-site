@@ -1,11 +1,19 @@
 <script lang="ts">
-	import DiceIcon from '$lib/assets/diceIcon.png';
-	import DiceWheelIcon from '$lib/assets/diceWheelIcon.png';
+	import DiceIcon from '$lib/assets/images/diceIcon.png';
+	import DiceWheelIcon from '$lib/assets/images/diceWheelIcon.png';
 
 	import DiceSlider from './dice-slider.svelte';
 
 	let gameContainer: HTMLElement | undefined;
 	let mobile: false;
+
+	let disabled: boolean = false;
+	let value: number = 50;
+
+	function handleRollOverUnderChange(event: Event) {
+		// For later
+		console.log('test');
+	}
 </script>
 
 <div bind:this={gameContainer} class="game-container">
@@ -22,14 +30,14 @@
 		</div>
 
 		<div class="dice-content">
-			<DiceSlider />
+			<DiceSlider {disabled} {value} on:rollOverUnderChange={handleRollOverUnderChange} />
 		</div>
 	</div>
 </div>
 
 <style lang="postcss">
 	.dice-game-wrapper {
-		@apply relative flex justify-between items-center flex-col flex-grow w-full;
+		@apply relative flex justify-between items-center flex-col flex-grow w-full p-6;
 		/* Add responsive padding here later */
 	}
 
