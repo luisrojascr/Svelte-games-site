@@ -18,20 +18,27 @@
 	let crashTimeout: NodeJS.Timeout | undefined;
 	let gameContainer: HTMLElement | undefined;
 	let gameContainerWidth: number;
+
 	const pauseDuration = 2000;
 	const durationTime = 80000;
 
-	let backgroundLastVal = 0;
-	let midgroundLastVal = 0;
-	let midfrontgroundLastVal = 0;
-	let foregroundLastVal = 0;
+	// Game layer state variables
+	let backgroundVal = 0;
+	let midgroundVal = 0;
+	let midfrontgroundVal = 0;
+	let foregroundVal = 0;
 
-	let background = tweened(backgroundLastVal, { duration: durationTime });
-	let midground = tweened(midgroundLastVal, { duration: durationTime });
-	let midfrontground = tweened(midfrontgroundLastVal, {
-		duration: durationTime
-	});
-	let foreground = tweened(foregroundLastVal, { duration: durationTime });
+	// Last values to resume from after crash
+	let lastBackgroundVal: number;
+	let lastMidgroundVal: number;
+	let lastMidfrontgroundVal: number;
+	let lastForegroundVal: number;
+
+	// Tweened values for smooth animation
+	let background = tweened(backgroundVal, { duration: durationTime });
+	let midground = tweened(midgroundVal, { duration: durationTime });
+	let midfrontground = tweened(midfrontgroundVal, { duration: durationTime });
+	let foreground = tweened(foregroundVal, { duration: durationTime });
 
 	let multiplier = 1.0;
 	let betMultiplier = 1.1;
@@ -59,20 +66,13 @@
 	};
 
 	const calculateProbability = (multiplier: number): number => {
-		// Define a base multiplier and the corresponding probability of not crashing
 		const baseMultiplier = 1.0;
-		const baseProbability = 1.0; // 100% chance of not crashing at 1.0x
+		const baseProbability = 1.0;
 		const decreasePerStep = 0.0001;
 		const stepsAboveBase = (multiplier - baseMultiplier) / 0.01;
 		let currentProbability = baseProbability - stepsAboveBase * decreasePerStep;
 		currentProbability = Math.max(currentProbability, 0);
 		return currentProbability;
-	};
-
-	const shouldCrash = (): boolean => {
-		const notCrashingProbability = calculateProbability(multiplier);
-		const randomChance = Math.random();
-		return randomChance > notCrashingProbability; // Crash if the random chance exceeds the probability of not crashing
 	};
 
 	const setAnimation = (value: number) => {
@@ -87,53 +87,11 @@
 
 	const animate = () => {
 		if (playing && !crashing) {
-			// Increase the multiplier
+			const backgroundWidthValue = 5155 - gameContainerWidth;
+			setAnimation(paused ? backgroundVal : -backgroundWidthValue);
+			animationFrameId = requestAnimationFrame(animate);
 			multiplier += 0.01;
-
-			// Check if the game should crash
-			if (shouldCrash()) {
-				crashing = true;
-				handleCrash();
-			} else {
-				const backgroundWidthValue = 5155 - gameContainerWidth;
-				setAnimation(paused ? backgroundLastVal : -backgroundWidthValue);
-				animationFrameId = requestAnimationFrame(animate);
-			}
 		}
-	};
-
-	const resetGameState = () => {
-		// Stop any existing animation frame
-		if (animationFrameId) {
-			cancelAnimationFrame(animationFrameId);
-		}
-
-		multiplier = 1.0;
-		crashing = false;
-		paused = false;
-	};
-
-	const startAnimation = () => {
-		resetGameState(); // Reset the game state before starting
-
-		// Start the animation loop
-		animationFrameId = requestAnimationFrame(animate);
-		playing = true;
-		paused = false;
-	};
-
-	const resetAnimation = () => {
-		playing = false;
-		paused = false;
-		crashing = false;
-		multiplier = 1.0;
-		clearInterval(crashInterval);
-		clearTimeout(crashTimeout);
-
-		background.set(0, { duration: 100 });
-		midground.set(0, { duration: 100 });
-		midfrontground.set(0, { duration: 100 });
-		foreground.set(0, { duration: 100 });
 	};
 
 	const increaseBet = () => {
@@ -149,18 +107,83 @@
 		if (playing) {
 			crashing = true;
 
+			// Store the current positions
+			lastBackgroundVal = $background;
+			lastMidgroundVal = $midground;
+			lastMidfrontgroundVal = $midfrontground;
+			lastForegroundVal = $foreground;
+
 			// Immediately stop the animations and freeze the layers in their current positions
-			background.set($background, { duration: 0 });
-			midground.set($midground, { duration: 0 });
-			midfrontground.set($midfrontground, { duration: 0 });
-			foreground.set($foreground, { duration: 0 });
+			background.set($background, { duration: 10 });
+			midground.set($midground, { duration: 10 });
+			midfrontground.set($midfrontground, { duration: 10 });
+			foreground.set($foreground, { duration: 10 });
 
 			crashTimeout = setTimeout(() => {
 				toggleApeCrashImage();
 				crashing = false;
-				resetAnimation();
 			}, pauseDuration);
 		}
+	};
+
+	const resetGameState = () => {
+		// Stop any existing animation frame
+		if (animationFrameId) {
+			cancelAnimationFrame(animationFrameId);
+		}
+
+		// Reset game state and positions
+		multiplier = 1.0;
+		crashing = false;
+		paused = false;
+
+		resetLayerPositions();
+
+		console.log(`Random start positions set:
+			Background: ${backgroundVal},
+			Midground: ${midgroundVal},
+			Midfrontground: ${midfrontgroundVal},
+			Foreground: ${foregroundVal}`);
+	};
+
+	const resetLayerPositions = () => {
+		// Set a random value for each game layer
+		const maxBackgroundOffset = 5155;
+		// backgroundVal = Math.random() * maxBackgroundOffset;
+		midgroundVal = Math.random() * maxBackgroundOffset * 1.6283;
+		midfrontgroundVal = Math.random() * maxBackgroundOffset * 5.5614;
+
+		// Apply the random values to the tweens
+		background.set(0, { duration: 10 });
+		midground.set(midgroundVal, { duration: 10 });
+		midfrontground.set(midfrontgroundVal, { duration: 10 });
+		foreground.set(0, { duration: 10 });
+	};
+
+	const startAnimation = () => {
+		// Start the animation loop
+		animationFrameId = requestAnimationFrame(animate);
+		playing = true;
+		paused = false;
+	};
+
+	const resetAnimation = () => {
+		playing = false;
+		paused = false;
+		crashing = false;
+		multiplier = 1.0;
+		clearIntervals();
+		resetLayerPositions();
+		console.log(`RESET BUTTON random start positions set:
+			Background: ${backgroundVal},
+			Midground: ${midgroundVal},
+			Midfrontground: ${midfrontgroundVal},
+			Foreground: ${foregroundVal}`);
+	};
+
+	const clearIntervals = () => {
+		clearInterval(crashInterval);
+		clearTimeout(crashTimeout);
 	};
 
 	const toggleApeCrashImage = () => {
@@ -181,11 +204,12 @@
 		// Call the calculateWidth function after the component mounts
 		gameContainerWidth = calculateWidth();
 		// Optional: do something with the width
+		resetGameState();
 	});
 
 	onDestroy(() => {
-		clearInterval(crashInterval);
-		clearTimeout(crashTimeout);
+		clearIntervals();
+		resetGameState();
 	});
 </script>
 
@@ -237,7 +261,7 @@
 
 <div class="buttons">
 	<button class="play-button" on:click={startAnimation}> Start Animation </button>
-	<!-- <button class="rain-button" on:click={handleCrash}>Make it crash</button> -->
+	<button class="rain-button" on:click={handleCrash}>Make it crash</button>
 	<button class="reset-button" on:click={resetAnimation}>Reset</button>
 </div>
 
