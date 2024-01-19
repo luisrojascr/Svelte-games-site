@@ -1,16 +1,39 @@
 <script lang="ts">
-	import { createEventDispatcher } from 'svelte';
+	import { createEventDispatcher, onMount } from 'svelte';
+	import { cubicOut } from 'svelte/easing';
+	import { tweened } from 'svelte/motion';
+	import { DiceRollConditionEnum } from '../utils/cc.js';
 
 	export let disabled: boolean;
 	export let value: number;
 
 	let resize = false;
 
+	let rollOverUnder: number = 50;
+	let isRollOverOrUnder: DiceRollConditionEnum = DiceRollConditionEnum.Over;
+	let gameInProgress: boolean = false;
+	let autoBetInProgress: boolean = false;
+	let numberRolled: number = 50;
+
 	const dispatch = createEventDispatcher();
 
-	function handleChange(event: Event) {
-		dispatch('rollOverUnderChange', event);
+	// Reactive value for tweened numberRolled
+	const tweenedNumberRolled = tweened(numberRolled, {
+		duration: 2800,
+		easing: cubicOut
+	});
+
+	// Function to handle slider change
+	function handleRollOverUnderChange(event: Event) {
+		const target = event.target as HTMLInputElement;
+		rollOverUnder = parseFloat(target.value);
+		// Additional logic to play sound, set win chance, cashout, etc later
 	}
+
+	// Run on component mount
+	onMount(() => {
+		tweenedNumberRolled.set(numberRolled);
+	});
 </script>
 
 <div class={`dice-slider-wrapper ${resize ? 'resize' : ''}`}>
@@ -50,15 +73,29 @@
 		</div>
 	</div>
 	<div class="slider-content">
+		<div class="range-slider-wrapper">
+			<div
+				class="range-slider-lower"
+				style:background-color={isRollOverOrUnder === DiceRollConditionEnum.Over
+					? '#01d180'
+					: '#ff2c55'}
+			/>
+			<div
+				class="range-slider-higher"
+				style:width="{rollOverUnder}%"
+				style:background-color={isRollOverOrUnder === DiceRollConditionEnum.Under
+					? '#01d180'
+					: '#ff2c55'}
+			/>
+		</div>
 		<input
 			class="input-slider"
 			type="range"
 			min="2"
 			max="98"
-			{disabled}
-			{value}
-			on:input={handleChange}
-			data-testid="dice-slider-input"
+			bind:value={rollOverUnder}
+			on:change={handleRollOverUnderChange}
+			disabled={gameInProgress || autoBetInProgress}
 		/>
 	</div>
 </div>
@@ -69,10 +106,9 @@
 		height: 24px;
 	}
 
-	.slider-content input[type='range']::-webkit-slider-thumb,
-	.slider-content input[type='range']::-moz-range-thumb,
-	.slider-content input[type='range']::-ms-thumb,
-	.slider-content input[type='range']::range-thumb {
+	/* Webkit browsers */
+	.slider-content input[type='range']::-webkit-slider-thumb {
+		appearance: none;
 		position: relative;
 		pointer-events: all;
 		width: 40px;
@@ -82,27 +118,61 @@
 			-6px 0 0 0 rgba(0, 0, 0, 0.16),
 			6px 0 0 0 rgba(0, 0, 0, 0.16);
 		background-color: #ffffff;
-		background-image: url('/path/to/your/image/ThumbArrows.svg'); /* Adjust the path */
+		background-image: url('../assets/images/ThumbArrows.svg');
+		background-position: 50% 50%;
+		background-repeat: no-repeat;
+		background-size: 100%;
+		cursor: grab;
+	}
+
+	.slider-content input[type='range']:active::-webkit-slider-thumb {
+		cursor: grabbing;
+	}
+
+	/* Mozilla Firefox */
+	.slider-content input[type='range']::-moz-range-thumb {
+		appearance: none;
+		position: relative;
+		pointer-events: all;
+		width: 40px;
+		height: 40px;
+		border-radius: 5.6px;
+		box-shadow:
+			-6px 0 0 0 rgba(0, 0, 0, 0.16),
+			6px 0 0 0 rgba(0, 0, 0, 0.16);
+		background-color: #ffffff;
+		background-image: url('../assets/images/ThumbArrows.svg');
 		background-position: 50% 50%;
 		background-repeat: no-repeat;
 		background-size: cover;
 		cursor: grab;
+	}
 
-		&:active {
-			cursor: grabbing;
-		}
+	.slider-content input[type='range']:active::-moz-range-thumb {
+		cursor: grabbing;
+	}
 
-		&:disabled {
-			cursor: not-allowed;
-		}
+	/* Microsoft browsers */
+	.slider-content input[type='range']::-ms-thumb {
+		appearance: none;
+		position: relative;
+		pointer-events: all;
+		width: 40px;
+		height: 40px;
+		border-radius: 5.6px;
+		box-shadow:
+			-6px 0 0 0 rgba(0, 0, 0, 0.16),
+			6px 0 0 0 rgba(0, 0, 0, 0.16);
+		background-color: #ffffff;
+		background-image: url('../assets/images/ThumbArrows.svg');
+		background-position: 50% 50%;
+		background-repeat: no-repeat;
+		background-size: cover;
+		cursor: grab;
+	}
 
-		&:after {
-			position: absolute;
-			content: '';
-			width: 5px;
-			height: 5px;
-			background: red;
-		}
+	.slider-content input[type='range']:active::-ms-thumb {
+		cursor: grabbing;
 	}
 
 	.input-slider {
@@ -120,9 +190,9 @@
 		cursor: pointer;
 		background: rgba(0, 0, 0, 0);
 
-		&:disabled {
+		/* &:disabled {
 			cursor: not-allowed !important;
-		}
+		} */
 
 		@media (max-width: 1030px) {
 			font-size: 16px;
@@ -184,4 +254,35 @@
 		bottom: 100%;
 		transform: translate(-45%, -20%);
 	}
+
+	/* Range Slider */
+	.range-slider-wrapper {
+		pointer-events: none;
+		height: 24px;
+		position: absolute;
+		top: 0;
+		left: 0;
+		bottom: 0;
+		right: 0;
+		border-radius: 100px;
+		transition: opacity 300ms ease;
+		overflow: hidden;
+	}
+
+	.range-slider-lower,
+	.range-slider-higher {
+		position: absolute;
+		height: 24px;
+		top: 0;
+		border-radius: 100px;
+	}
+
+	.range-slider-lower {
+		width: 100%;
+		right: 0;
+	}
+
+	/* .range-slider-higher {
+		left: 0;
+	} */
 </style>
