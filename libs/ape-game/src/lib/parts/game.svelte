@@ -9,29 +9,35 @@
 	import Layer4 from '$lib/ape/zone1-layer4.svg';
 	import { onDestroy, onMount } from 'svelte';
 	import { tweened } from 'svelte/motion';
+	import { get } from 'svelte/store';
 
 	let playing = false;
 	let crashing = false;
-	let paused = false;
+	let paused = true; // Default to true
 	let showFirstApeCrash = true;
-	let crashInterval: NodeJS.Timeout | undefined;
-	let crashTimeout: NodeJS.Timeout | undefined;
 	let gameContainer: HTMLElement | undefined;
 	let gameContainerWidth: number;
+
+	let lastBackgroundVal = 0;
+	let lastMidgroundVal = 0;
+	let lastMidfrontgroundVal = 0;
+	let lastForegroundVal = 0;
+
 	const pauseDuration = 2000;
 	const durationTime = 80000;
+	const maxBackgroundOffset = 5155;
+	const foregroundMultipliersByWidth = [
+		{ width: 1535, multiplier: 5.204 },
+		{ width: 1279, multiplier: 4.915 },
+		{ width: 1023, multiplier: 4.659 },
+		{ width: 767, multiplier: 4.542 },
+		{ width: 640, multiplier: 4.516 }
+	];
 
-	let backgroundLastVal = 0;
-	let midgroundLastVal = 0;
-	let midfrontgroundLastVal = 0;
-	let foregroundLastVal = 0;
-
-	let background = tweened(backgroundLastVal, { duration: durationTime });
-	let midground = tweened(midgroundLastVal, { duration: durationTime });
-	let midfrontground = tweened(midfrontgroundLastVal, {
-		duration: durationTime
-	});
-	let foreground = tweened(foregroundLastVal, { duration: durationTime });
+	let background = tweened(0, { duration: durationTime });
+	let midground = tweened(0, { duration: durationTime });
+	let midfrontground = tweened(0, { duration: durationTime });
+	let foreground = tweened(0, { duration: durationTime });
 
 	let multiplier = 1.0;
 	let betMultiplier = 1.1;
@@ -39,29 +45,32 @@
 
 	$: probabilityPercentage = calculateProbability(betMultiplier).toFixed(2) + '%';
 
+	// Calculate foreground multiplier in a more efficient way
 	const calculateForegroundMultiplier = (): number => {
 		const screenWidth = window.innerWidth;
-
-		if (screenWidth <= 1535) return 5.204;
-		if (screenWidth <= 1279) return 4.915;
-		if (screenWidth <= 1023) return 4.659;
-		if (screenWidth <= 767) return 4.542;
-		if (screenWidth <= 640) return 4.516;
-		if (screenWidth <= 567) {
-			const baseSize = 567;
-			const baseMultiplier = 4.478;
-			const reductionPer10px = 0.00835;
-			const sizeDifference = baseSize - screenWidth;
-			const multiplierAdjustment = Math.floor(sizeDifference / 10) * reductionPer10px;
-			return baseMultiplier - multiplierAdjustment;
+		for (const { width, multiplier } of foregroundMultipliersByWidth) {
+			if (screenWidth <= width) return multiplier;
 		}
-		return 5.5348; // Default
+		// Handle edge case for small screen widths dynamically
+		if (screenWidth <= 567) {
+			return calculateDynamicForegroundMultiplier(screenWidth);
+		}
+		return 5.5348;
 	};
 
+	const calculateDynamicForegroundMultiplier = (screenWidth: number): number => {
+		const baseSize = 567;
+		const baseMultiplier = 4.478;
+		const reductionPer10px = 0.00835;
+		const sizeDifference = baseSize - screenWidth;
+		const multiplierAdjustment = Math.floor(sizeDifference / 10) * reductionPer10px;
+		return baseMultiplier - multiplierAdjustment;
+	};
+
+	// Refactor probability calculation to use parameters instead of accessing outer scope directly
 	const calculateProbability = (multiplier: number): number => {
-		// Define a base multiplier and the corresponding probability of not crashing
 		const baseMultiplier = 1.0;
-		const baseProbability = 1.0; // 100% chance of not crashing at 1.0x
+		const baseProbability = 1.0;
 		const decreasePerStep = 0.0001;
 		const stepsAboveBase = (multiplier - baseMultiplier) / 0.01;
 		let currentProbability = baseProbability - stepsAboveBase * decreasePerStep;
@@ -69,71 +78,91 @@
 		return currentProbability;
 	};
 
-	const shouldCrash = (): boolean => {
-		const notCrashingProbability = calculateProbability(multiplier);
-		const randomChance = Math.random();
-		return randomChance > notCrashingProbability; // Crash if the random chance exceeds the probability of not crashing
-	};
-
 	const setAnimation = (value: number) => {
 		background.set(value);
-		midground.set(value * 1.6283); // 7690 - 1504
-		midfrontground.set(value * 3.5614); // 15490 - 1504
-		// foreground.set(value * 5.5348); // 20260
-
+		midground.set(value * 1.6283);
+		midfrontground.set(value * 3.5614);
 		const foregroundMultiplier = calculateForegroundMultiplier();
 		foreground.set(value * foregroundMultiplier);
 	};
 
 	const animate = () => {
 		if (playing && !crashing) {
-			// Increase the multiplier
+			setAnimation(paused ? 0 : -maxBackgroundOffset); // Simplify background width value
+			animationFrameId = requestAnimationFrame(animate);
 			multiplier += 0.01;
-
-			// Check if the game should crash
-			if (shouldCrash()) {
-				crashing = true;
-				handleCrash();
-			} else {
-				const backgroundWidthValue = 5155 - gameContainerWidth;
-				setAnimation(paused ? backgroundLastVal : -backgroundWidthValue);
-				animationFrameId = requestAnimationFrame(animate);
-			}
 		}
 	};
 
 	const resetGameState = () => {
-		// Stop any existing animation frame
-		if (animationFrameId) {
-			cancelAnimationFrame(animationFrameId);
-		}
+		cancelAnimation();
 
 		multiplier = 1.0;
 		crashing = false;
-		paused = false;
+		paused = true;
+
+		background.set(typeof lastBackgroundVal !== 'undefined' ? lastBackgroundVal : 0, {
+			duration: 10
+		});
+		midground.set(typeof lastMidgroundVal !== 'undefined' ? lastMidgroundVal : 0, { duration: 10 });
+		midfrontground.set(typeof lastMidfrontgroundVal !== 'undefined' ? lastMidfrontgroundVal : 0, {
+			duration: 10
+		});
+		foreground.set(typeof lastForegroundVal !== 'undefined' ? lastForegroundVal : 0, {
+			duration: 10
+		});
+	};
+
+	const cancelAnimation = () => {
+		background.set(get(background));
+		midground.set(get(midground));
+		midfrontground.set(get(midfrontground));
+		foreground.set(get(foreground));
+
+		if (animationFrameId !== undefined) {
+			cancelAnimationFrame(animationFrameId);
+			animationFrameId = undefined;
+		}
 	};
 
 	const startAnimation = () => {
-		resetGameState(); // Reset the game state before starting
+		const maxOffset = maxBackgroundOffset;
+		const randomStartPos = Math.floor(Math.random() * maxOffset);
 
-		// Start the animation loop
+		setAnimation(-randomStartPos);
 		animationFrameId = requestAnimationFrame(animate);
+
+		const startButton = document.getElementById('startAnimationButton') as HTMLButtonElement;
+		if (startButton) {
+			startButton.disabled = true;
+		}
+
 		playing = true;
 		paused = false;
 	};
 
 	const resetAnimation = () => {
 		playing = false;
-		paused = false;
+		paused = true;
 		crashing = false;
 		multiplier = 1.0;
-		clearInterval(crashInterval);
-		clearTimeout(crashTimeout);
 
-		background.set(0, { duration: 100 });
-		midground.set(0, { duration: 100 });
-		midfrontground.set(0, { duration: 100 });
-		foreground.set(0, { duration: 100 });
+		const startButton = document.getElementById('startAnimationButton') as HTMLButtonElement;
+		if (startButton) {
+			startButton.disabled = false;
+		}
+	};
+
+	const handleReset = () => {
+		playing = false;
+		paused = true;
+		crashing = false;
+		multiplier = 1.0;
+
+		background.set(0, { duration: 10 });
+		midground.set(0, { duration: 10 });
+		midfrontground.set(0, { duration: 10 });
+		foreground.set(0, { duration: 10 });
 	};
 
 	const increaseBet = () => {
@@ -147,46 +176,39 @@
 
 	const handleCrash = () => {
 		if (playing) {
+			playing = false;
 			crashing = true;
+			cancelAnimation();
 
-			// Immediately stop the animations and freeze the layers in their current positions
-			background.set($background, { duration: 0 });
-			midground.set($midground, { duration: 0 });
-			midfrontground.set($midfrontground, { duration: 0 });
-			foreground.set($foreground, { duration: 0 });
+			lastBackgroundVal = $background;
+			lastMidgroundVal = $midground;
+			lastMidfrontgroundVal = $midfrontground;
+			lastForegroundVal = $foreground;
 
-			crashTimeout = setTimeout(() => {
+			setTimeout(() => {
 				toggleApeCrashImage();
 				crashing = false;
 				resetAnimation();
 			}, pauseDuration);
 		}
+
+		const startButton = document.getElementById('startAnimationButton') as HTMLButtonElement;
+		if (startButton) {
+			startButton.disabled = false;
+		}
 	};
 
 	const toggleApeCrashImage = () => {
-		crashInterval = setInterval(() => (showFirstApeCrash = !showFirstApeCrash), 3000);
+		showFirstApeCrash = !showFirstApeCrash;
+		setTimeout(toggleApeCrashImage, 3000); // Recursion instead of setInterval
 	};
 
-	const calculateWidth = (): number => {
-		if (!gameContainer) {
-			console.error('The game-container element has not been rendered yet.');
-			return 0;
-		}
-
-		const style = getComputedStyle(gameContainer);
-		return parseFloat(style.width);
-	};
-
+	// Removed redundant calculateWidth function, using onMount directly
 	onMount(() => {
-		// Call the calculateWidth function after the component mounts
-		gameContainerWidth = calculateWidth();
-		// Optional: do something with the width
+		gameContainerWidth = gameContainer?.clientWidth || 0;
 	});
 
-	onDestroy(() => {
-		clearInterval(crashInterval);
-		clearTimeout(crashTimeout);
-	});
+	onDestroy(resetGameState); // Pass the reset function directly
 </script>
 
 <div bind:this={gameContainer} class="game-container">
@@ -236,9 +258,11 @@
 </div>
 
 <div class="buttons">
-	<button class="play-button" on:click={startAnimation}> Start Animation </button>
-	<!-- <button class="rain-button" on:click={handleCrash}>Make it crash</button> -->
-	<button class="reset-button" on:click={resetAnimation}>Reset</button>
+	<button id="startAnimationButton" class="play-button" on:click={startAnimation}>
+		Start Animation
+	</button>
+	<button class="rain-button" on:click={handleCrash}>Make it crash</button>
+	<button class="reset-button" on:click={handleReset}>Reset</button>
 </div>
 
 <style lang="postcss">
@@ -278,6 +302,9 @@
 	.rain-button,
 	.reset-button {
 		@apply mt-4 bg-green-600 text-white py-2 rounded-md transition-colors ml-0 text-sm px-6;
+	}
+	.play-button:disabled {
+		@apply bg-gray-300 cursor-not-allowed;
 	}
 	.rain-button {
 		@apply ml-3 mr-3;
