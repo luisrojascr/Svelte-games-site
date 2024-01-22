@@ -3,6 +3,7 @@
 	import DiceWheelIcon from '$lib/assets/images/diceWheelIcon.png';
 
 	import DiceSlider from './dice-slider.svelte';
+	import DiceWheel from './dice-wheel.svelte';
 
 	let gameContainer: HTMLElement | undefined;
 	let mobile: false;
@@ -30,7 +31,8 @@
 		</div>
 
 		<div class="dice-content">
-			<DiceSlider {disabled} {value} on:rollOverUnderChange={handleRollOverUnderChange} />
+			<!-- <DiceSlider {disabled} {value} on:rollOverUnderChange={handleRollOverUnderChange} /> -->
+			<DiceWheel />
 		</div>
 	</div>
 </div>
