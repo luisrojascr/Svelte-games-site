@@ -11,6 +11,14 @@
 	let disabled: boolean = false;
 	let value: number = 50;
 
+	let isDiceWheelIconDisplayed = true;
+	let isDiceIconDisplayed = true;
+
+	function toggleDiceIcon() {
+		isDiceWheelIconDisplayed = !isDiceWheelIconDisplayed;
+		isDiceIconDisplayed = !isDiceIconDisplayed;
+	}
+
 	function handleRollOverUnderChange(event: Event) {
 		// For later
 		console.log('test');
@@ -21,9 +29,13 @@
 	<div class="dice-game-wrapper">
 		<button
 			class={`change-dice-variant-button ${mobile ? 'top-2 left-2 w-7 h-7' : 'top-6 left-6 w-12 h-12'}`}
+			on:click={toggleDiceIcon}
 		>
-			<img src={DiceWheelIcon} alt="Dice Icon" class="dice-icon-image" />
-			<!-- Add dynamic button later -->
+			{#if isDiceWheelIconDisplayed}
+				<img src={DiceWheelIcon} alt="Dice Wheel Icon" class="dice-icon-image" />
+			{:else}
+				<img src={DiceIcon} alt="Dice Icon" class="dice-icon-image" />
+			{/if}
 		</button>
 
 		<div class="past-bets-wrapper">
@@ -31,8 +43,11 @@
 		</div>
 
 		<div class="dice-content">
-			<!-- <DiceSlider {disabled} {value} on:rollOverUnderChange={handleRollOverUnderChange} /> -->
-			<DiceWheel />
+			{#if isDiceIconDisplayed}
+				<DiceSlider {disabled} {value} on:rollOverUnderChange={handleRollOverUnderChange} />
+			{:else}
+				<DiceWheel />
+			{/if}
 		</div>
 	</div>
 </div>
