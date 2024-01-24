@@ -1,6 +1,7 @@
 <script>
 	import { onMount } from 'svelte';
 	import DiceBoard from './dice-board.svelte';
+	import DiceSidebar from './dice-sidebar.svelte';
 
 	// let mobile = false;
 	// let dimensions = { width: 0, height: 0 };
@@ -13,39 +14,42 @@
 	<div class="main-game-board-wrapper">
 		<DiceBoard />
 	</div>
-
-	<!-- .main-game-board-wrapper {
-	@apply flex flex-col justify-center items-center self-center flex-grow relative h-full overflow-hidden rounded border border-blue-700 bg-blue-800;
-	/* Conditional styles for mobile */
-	&:mobile {
-		@apply max-w-[500px] mr-0 mb-2;
-	}
-	/* For non-mobile layout */
-	&:not(.mobile) {
-		@apply max-w-full mr-4 mb-0;
-	}
-		.wrapper {
-		@apply flex flex-grow bg-blue-900 w-full min-w-[300px];
-		/* For mobile layout */
-		&:mobile {
-			@apply flex-col items-center;
-		}
-		/* For non-mobile layout */
-		&:not(.mobile) {
-			@apply flex-row;
-		}
-	}
-} -->
+	<DiceSidebar />
 </div>
 
 <style lang="postcss">
 	.wrapper {
-		@apply w-full min-w-[300px];
+		display: flex;
+		-webkit-box-flex: 1;
+		flex-grow: 1;
+		background-color: rgb(17, 26, 65);
+		width: 100%;
+		min-width: 300px;
+		padding: 30px 0px;
 		background-color: rgb(17, 26, 65);
 	}
 
 	.main-game-board-wrapper {
 		@apply rounded border;
 		background-color: #222c5599;
+		width: 100%;
+		/* display: flex; */
+		flex-direction: column;
+		-webkit-box-pack: center;
+		justify-content: center;
+		-webkit-box-align: center;
+		align-items: center;
+		align-self: center;
+		-webkit-box-flex: 1;
+		flex-grow: 1;
+		user-select: none;
+		position: relative;
+		height: 100%;
+		overflow: hidden;
+		border-radius: 4px;
+		border: solid 1px #313d6b;
+		border: solid 1px #2c3763;
+		/* background-color: #222c56; */
+		/* background-color: #222c5599; */
 	}
 </style>

@@ -12,22 +12,22 @@ const config = {
 			'sans-2': ['Poppins']
 		},
 		extend: {
-			gridTemplateColumns: {
-				'custom': '144px 1.6fr 2fr',
-				'mobile': ' 1fr 1fr',
-				'reward-col': '62px 1fr 152px 190px',
-				'reward-col-m': '62px 1fr 152px'
-			},
-			transitionProperty: {
-				'max-height': 'max-height',
-			},
-			maxHeight: {
-				'1200': '1200px',
-			},
-			borderColor: {
-				50: '#2c3763',
-				100: '#2D3969'
-			},
+			// gridTemplateColumns: {
+			// 	'custom': '144px 1.6fr 2fr',
+			// 	'mobile': ' 1fr 1fr',
+			// 	'reward-col': '62px 1fr 152px 190px',
+			// 	'reward-col-m': '62px 1fr 152px'
+			// },
+			// transitionProperty: {
+			// 	'max-height': 'max-height',
+			// },
+			// maxHeight: {
+			// 	'1200': '1200px',
+			// },
+			// borderColor: {
+			// 	50: '#2c3763',
+			// 	100: '#2D3969'
+			// },
 			colors: {
 				white: '#ffffff',
 				primaryBlue: '#4769fc',

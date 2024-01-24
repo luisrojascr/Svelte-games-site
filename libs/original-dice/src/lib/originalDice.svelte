@@ -2,12 +2,12 @@
 	import Game from '$lib/parts/game.svelte';
 </script>
 
-<div class="container">
+<div class="">
 	<Game />
 </div>
 
 <style lang="postcss">
-	.container {
+	/* .container {
 		@apply p-4;
-	}
+	} */
 </style>
