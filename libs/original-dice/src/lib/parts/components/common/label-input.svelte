@@ -15,7 +15,8 @@
 	export let paddingRight: string = '36px';
 	export let dataTestId: string = '';
 	// export let inputIcon: any;
-	export let inputButtons: boolean;
+	export let inputButtons: boolean = false;
+	export let labelContent: string = '';
 
 	const dispatch = createEventDispatcher();
 
@@ -31,7 +32,7 @@
 	}
 
 	function handleChange(event: Event): void {
-		const inputEvent = event as InputEvent;
+		const inputEvent = event as KeyboardEvent;
 		if (integerOnly) {
 			numberOnly(inputEvent);
 		}
@@ -47,7 +48,9 @@
 
 <div class={computedClass} {style}>
 	<div
-		class={`input-wrapper ${isActive ? 'active' : ''} ${readOnly ? 'readonly' : ''} ${buttonsPosition}`}
+		class={`input-wrapper ${isActive ? 'active' : ''} ${
+			readOnly ? 'readonly' : ''
+		} ${buttonsPosition}`}
 	>
 		<label class="input-inner-label" for="">
 			<span class="input-inner-wrapper">
@@ -78,13 +81,12 @@
 			</div>
 		{/if}
 	</div>
-	<span class="label-content"></span>
+	<span class="label-content">{labelContent}</span>
 </div>
 
 <style lang="postcss">
 	.input-label {
 		display: inline-flex;
-		align-items: center;
 		flex-direction: column-reverse;
 		touch-action: manipulation;
 		width: 100%;
@@ -179,10 +181,9 @@
 	}
 
 	.label-content {
-		display: inline-flex;
-		align-items: center;
-		font-family: 'Open Sans', serif;
+		@apply uppercase;
 		font-size: 10px;
+		display: inline-flex;
 		font-weight: bold;
 		line-height: 1.6;
 		letter-spacing: 0.6px;

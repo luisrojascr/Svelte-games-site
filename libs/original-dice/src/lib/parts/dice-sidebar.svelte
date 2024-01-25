@@ -1,7 +1,7 @@
 <script lang="ts">
+	import LabelInput from '$lib/parts/components/common/label-input.svelte';
+	import Tooltip from '$lib/parts/components/common/tooltip.svelte';
 	import { decimalCryptoDisplay, getNextDecimal } from '../utils/helper.js';
-	import LabelInput from './components/common/label-input.svelte';
-	import Tooltip from './components/common/tooltip.svelte';
 
 	enum BettingVariants {
 		MANUAL = 'MANUAL',
@@ -65,7 +65,7 @@
 			</button>
 		</div>
 		{#if bettingVariant === BettingVariants.MANUAL}
-			<Tooltip />
+			<!-- <Tooltip /> -->
 			<!-- FIRST INPUT -->
 			<LabelInput
 				min={0}
@@ -77,10 +77,13 @@
 				dataTestId="bet-amount"
 				integerOnly={true}
 				disabled={gameInProgress || loading || autoBetInProgress}
+				labelContent="Bet Amount (Max - 1.26530535)"
 			/>
 
 			<!-- SECOND INPUT -->
-			<LabelInput type="text" />
+			<LabelInput type="text" labelContent="Profit on Win" />
+
+			<button class="bet">BET</button>
 		{/if}
 	</div>
 </div>
@@ -121,6 +124,7 @@
 	.betting-variant-line {
 		display: inline-flex;
 		width: 100%;
+		margin-bottom: 10px;
 	}
 
 	.betting-variant-line button:first-child {
@@ -182,5 +186,9 @@
 		letter-spacing: 1px;
 		text-align: center;
 		color: #ffffff;
+	}
+
+	button.bet {
+		@apply w-full text-white bg-green-200 font-medium rounded-lg text-sm px-5 py-2.5 mt-10 text-center;
 	}
 </style>

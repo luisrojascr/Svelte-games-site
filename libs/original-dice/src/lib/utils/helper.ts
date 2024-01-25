@@ -20,13 +20,13 @@ export function round(value: number, decimalPlaces: number = 0): string {
   return new Big(value).round(decimalPlaces, Big.roundHalfUp).toFixed(decimalPlaces);
 }
 
+// Cache disallowed keys outside of function scope to avoid recreation
+const disallowedKeys = ['e', '*', '+', '-', '/', '.', '=', 'Enter', 'NumpadEnter'];
 export const numberOnly = (e: KeyboardEvent): void => {
-  const disallowedKeys = ['e', '*', '+', '-', '/', '.', '=', 'Enter', 'NumpadEnter'];
   if (disallowedKeys.includes(e.key)) {
-      e.preventDefault();
+    e.preventDefault();
   }
-}
-
+};
 
 export const decimalDisplayLength = (currency: CurrencyEnum): number => {
   const crypto = cryptoCurrencies.find(crypto => crypto.currency === currency);
@@ -38,20 +38,16 @@ export const decimalCryptoDisplay = (
   cryptocurrency: CurrencyEnum,
   roundingMode: Big.RoundingMode = Big.roundDown
 ): string => {
-  const v = new Big(decimalRep).round(
-    decimalDisplayLength(cryptocurrency),
-    roundingMode
-  );
-  return v.toFixed(decimalDisplayLength(cryptocurrency));
+  const displayLength = decimalDisplayLength(cryptocurrency);
+  return new Big(decimalRep).round(displayLength, roundingMode).toFixed(displayLength);
 };
 
 export function getNextDecimal(str: string): string {
-  let number = Number(str);
+  const number = Number(str);
   if (!isNaN(number)) {
-    number += 1 / Math.pow(10, str.length - str.indexOf('.') - 1);
-    return number.toString();
+    const nextNumber = number + 1 / Math.pow(10, str.length - str.indexOf('.') - 1);
+    return nextNumber.toString();
   } else {
-    console.error(`Unable to convert "${str}" to a number.`);
-    return str;
+    throw new Error(`Unable to convert "${str}" to a number.`);
   }
 }
