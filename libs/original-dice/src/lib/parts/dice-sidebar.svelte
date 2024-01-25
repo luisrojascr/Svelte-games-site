@@ -1,7 +1,9 @@
 <script lang="ts">
 	import LabelInput from '$lib/parts/components/common/label-input.svelte';
-	import Tooltip from '$lib/parts/components/common/tooltip.svelte';
+	import { Tooltip } from '@svelte-plugins/tooltips';
+	import { writable } from 'svelte/store';
 	import { decimalCryptoDisplay, getNextDecimal } from '../utils/helper.js';
+	import CustomButton from './components/common/custom-button.svelte';
 
 	enum BettingVariants {
 		MANUAL = 'MANUAL',
@@ -13,13 +15,27 @@
 	let coinPriceData: any;
 	let currentWalletState: any;
 
+	let tooltip = true;
+
 	let active = true;
 
 	let bettingVariant = BettingVariants.MANUAL;
 
-	let gameInProgress = false;
-	let loading = false;
-	let autoBetInProgress = false;
+	// let gameInProgress = false;
+	// let autoBetInProgress = false;
+
+	const gameInProgress = writable(false);
+	const autoBetInProgress = writable(false);
+
+	// TEST THE LOADING STATE FOR SPINNER ANIMATION
+	const loading = writable(false);
+	async function buttonClickHandler() {
+		loading.set(true); // Start loading
+		// Simulate a delay, for example, 2 seconds
+		await new Promise((resolve) => setTimeout(resolve, 20000));
+		loading.set(false); // Stop loading
+	}
+	// TEST THE LOADING STATE FOR SPINNER ANIMATION
 
 	function setActiveVariant(variant: BettingVariants) {
 		if (!gameInProgress && !loading && !autoBetInProgress) {
@@ -47,7 +63,7 @@
 					? '#4769FC'
 					: '#3F4B79'}; opacity: {bettingVariant === BettingVariants.MANUAL ? 1 : 0.7};"
 				on:click={() => setActiveVariant(BettingVariants.MANUAL)}
-				disabled={gameInProgress || loading || autoBetInProgress}
+				disabled={$gameInProgress || $loading || $autoBetInProgress}
 				data-testid="manual-bet"
 			>
 				<span class="button-text">Manual</span>
@@ -58,15 +74,15 @@
 					? '#4769FC'
 					: '#3F4B79'}; opacity: {bettingVariant === BettingVariants.AUTO ? 1 : 0.7};"
 				on:click={() => setActiveVariant(BettingVariants.AUTO)}
-				disabled={gameInProgress || loading || autoBetInProgress}
+				disabled={$gameInProgress || $loading || $autoBetInProgress}
 				data-testid="auto-bet"
 			>
 				<span class="button-text">Auto</span>
 			</button>
 		</div>
 		{#if bettingVariant === BettingVariants.MANUAL}
-			<!-- <Tooltip /> -->
 			<!-- FIRST INPUT -->
+
 			<LabelInput
 				min={0}
 				step={selectedFiatCurrency && coinPriceData
@@ -76,14 +92,48 @@
 				value={betAmount}
 				dataTestId="bet-amount"
 				integerOnly={true}
-				disabled={gameInProgress || loading || autoBetInProgress}
+				disabled={$gameInProgress || $loading || $autoBetInProgress}
 				labelContent="Bet Amount (Max - 1.26530535)"
 			/>
+			<div class="tooltip-parent">
+				<div class="tooltip">
+					{#if tooltip}
+						<Tooltip
+							content="<p>Please set a valid bet amount</p>"
+							theme="tooltip-theme"
+							position="bottom"
+							animation="slide"
+							align="center"
+							bind:show={tooltip}
+							autoPosition
+							action="prop"
+							style={{
+								backgroundColor: '#fff',
+								fontSize: '10px',
+								color: '#222c55',
+								padding: '8px'
+							}}>&nbsp;</Tooltip
+						>
+					{/if}
+				</div>
+			</div>
 
 			<!-- SECOND INPUT -->
 			<LabelInput type="text" labelContent="Profit on Win" />
-
-			<button class="bet">BET</button>
+			<CustomButton
+				type="submit"
+				onClick={buttonClickHandler}
+				width={'100%'}
+				bgColor={'#01d180'}
+				color={'#fff'}
+				padding={'16px'}
+				margin={'10px 0px'}
+				disabled={false}
+				hoverColor={'#00b16c'}
+				dataTestId={'bet-button'}
+				buttonText={'Bet'}
+				loading={$loading}
+			></CustomButton>
 		{/if}
 	</div>
 </div>
@@ -190,5 +240,18 @@
 
 	button.bet {
 		@apply w-full text-white bg-green-200 font-medium rounded-lg text-sm px-5 py-2.5 mt-10 text-center;
+	}
+
+	.tooltip-parent {
+		position: relative;
+		top: 0;
+	}
+
+	.tooltip {
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+		z-index: 100;
 	}
 </style>

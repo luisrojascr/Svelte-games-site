@@ -13,6 +13,9 @@ devDependencies:
   '@playwright/test':
     specifier: ^1.28.1
     version: 1.40.1
+  '@svelte-plugins/tooltips':
+    specifier: ^3.0.0
+    version: 3.0.0(svelte@4.2.8)
   '@sveltejs/adapter-auto':
     specifier: ^3.0.0
     version: 3.1.0(@sveltejs/kit@2.3.2)
@@ -562,6 +565,14 @@ packages:
 
   /@sinclair/typebox@0.27.8:
     resolution: {integrity: sha512-+Fj43pSMwJs4KRrH/938Uf+uAELIgVBmQzg/q1YG10djyfA3TnrU8N8XzqCh/okZdszqBQTZf96idMfE5lnwTA==}
+    dev: true
+
+  /@svelte-plugins/tooltips@3.0.0(svelte@4.2.8):
+    resolution: {integrity: sha512-lE7LKU01OY8XYwsWmRxEcBZJqVv+f/TP5JQP5eqzb9ppS9UeN8DF/mFP9i2BfELRfYdwl4qwUENTPYBndMI3LA==}
+    peerDependencies:
+      svelte: ^3.54.0 || ^4.0.0 || ^5.0.0-next.0
+    dependencies:
+      svelte: 4.2.8
     dev: true
 
   /@sveltejs/adapter-auto@3.1.0(@sveltejs/kit@2.3.2):
