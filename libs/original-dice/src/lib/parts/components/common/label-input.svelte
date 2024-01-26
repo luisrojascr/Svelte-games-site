@@ -14,8 +14,6 @@
 	export let style: string = '';
 	export let paddingRight: string = '36px';
 	export let dataTestId: string = '';
-	// export let inputIcon: any;
-	export let inputButtons: boolean = false;
 	export let labelContent: string = '';
 
 	const dispatch = createEventDispatcher();
@@ -42,15 +40,14 @@
 	$: computedClass = `input-label ${disabled ? 'opacity-80' : 'opacity-100'}`;
 
 	onMount(() => {
-		// Any onMount logic here later
+		// onMount logic here later
 	});
 </script>
 
 <div class={computedClass} {style}>
 	<div
-		class={`input-wrapper ${isActive ? 'active' : ''} ${
-			readOnly ? 'readonly' : ''
-		} ${buttonsPosition}`}
+		class={`input-wrapper ${isActive ? 'active' : ''} ${readOnly ? 'readonly' : ''}`}
+		style={`flex-direction: ${buttonsPosition === 'end' ? 'row' : 'row-reverse'};`}
 	>
 		<label class="input-inner-label" for="">
 			<span class="input-inner-wrapper">
@@ -71,13 +68,22 @@
 						on:blur={handleBlur}
 						style={`padding-right: ${paddingRight};`}
 					/>
-					<!-- {inputIcon} -->
+					{#if $$slots.inputIcon}
+						<div class="inner-content-img">
+							<slot name="inputIcon" />
+						</div>
+					{/if}
 				</span>
 			</span>
 		</label>
-		{#if inputButtons}
-			<div class="buttons-wrapper">
-				<button>{inputButtons}</button>
+		{#if $$slots.buttons}
+			<div
+				class="buttons-wrapper"
+				style={`margin-${buttonsPosition === 'start' ? 'left' : 'right'}: 4px;`}
+			>
+				<button>
+					<slot name="buttons" />
+				</button>
 			</div>
 		{/if}
 	</div>
@@ -86,7 +92,7 @@
 
 <style lang="postcss">
 	.input-label {
-		display: inline-flex;
+		display: flex;
 		flex-direction: column-reverse;
 		touch-action: manipulation;
 		width: 100%;
@@ -95,7 +101,7 @@
 	.input-wrapper {
 		width: 100%;
 		display: inline-flex;
-		flex-direction: row;
+		/* flex-direction: row; */
 		border-radius: 4px;
 		background: #111a41;
 		border: 1px solid #2c3763;
@@ -125,8 +131,8 @@
 		width: 100%;
 		display: flex;
 	}
-	.inner-content svg,
-	.inner-content img {
+
+	.inner-content-img {
 		position: absolute;
 		top: 50%;
 		transform: translate(0, -50%);
@@ -159,7 +165,7 @@
 		-webkit-overflow-scrolling: touch;
 
 		font-size: 14px;
-		font-family: 'Open Sans', serif;
+		/* font-family: 'Open Sans', serif; */
 		font-weight: 500;
 		font-stretch: normal;
 		font-style: normal;
@@ -197,11 +203,6 @@
 	.buttons-wrapper {
 		display: inline-flex;
 		flex-shrink: 0;
-	}
-	.buttons-wrapper button {
-		margin-right: 4px;
-	}
-	.buttons-wrapper button:last-child {
-		font-size: 12px !important;
+		/* margin-right: 4px; */
 	}
 </style>

@@ -1,7 +1,12 @@
 <script lang="ts">
+	import CloseIconX from '$lib/assets/images/CloseIconX.svelte';
 	import DiceIcon from '$lib/assets/images/diceIcon.png';
 	import DiceWheelIcon from '$lib/assets/images/diceWheelIcon.png';
 
+	import { Tooltip } from '@svelte-plugins/tooltips';
+
+	import PercentIcon from '$lib/assets/images/PercentIcon.svelte';
+	import RefreshIcon from '$lib/assets/images/RefreshIcon.svelte';
 	import DiceSlider from './dice-slider.svelte';
 	import DiceWheel from './dice-wheel.svelte';
 
@@ -42,12 +47,56 @@
 			<!-- Will add this part later -->
 		</div>
 
+		<!-- DICE CONTENT -->
 		<div class="dice-content">
 			{#if isDiceIconDisplayed}
 				<DiceSlider {disabled} {value} on:rollOverUnderChange={handleRollOverUnderChange} />
 			{:else}
 				<DiceWheel />
 			{/if}
+		</div>
+		<!-- DICE CONTENT -->
+
+		<!-- BOTTOM DICE FOOTER -->
+		<div class="dice-footer">
+			<label class="input-label" for="">
+				<Tooltip />
+				<span class="input-wrapper">
+					<span class="input-content">
+						<input class="game-input" type="number" />
+						<div class="input-content-img">
+							<CloseIconX width="10px" height="10px" stroke="#7b89c5" />
+						</div>
+					</span>
+				</span>
+				<span class="label-text">Payout</span>
+			</label>
+
+			<label class="input-label" for="">
+				<Tooltip />
+				<span class="input-wrapper">
+					<span class="input-content">
+						<input class="game-input" style="overflow: hidden;" type="button" />
+						<div class="input-content-img">
+							<RefreshIcon width="12px" height="12px" fill="#7b89c5" />
+						</div>
+					</span>
+				</span>
+				<span class="label-text">ROLL OVER</span>
+			</label>
+
+			<label class="input-label" for="">
+				<Tooltip />
+				<span class="input-wrapper">
+					<span class="input-content">
+						<input class="game-input" type="number" />
+						<div class="input-content-img">
+							<PercentIcon width="12px" height="12px" fill="#7b89c5" />
+						</div>
+					</span>
+				</span>
+				<span class="label-text">Win Chance</span>
+			</label>
 		</div>
 	</div>
 </div>
@@ -105,5 +154,119 @@
 		@apply font-normal text-lg overflow-scroll bg-deepBlue text-white rounded border border-gray-700 py-2 px-3 pr-7 transition-all duration-200 ease-out outline-none;
 		/* Add hover, focus, active, and disabled states later */
 		/* Add responsive font size later */
+	}
+
+	/* Footer inputs */
+	.dice-footer {
+		color: rgb(213, 220, 235);
+		position: relative;
+		display: grid;
+		width: 100%;
+		grid-template-columns: 1fr 1fr 1fr;
+		gap: 0.5rem;
+		padding: 1rem;
+	}
+
+	.dice-footer input[type='button'] {
+		cursor: pointer;
+		text-align: left;
+	}
+
+	.input-label {
+		display: inline-flex;
+		-webkit-box-align: center;
+		flex-direction: column-reverse;
+		align-items: flex-start;
+		touch-action: manipulation;
+	}
+
+	.input-wrapper {
+		width: 100%;
+		display: flex;
+		flex-shrink: 0;
+	}
+
+	.input-content {
+		position: relative;
+		-webkit-box-flex: 1;
+		flex-grow: 1;
+		width: 100%;
+		display: flex;
+	}
+
+	.input-content-img {
+		position: absolute;
+		top: 50%;
+		transform: translate(0px, -50%);
+		pointer-events: none;
+		color: rgb(177, 186, 211);
+		cursor: text;
+		right: 0.75em;
+		overflow: hidden;
+	}
+
+	.game-input {
+		font-family: 'Open Sans', serif;
+		font-size: 14px;
+		-webkit-overflow-scrolling: touch;
+
+		font-weight: 500;
+		font-stretch: normal;
+		font-style: normal;
+		line-height: 2;
+		letter-spacing: normal;
+		color: #ffffff;
+		-webkit-appearance: none;
+		width: 100%;
+		cursor: text;
+		-webkit-appearance: none;
+		padding: 8px 12px;
+		padding-right: 28px;
+		border-radius: 4px;
+		border: solid 1px #404c7d;
+		background-color: #111a41;
+		transition: all 200ms ease-out 0s;
+		outline: none;
+	}
+
+	.game-input:hover {
+		border: solid 1px #4769fc;
+		transition: border 200ms ease-out 0;
+	}
+
+	.game-input:focus {
+		border: solid 1px #404c7d;
+		transition: border 200ms ease-out 0;
+	}
+
+	.game-input:active {
+		border: solid 1px #4769fc;
+		transition: border 200ms ease-out 0;
+	}
+
+	.game-input:disabled {
+		cursor: not-allowed;
+	}
+
+	.label-text {
+		display: inline-flex;
+		-webkit-box-align: center;
+		align-items: center;
+		/* font-family: 'Open Sans', serif; */
+		font-size: 10px;
+		font-weight: bold;
+		font-stretch: normal;
+		font-style: normal;
+		line-height: 1.6;
+		letter-spacing: 0.6px;
+		color: #e6e7ed;
+		margin: 0px 0px 0.25em;
+		transition: all 200ms ease-out 0s;
+	}
+
+	@media (max-width: 1030px) {
+		.game-input {
+			font-size: 16px;
+		}
 	}
 </style>

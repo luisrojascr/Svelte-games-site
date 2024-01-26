@@ -70,7 +70,7 @@
 		min-width: max-content;
 		outline: none;
 		border-radius: 4px;
-		font-family: 'Open Sans', serif;
+		/* font-family: 'Open Sans', serif; */
 		font-size: 12px;
 		font-weight: 900;
 		line-height: normal;

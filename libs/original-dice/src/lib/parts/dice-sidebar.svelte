@@ -1,9 +1,13 @@
 <script lang="ts">
-	import LabelInput from '$lib/parts/components/common/label-input.svelte';
 	import { Tooltip } from '@svelte-plugins/tooltips';
 	import { writable } from 'svelte/store';
+
 	import { decimalCryptoDisplay, getNextDecimal } from '../utils/helper.js';
+
+	import LabelInput from '$lib/parts/components/common/label-input.svelte';
 	import CustomButton from './components/common/custom-button.svelte';
+
+	import PercentIcon from '$lib/assets/images/PercentIcon.svelte';
 
 	enum BettingVariants {
 		MANUAL = 'MANUAL',
@@ -19,28 +23,24 @@
 
 	let active = true;
 
-	let bettingVariant = BettingVariants.MANUAL;
+	const bettingVariant = writable(BettingVariants.MANUAL);
 
 	// let gameInProgress = false;
 	// let autoBetInProgress = false;
 
-	const gameInProgress = writable(false);
-	const autoBetInProgress = writable(false);
-
 	// TEST THE LOADING STATE FOR SPINNER ANIMATION
 	const loading = writable(false);
+
 	async function buttonClickHandler() {
 		loading.set(true); // Start loading
 		// Simulate a delay, for example, 2 seconds
-		await new Promise((resolve) => setTimeout(resolve, 20000));
+		await new Promise((resolve) => setTimeout(resolve, 2000));
 		loading.set(false); // Stop loading
 	}
 	// TEST THE LOADING STATE FOR SPINNER ANIMATION
 
 	function setActiveVariant(variant: BettingVariants) {
-		if (!gameInProgress && !loading && !autoBetInProgress) {
-			bettingVariant = variant;
-		}
+		bettingVariant.set(variant);
 	}
 </script>
 
@@ -59,81 +59,230 @@
 		<div class="betting-variant-line">
 			<button
 				class="betting-variant-button"
-				style="background-color: {bettingVariant === BettingVariants.MANUAL
+				style="background-color: {$bettingVariant === BettingVariants.MANUAL
 					? '#4769FC'
-					: '#3F4B79'}; opacity: {bettingVariant === BettingVariants.MANUAL ? 1 : 0.7};"
+					: '#3F4B79'}; opacity: {$bettingVariant === BettingVariants.MANUAL ? 1 : 0.7};"
 				on:click={() => setActiveVariant(BettingVariants.MANUAL)}
-				disabled={$gameInProgress || $loading || $autoBetInProgress}
 				data-testid="manual-bet"
 			>
 				<span class="button-text">Manual</span>
 			</button>
 			<button
 				class="betting-variant-button"
-				style="background-color: {bettingVariant === BettingVariants.AUTO
+				style="background-color: {$bettingVariant === BettingVariants.AUTO
 					? '#4769FC'
-					: '#3F4B79'}; opacity: {bettingVariant === BettingVariants.AUTO ? 1 : 0.7};"
+					: '#3F4B79'}; opacity: {$bettingVariant === BettingVariants.AUTO ? 1 : 0.7};"
 				on:click={() => setActiveVariant(BettingVariants.AUTO)}
-				disabled={$gameInProgress || $loading || $autoBetInProgress}
 				data-testid="auto-bet"
 			>
 				<span class="button-text">Auto</span>
 			</button>
 		</div>
-		{#if bettingVariant === BettingVariants.MANUAL}
-			<!-- FIRST INPUT -->
 
-			<LabelInput
-				min={0}
-				step={selectedFiatCurrency && coinPriceData
-					? '0.01'
-					: getNextDecimal(decimalCryptoDisplay(0, currentWalletState))}
-				type={'number'}
-				value={betAmount}
-				dataTestId="bet-amount"
-				integerOnly={true}
-				disabled={$gameInProgress || $loading || $autoBetInProgress}
-				labelContent="Bet Amount (Max - 1.26530535)"
-			/>
-			<div class="tooltip-parent">
-				<div class="tooltip">
-					{#if tooltip}
-						<Tooltip
-							content="<p>Please set a valid bet amount</p>"
-							theme="tooltip-theme"
-							position="bottom"
-							animation="slide"
-							align="center"
-							bind:show={tooltip}
-							autoPosition
-							action="prop"
-							style={{
-								backgroundColor: '#fff',
-								fontSize: '10px',
-								color: '#222c55',
-								padding: '8px'
-							}}>&nbsp;</Tooltip
-						>
-					{/if}
+		{#if $bettingVariant === BettingVariants.MANUAL}
+			<!-- FIRST INPUT -->
+			<div>
+				<LabelInput
+					min={0}
+					step={selectedFiatCurrency && coinPriceData
+						? '0.01'
+						: getNextDecimal(decimalCryptoDisplay(0, currentWalletState))}
+					type={'number'}
+					value={betAmount}
+					dataTestId="bet-amount"
+					integerOnly={true}
+					labelContent="Bet Amount (Max - 1.26530535)"
+				>
+					<div class="btn-parent-v1" slot="buttons">
+						<button class="buttons-v1">
+							<span>½</span>
+						</button>
+						<button class="buttons-v1">
+							<span>2x</span>
+						</button>
+					</div>
+				</LabelInput>
+
+				<div class="tooltip-parent">
+					<div class="tooltip">
+						{#if tooltip}
+							<Tooltip
+								content="<p>Please set a valid bet amount</p>"
+								theme="tooltip-theme"
+								position="bottom"
+								animation="slide"
+								align="center"
+								bind:show={tooltip}
+								autoPosition
+								action="prop"
+								style={{
+									backgroundColor: '#fff',
+									fontSize: '10px',
+									color: '#222c55',
+									padding: '8px'
+								}}>&nbsp;</Tooltip
+							>
+						{/if}
+					</div>
 				</div>
 			</div>
 
 			<!-- SECOND INPUT -->
-			<LabelInput type="text" labelContent="Profit on Win" />
-			<CustomButton
-				type="submit"
-				onClick={buttonClickHandler}
-				width={'100%'}
-				bgColor={'#01d180'}
-				color={'#fff'}
-				padding={'16px'}
-				margin={'10px 0px'}
-				disabled={false}
-				hoverColor={'#00b16c'}
-				dataTestId={'bet-button'}
-				buttonText={'Bet'}
-				loading={$loading}
-			></CustomButton>
+			<div>
+				<LabelInput type="text" labelContent="Profit on Win" />
+			</div>
+
+			<div>
+				<CustomButton
+					type="submit"
+					onClick={buttonClickHandler}
+					width={'100%'}
+					bgColor={'#01d180'}
+					color={'#fff'}
+					padding={'16px'}
+					margin={'10px 0px'}
+					disabled={false}
+					hoverColor={'#00b16c'}
+					dataTestId={'bet-button'}
+					buttonText={'Bet'}
+					loading={$loading}
+				></CustomButton>
+			</div>
+		{/if}
+
+		{#if $bettingVariant === BettingVariants.AUTO}
+			<div>
+				<LabelInput
+					min={0}
+					step={selectedFiatCurrency && coinPriceData
+						? '0.01'
+						: getNextDecimal(decimalCryptoDisplay(0, currentWalletState))}
+					type={'number'}
+					value={betAmount}
+					dataTestId="bet-amount"
+					integerOnly={true}
+					labelContent="Bet Amount (Max - 1.26530535)"
+				>
+					<div class="btn-parent-v1" slot="buttons">
+						<button class="buttons-v1">
+							<span>½</span>
+						</button>
+						<button class="buttons-v1">
+							<span>2x</span>
+						</button>
+					</div>
+				</LabelInput>
+
+				<div class="tooltip-parent">
+					<div class="tooltip">
+						{#if tooltip}
+							<Tooltip
+								content="<p>Please set a valid bet amount</p>"
+								theme="tooltip-theme"
+								position="bottom"
+								animation="slide"
+								align="center"
+								bind:show={tooltip}
+								autoPosition
+								action="prop"
+								style={{
+									backgroundColor: '#fff',
+									fontSize: '10px',
+									color: '#222c55',
+									padding: '8px'
+								}}>&nbsp;</Tooltip
+							>
+						{/if}
+					</div>
+				</div>
+			</div>
+
+			<div>
+				<LabelInput
+					min={0}
+					step={selectedFiatCurrency && coinPriceData
+						? '0.01'
+						: getNextDecimal(decimalCryptoDisplay(0, currentWalletState))}
+					type={'number'}
+					value={betAmount}
+					dataTestId="bet-amount"
+					integerOnly={true}
+					labelContent="Number Of Bets"
+				></LabelInput>
+			</div>
+
+			<div>
+				<LabelInput
+					min={0}
+					step={selectedFiatCurrency && coinPriceData
+						? '0.01'
+						: getNextDecimal(decimalCryptoDisplay(0, currentWalletState))}
+					type={'number'}
+					value={betAmount}
+					dataTestId="bet-amount"
+					integerOnly={true}
+					labelContent="On Loss"
+					buttonsPosition={'start'}
+				>
+					<PercentIcon width="11px" height="13px" fill="#848aa0" slot="inputIcon" />
+
+					<div class="btn-parent-v1" slot="buttons">
+						<button class="buttons-v2">
+							<span>Reset</span>
+						</button>
+						<button class="buttons-v2">
+							<span>Increase By</span>
+						</button>
+					</div>
+				</LabelInput>
+			</div>
+
+			<div>
+				<LabelInput
+					min={0}
+					step={selectedFiatCurrency && coinPriceData
+						? '0.01'
+						: getNextDecimal(decimalCryptoDisplay(0, currentWalletState))}
+					type={'number'}
+					value={betAmount}
+					dataTestId="bet-amount"
+					integerOnly={true}
+					labelContent="Stop On Profit"
+				></LabelInput>
+			</div>
+
+			<div>
+				<LabelInput
+					min={0}
+					step={selectedFiatCurrency && coinPriceData
+						? '0.01'
+						: getNextDecimal(decimalCryptoDisplay(0, currentWalletState))}
+					type={'number'}
+					value={betAmount}
+					dataTestId="bet-amount"
+					integerOnly={true}
+					labelContent="Stop On Loss"
+				></LabelInput>
+			</div>
+
+			<div>
+				<div>
+					<CustomButton
+						type="submit"
+						onClick={buttonClickHandler}
+						width={'100%'}
+						bgColor={'#01d180'}
+						color={'#fff'}
+						padding={'16px'}
+						margin={'10px 0px'}
+						disabled={false}
+						hoverColor={'#00b16c'}
+						dataTestId={'bet-button'}
+						buttonText={'Start Autobet'}
+						loading={$loading}
+					></CustomButton>
+				</div>
+			</div>
 		{/if}
 	</div>
 </div>
@@ -157,9 +306,9 @@
 		background-color: #222c55;
 	}
 
-	/* .sidebar-main > * + * {
+	.sidebar-main > * + * {
 		margin-top: 1rem;
-	} */
+	}
 
 	.first-line-bet {
 		display: flex;
@@ -203,7 +352,7 @@
 
 		padding: 9px 1em;
 		border-radius: 4px;
-		font-family: 'Open Sans', serif;
+		/* font-family: 'Open Sans', serif; */
 		font-size: 10px;
 		font-weight: bold;
 		font-stretch: normal;
@@ -227,7 +376,7 @@
 	}
 
 	.button-text {
-		font-family: 'Open Sans', serif;
+		/* font-family: 'Open Sans', serif; */
 		font-size: 12px;
 		font-weight: 600;
 		font-stretch: normal;
@@ -238,8 +387,100 @@
 		color: #ffffff;
 	}
 
-	button.bet {
+	/* button.bet {
 		@apply w-full text-white bg-green-200 font-medium rounded-lg text-sm px-5 py-2.5 mt-10 text-center;
+	} */
+
+	.btn-parent-v1 {
+		display: flex;
+		gap: 4px;
+	}
+
+	.buttons-v1 {
+		justify-content: center;
+		align-items: center;
+		flex-shrink: 0;
+		border-radius: 2px;
+		background-color: #3f4b79;
+		padding: 5px 9px;
+		/* font-family: 'Open Sans', serif; */
+		font-size: 14px;
+		font-weight: 500;
+		font-stretch: normal;
+		font-style: normal;
+		line-height: 1.71;
+		letter-spacing: normal;
+		text-align: center;
+		color: #ffffff;
+		transition:
+			background-color 300ms ease 0s,
+			opacity 300ms ease 0s,
+			transform 100ms ease 0s;
+
+		margin-top: 4px;
+		margin-bottom: 4px;
+	}
+
+	.buttons-v1:last-child {
+		font-size: 12px;
+	}
+
+	.buttons-v1:hover {
+		background-color: #848aa05c;
+		transition:
+			background-color 300ms ease 0s,
+			opacity 300ms ease 0s,
+			transform 100ms ease 0s;
+	}
+
+	.buttons-v1:active span {
+		transform: scale(0.95);
+		transition:
+			background 300ms ease 0s,
+			opacity 300ms ease 0s,
+			transform 100ms ease 0s;
+	}
+
+	.buttons-v2 {
+		position: relative;
+		display: inline-flex;
+		justify-content: center;
+		align-items: center;
+		flex-shrink: 0;
+		border-radius: 2px;
+		background-color: #4769fc;
+		padding: 2px 8px;
+		/* font-family: 'Open Sans', serif; */
+		font-size: 9px;
+		font-weight: bold;
+		font-stretch: normal;
+		font-style: normal;
+		line-height: 1.6;
+		letter-spacing: 0.91px;
+		text-align: center;
+		color: #ffffff;
+		transition:
+			background 300ms ease 0s,
+			opacity 300ms ease 0s,
+			transform 100ms ease 0s;
+
+		margin-top: 4px;
+		margin-bottom: 4px;
+	}
+
+	.buttons-v2 span {
+		transition:
+			background 300ms ease 0s,
+			opacity 300ms ease 0s,
+			transform 100ms ease 0s;
+	}
+
+	.buttons-v2.active span {
+		transform: scale(0.95);
+		transition:
+			background 300ms ease 0s,
+			opacity 300ms ease 0s,
+			transform 100ms ease 0s;
 	}
 
 	.tooltip-parent {
