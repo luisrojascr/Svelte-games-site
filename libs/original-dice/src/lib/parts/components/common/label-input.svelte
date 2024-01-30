@@ -1,6 +1,6 @@
 <script lang="ts">
+	import { numberOnly } from '$lib/utils/helper';
 	import { createEventDispatcher, onMount } from 'svelte';
-	import { numberOnly } from '../../../utils/helper.js';
 
 	export let type: string = 'text';
 	export let value: string | number = '';
@@ -15,6 +15,7 @@
 	export let paddingRight: string = '36px';
 	export let dataTestId: string = '';
 	export let labelContent: string = '';
+	export let placeholder: string = '0,0000000';
 
 	const dispatch = createEventDispatcher();
 
@@ -67,6 +68,7 @@
 						on:focus={handleFocus}
 						on:blur={handleBlur}
 						style={`padding-right: ${paddingRight};`}
+						{placeholder}
 					/>
 					{#if $$slots.inputIcon}
 						<div class="inner-content-img">
@@ -93,6 +95,7 @@
 <style lang="postcss">
 	.input-label {
 		display: flex;
+		display: inline-flex;
 		flex-direction: column-reverse;
 		touch-action: manipulation;
 		width: 100%;
@@ -131,7 +134,6 @@
 		width: 100%;
 		display: flex;
 	}
-
 	.inner-content-img {
 		position: absolute;
 		top: 50%;
@@ -165,7 +167,6 @@
 		-webkit-overflow-scrolling: touch;
 
 		font-size: 14px;
-		/* font-family: 'Open Sans', serif; */
 		font-weight: 500;
 		font-stretch: normal;
 		font-style: normal;
@@ -203,6 +204,11 @@
 	.buttons-wrapper {
 		display: inline-flex;
 		flex-shrink: 0;
-		/* margin-right: 4px; */
 	}
+	/* .buttons-wrapper button {
+		margin-right: 4px;
+	}
+	.buttons-wrapper button:last-child {
+		font-size: 12px !important;
+	} */
 </style>

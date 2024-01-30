@@ -1,8 +1,6 @@
 <script lang="ts">
 	import Spinner from './spinner.svelte';
 
-	let hover = false;
-
 	export let type: 'button' | 'submit' = 'button';
 	export let onClick: () => void;
 	export let width: string = 'initial';
@@ -18,16 +16,9 @@
 	export let dataTestId: string;
 	export let buttonText: string;
 
-	function onMouseEnter() {
-		hover = true;
-	}
+	let hover = false;
 
-	function onMouseLeave() {
-		hover = false;
-	}
-
-	const backgroundColor = secondary ? '#4769fc' : bgColor || '#01d180';
-
+	const backgroundColor = secondary ? '#4769fc' : bgColor;
 	// Define a function to handle hover color
 	function getHoverColor() {
 		if (isInRedState) return '#de2348';
@@ -40,10 +31,12 @@
 <button
 	{type}
 	on:click={onClick}
-	on:mouseenter={onMouseEnter}
-	on:mouseleave={onMouseLeave}
+	on:mouseenter={() => (hover = true)}
+	on:mouseleave={() => (hover = false)}
 	class="custom-button"
-	style={`background-color: ${hover ? getHoverColor() : backgroundColor}; color: ${color}; padding: ${padding}; margin: ${margin}; width: ${width};`}
+	style={`background-color: ${
+		hover ? getHoverColor() : backgroundColor
+	}; color: ${color}; padding: ${padding}; margin: ${margin}; width: ${width};`}
 	class:loading
 	class:disabled
 	class:hover
@@ -70,7 +63,6 @@
 		min-width: max-content;
 		outline: none;
 		border-radius: 4px;
-		/* font-family: 'Open Sans', serif; */
 		font-size: 12px;
 		font-weight: 900;
 		line-height: normal;
@@ -79,7 +71,6 @@
 		cursor: pointer;
 		transition: all 0.2s linear;
 	}
-
 	.custom-button:active span {
 		transform: scale(0.95);
 		transition:
@@ -87,11 +78,9 @@
 			opacity 300ms ease 0s,
 			transform 100ms ease 0s;
 	}
-
 	.custom-button:hover {
 		background-color: var(--hover-color);
 	}
-
 	.disabled {
 		cursor: not-allowed;
 		background-color: var(--disabled-bg-color);

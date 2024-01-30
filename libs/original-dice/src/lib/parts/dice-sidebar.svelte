@@ -1,13 +1,10 @@
 <script lang="ts">
+	import PercentIcon from '$lib/assets/images/PercentIcon.svelte';
+	import CustomButton from '$lib/parts/components/common/custom-button.svelte';
+	import LabelInput from '$lib/parts/components/common/label-input.svelte';
 	import { Tooltip } from '@svelte-plugins/tooltips';
 	import { writable } from 'svelte/store';
-
 	import { decimalCryptoDisplay, getNextDecimal } from '../utils/helper.js';
-
-	import LabelInput from '$lib/parts/components/common/label-input.svelte';
-	import CustomButton from './components/common/custom-button.svelte';
-
-	import PercentIcon from '$lib/assets/images/PercentIcon.svelte';
 
 	enum BettingVariants {
 		MANUAL = 'MANUAL',
@@ -19,14 +16,10 @@
 	let coinPriceData: any;
 	let currentWalletState: any;
 
-	let tooltip = true;
-
+	let tooltip = false;
 	let active = true;
 
 	const bettingVariant = writable(BettingVariants.MANUAL);
-
-	// let gameInProgress = false;
-	// let autoBetInProgress = false;
 
 	// TEST THE LOADING STATE FOR SPINNER ANIMATION
 	const loading = writable(false);
@@ -37,8 +30,8 @@
 		await new Promise((resolve) => setTimeout(resolve, 2000));
 		loading.set(false); // Stop loading
 	}
-	// TEST THE LOADING STATE FOR SPINNER ANIMATION
 
+	// TEST THE LOADING STATE FOR SPINNER ANIMATION
 	function setActiveVariant(variant: BettingVariants) {
 		bettingVariant.set(variant);
 	}
@@ -228,10 +221,10 @@
 
 					<div class="btn-parent-v1" slot="buttons">
 						<button class="buttons-v2">
-							<span>Reset</span>
+							<span>RESET</span>
 						</button>
 						<button class="buttons-v2">
-							<span>Increase By</span>
+							<span>INCREASE BY</span>
 						</button>
 					</div>
 				</LabelInput>
@@ -352,7 +345,6 @@
 
 		padding: 9px 1em;
 		border-radius: 4px;
-		/* font-family: 'Open Sans', serif; */
 		font-size: 10px;
 		font-weight: bold;
 		font-stretch: normal;
@@ -360,7 +352,6 @@
 		line-height: 1.6;
 		letter-spacing: 0.91px;
 		text-align: center;
-
 		color: #ffffff;
 	}
 
@@ -376,7 +367,6 @@
 	}
 
 	.button-text {
-		/* font-family: 'Open Sans', serif; */
 		font-size: 12px;
 		font-weight: 600;
 		font-stretch: normal;
@@ -403,7 +393,6 @@
 		border-radius: 2px;
 		background-color: #3f4b79;
 		padding: 5px 9px;
-		/* font-family: 'Open Sans', serif; */
 		font-size: 14px;
 		font-weight: 500;
 		font-stretch: normal;
@@ -450,7 +439,6 @@
 		border-radius: 2px;
 		background-color: #4769fc;
 		padding: 2px 8px;
-		/* font-family: 'Open Sans', serif; */
 		font-size: 9px;
 		font-weight: bold;
 		font-stretch: normal;
@@ -487,7 +475,6 @@
 		position: relative;
 		top: 0;
 	}
-
 	.tooltip {
 		position: absolute;
 		top: 50%;

@@ -1,1 +1,2 @@
-// Reexport your entry components here
+import OriginalDice from './originalDice.svelte';
+export { OriginalDice };

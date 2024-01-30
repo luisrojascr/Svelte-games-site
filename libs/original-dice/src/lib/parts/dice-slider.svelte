@@ -193,11 +193,13 @@
 		/* &:disabled {
 			cursor: not-allowed !important;
 		} */
+	}
 
-		@media (max-width: 1030px) {
+	/* @media (max-width: 1030px) {
+		.input-slider {
 			font-size: 16px;
 		}
-	}
+	} */
 
 	.dice-slider-wrapper {
 		@apply relative w-full max-w-[633px] text-left rounded-[31px] p-6 my-12;

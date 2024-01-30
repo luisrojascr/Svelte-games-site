@@ -1,12 +1,11 @@
 <script lang="ts">
-	import CloseIconX from '$lib/assets/images/CloseIconX.svelte';
 	import DiceIcon from '$lib/assets/images/diceIcon.png';
 	import DiceWheelIcon from '$lib/assets/images/diceWheelIcon.png';
 
-	import { Tooltip } from '@svelte-plugins/tooltips';
-
+	import CloseIconX from '$lib/assets/images/CloseIconX.svelte';
 	import PercentIcon from '$lib/assets/images/PercentIcon.svelte';
 	import RefreshIcon from '$lib/assets/images/RefreshIcon.svelte';
+	import { Tooltip } from '@svelte-plugins/tooltips';
 	import DiceSlider from './dice-slider.svelte';
 	import DiceWheel from './dice-wheel.svelte';
 
@@ -18,6 +17,10 @@
 
 	let isDiceWheelIconDisplayed = true;
 	let isDiceIconDisplayed = true;
+
+	let payout = 2.0;
+	let rollOver = 50.5;
+	let winChance = 49.5;
 
 	function toggleDiceIcon() {
 		isDiceWheelIconDisplayed = !isDiceWheelIconDisplayed;
@@ -33,7 +36,9 @@
 <div bind:this={gameContainer} class="game-container">
 	<div class="dice-game-wrapper">
 		<button
-			class={`change-dice-variant-button ${mobile ? 'top-2 left-2 w-7 h-7' : 'top-6 left-6 w-12 h-12'}`}
+			class={`change-dice-variant-button ${
+				mobile ? 'top-2 left-2 w-7 h-7' : 'top-6 left-6 w-12 h-12'
+			}`}
 			on:click={toggleDiceIcon}
 		>
 			{#if isDiceWheelIconDisplayed}
@@ -55,7 +60,6 @@
 				<DiceWheel />
 			{/if}
 		</div>
-		<!-- DICE CONTENT -->
 
 		<!-- BOTTOM DICE FOOTER -->
 		<div class="dice-footer">
@@ -63,20 +67,20 @@
 				<Tooltip />
 				<span class="input-wrapper">
 					<span class="input-content">
-						<input class="game-input" type="number" />
+						<input class="game-input" type="number" value={payout} />
 						<div class="input-content-img">
 							<CloseIconX width="10px" height="10px" stroke="#7b89c5" />
 						</div>
 					</span>
 				</span>
-				<span class="label-text">Payout</span>
+				<span class="label-text">PAYOUT</span>
 			</label>
 
 			<label class="input-label" for="">
 				<Tooltip />
 				<span class="input-wrapper">
 					<span class="input-content">
-						<input class="game-input" style="overflow: hidden;" type="button" />
+						<input class="game-input" type="number" value={rollOver} />
 						<div class="input-content-img">
 							<RefreshIcon width="12px" height="12px" fill="#7b89c5" />
 						</div>
@@ -89,13 +93,13 @@
 				<Tooltip />
 				<span class="input-wrapper">
 					<span class="input-content">
-						<input class="game-input" type="number" />
+						<input class="game-input" type="number" value={winChance} />
 						<div class="input-content-img">
 							<PercentIcon width="12px" height="12px" fill="#7b89c5" />
 						</div>
 					</span>
 				</span>
-				<span class="label-text">Win Chance</span>
+				<span class="label-text">WIN CHANCE</span>
 			</label>
 		</div>
 	</div>
@@ -120,7 +124,7 @@
 	}
 
 	.dice-content {
-		@apply flex justify-center items-center flex-grow w-full pb-4 pt-5;
+		@apply flex justify-center items-center flex-grow w-full pb-4 pt-5 min-h-[390px];
 	}
 
 	.dice-footer {
@@ -252,7 +256,6 @@
 		display: inline-flex;
 		-webkit-box-align: center;
 		align-items: center;
-		/* font-family: 'Open Sans', serif; */
 		font-size: 10px;
 		font-weight: bold;
 		font-stretch: normal;

@@ -23,6 +23,6 @@
 	}
 
 	.main-game-board-wrapper {
-		@apply rounded border bg-[#222c5599] w-full flex-col justify-center items-center self-center grow select-none relative h-full overflow-hidden border-[#2c3763];
+		@apply rounded border bg-[#222c5599] w-full flex-col justify-center items-center grow select-none relative overflow-hidden border-[#2c3763];
 	}
 </style>
