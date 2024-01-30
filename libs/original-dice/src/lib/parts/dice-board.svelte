@@ -1,4 +1,7 @@
 <script lang="ts">
+	import { writable } from 'svelte/store';
+	import { DiceRollConditionEnum } from '../utils/cc.js';
+
 	import DiceIcon from '$lib/assets/images/diceIcon.png';
 	import DiceWheelIcon from '$lib/assets/images/diceWheelIcon.png';
 
@@ -8,6 +11,8 @@
 	import { Tooltip } from '@svelte-plugins/tooltips';
 	import DiceSlider from './dice-slider.svelte';
 	import DiceWheel from './dice-wheel.svelte';
+
+	import { numberOnly, round } from '../utils/helper.js';
 
 	let gameContainer: HTMLElement | undefined;
 	let mobile: false;
@@ -22,6 +27,15 @@
 	let rollOver = 50.5;
 	let winChance = 49.5;
 
+	const gameInProgress = writable(false);
+	const autoBetInProgress = writable(false);
+	const loading = writable(false);
+
+	const MIN_PAYOUT = 1;
+	const MAX_PAYOUT = 49.5;
+	const MIN_WIN_CHANCE = 2.0;
+	const MAX_WIN_CHANCE = 98.0;
+
 	function toggleDiceIcon() {
 		isDiceWheelIconDisplayed = !isDiceWheelIconDisplayed;
 		isDiceIconDisplayed = !isDiceIconDisplayed;
@@ -30,6 +44,24 @@
 	function handleRollOverUnderChange(event: Event) {
 		// For later
 		console.log('test');
+	}
+
+	function handleSliderChange(newValue: number) {
+		payout = calculatePayout(newValue);
+		rollOver = calculateRollOver(newValue);
+		winChance = calculateWinChance(newValue);
+	}
+
+	function calculatePayout(value: number): number {
+		return value; // Placeholder
+	}
+
+	function calculateRollOver(value: number): number {
+		return value; // Placeholder
+	}
+
+	function calculateWinChance(value: number): number {
+		return value; // Placeholder
 	}
 </script>
 
@@ -55,7 +87,7 @@
 		<!-- DICE CONTENT -->
 		<div class="dice-content">
 			{#if isDiceIconDisplayed}
-				<DiceSlider {disabled} {value} on:rollOverUnderChange={handleRollOverUnderChange} />
+				<DiceSlider {disabled} {value} on:sliderchange={(e) => handleSliderChange(e.detail)} />
 			{:else}
 				<DiceWheel />
 			{/if}
@@ -80,7 +112,7 @@
 				<Tooltip />
 				<span class="input-wrapper">
 					<span class="input-content">
-						<input class="game-input" type="number" value={rollOver} />
+						<input class="game-input" type="button" value={rollOver} style="overflow: hidden;" />
 						<div class="input-content-img">
 							<RefreshIcon width="12px" height="12px" fill="#7b89c5" />
 						</div>

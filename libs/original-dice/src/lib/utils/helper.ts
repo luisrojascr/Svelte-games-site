@@ -1,9 +1,5 @@
+import { CurrencyEnum } from '$lib/utils/cc.js';
 import Big from 'big.js';
-
-enum CurrencyEnum {
-    BTC = "BTC",
-    ETH = "ETH",
-}
 
 interface CryptoCurrency {
     currency: CurrencyEnum;
@@ -12,8 +8,8 @@ interface CryptoCurrency {
 }
 
 const cryptoCurrencies: CryptoCurrency[] = [
-    { currency: CurrencyEnum.BTC, decimalDisplayLength: 8, decimalRepLength: 8 },
-    { currency: CurrencyEnum.ETH, decimalDisplayLength: 18, decimalRepLength: 18 },
+    { currency: CurrencyEnum.btc, decimalDisplayLength: 8, decimalRepLength: 8 },
+    { currency: CurrencyEnum.eth, decimalDisplayLength: 18, decimalRepLength: 18 },
 ];
 
 export function round(value: number, decimalPlaces: number = 0): string {
@@ -50,4 +46,16 @@ export function getNextDecimal(str: string): string {
     } else {
         throw new Error(`Unable to convert "${str}" to a number.`);
     }
+}
+
+export const generateRandomHex = (length: number): string => {
+    const characters = 'abcdef0123456789'
+    let result = ''
+
+    for (let i = 0; i < length; i++) {
+        const randomIndex = Math.floor(Math.random() * characters.length)
+        result += characters[randomIndex]
+    }
+
+    return result
 }

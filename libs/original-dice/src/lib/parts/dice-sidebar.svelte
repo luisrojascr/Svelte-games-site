@@ -11,6 +11,16 @@
 		AUTO = 'AUTO'
 	}
 
+	enum OnWin {
+		AUTO = 'AUTO',
+		INCREASE = 'INCREASE'
+	}
+
+	enum OnLoss {
+		AUTO = 'AUTO',
+		INCREASE = 'INCREASE'
+	}
+
 	let betAmount: string;
 	let selectedFiatCurrency: any;
 	let coinPriceData: any;

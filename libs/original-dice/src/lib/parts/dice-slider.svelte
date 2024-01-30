@@ -5,34 +5,37 @@
 	import { DiceRollConditionEnum } from '../utils/cc.js';
 
 	export let disabled: boolean;
-	export let value: number;
+	export let value: number = 50;
 
 	let resize = false;
 
-	let rollOverUnder: number = 50;
+	let rollOverUnder: number = value;
 	let isRollOverOrUnder: DiceRollConditionEnum = DiceRollConditionEnum.Over;
 	let gameInProgress: boolean = false;
 	let autoBetInProgress: boolean = false;
 	let numberRolled: number = 50;
 
-	const dispatch = createEventDispatcher();
+	const dispatch = createEventDispatcher<{ sliderchange: number }>();
 
 	// Reactive value for tweened numberRolled
-	const tweenedNumberRolled = tweened(numberRolled, {
+	const tweenedNumberRolled = tweened(value, {
+		// Use value here
 		duration: 2800,
 		easing: cubicOut
 	});
 
 	// Function to handle slider change
 	function handleRollOverUnderChange(event: Event) {
-		const target = event.target as HTMLInputElement;
-		rollOverUnder = parseFloat(target.value);
-		// Additional logic to play sound, set win chance, cashout, etc later
+		const input = event.target as HTMLInputElement;
+		const newValue = parseFloat(input.value);
+		rollOverUnder = newValue;
+		dispatch('sliderchange', newValue);
+		console.log(newValue); // Log the new value
 	}
 
 	// Run on component mount
 	onMount(() => {
-		tweenedNumberRolled.set(numberRolled);
+		tweenedNumberRolled.set(value); // Use value here
 	});
 </script>
 
