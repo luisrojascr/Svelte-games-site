@@ -1,41 +1,96 @@
 <script lang="ts">
 	import { createEventDispatcher, onMount } from 'svelte';
-	import { cubicOut } from 'svelte/easing';
+	import { cubicInOut, cubicOut } from 'svelte/easing';
 	import { tweened } from 'svelte/motion';
 	import { DiceRollConditionEnum } from '../utils/cc.js';
+	import { round } from '../utils/helper.js';
+
+	import DiceShapeIcon from '$lib/assets/images/DiceShapeIcon.svelte';
+
+	import {
+		autoBetInProgress,
+		cashout,
+		gameInProgress,
+		isRollOverOrUnder,
+		numberRolled,
+		rollOverUnder,
+		winChance
+	} from '$lib/parts/store/store.js';
 
 	export let disabled: boolean;
 	export let value: number = 50;
 
 	let resize = false;
 
-	let rollOverUnder: number = value;
-	let isRollOverOrUnder: DiceRollConditionEnum = DiceRollConditionEnum.Over;
-	let gameInProgress: boolean = false;
-	let autoBetInProgress: boolean = false;
-	let numberRolled: number = 50;
+	const dispatch = createEventDispatcher();
 
-	const dispatch = createEventDispatcher<{ sliderchange: number }>();
+	const scale = tweened(1, {
+		duration: 100,
+		easing: cubicInOut
+	});
 
-	// Reactive value for tweened numberRolled
-	const tweenedNumberRolled = tweened(value, {
-		// Use value here
-		duration: 2800,
+	const opacity = tweened(1, {
+		duration: 100,
+		easing: cubicInOut
+	});
+
+	const diceTween = tweened(0, {
+		duration: 400,
 		easing: cubicOut
 	});
 
-	// Function to handle slider change
+	// Reactively update the tweened value when numberRolled changes
+	$: diceTween.set($numberRolled - 5);
+
+	// Start the animation when numberRolled changes
+	$: {
+		if ($numberRolled) {
+			scale.set(1.2); // Target value for scale
+			opacity.set(1); // Target value for opacity
+			// Reset the values after the animation
+			setTimeout(() => {
+				scale.set(1);
+			}, 350);
+			setTimeout(() => {
+				opacity.set(0);
+			}, 5000);
+		}
+	}
+
+	const tweenedNumberRolled = tweened(0, { duration: 2800, easing: cubicOut });
+
 	function handleRollOverUnderChange(event: Event) {
 		const input = event.target as HTMLInputElement;
 		const newValue = parseFloat(input.value);
-		rollOverUnder = newValue;
+		rollOverUnder.set(newValue.toFixed(2));
 		dispatch('sliderchange', newValue);
-		console.log(newValue); // Log the new value
+
+		// Perform the correct calculations for winChance and cashout
+		let newWinChance;
+		let newCashout;
+
+		if ($isRollOverOrUnder === DiceRollConditionEnum.Over) {
+			newWinChance = (100 - newValue).toFixed(2);
+			newCashout = round(99 / (100 - newValue), 4).toString();
+		} else {
+			newWinChance = newValue.toFixed(2);
+			newCashout = round(99 / newValue, 4).toString();
+		}
+
+		winChance.set(newWinChance);
+		cashout.set(newCashout);
 	}
 
-	// Run on component mount
+	$: fillColor =
+		($isRollOverOrUnder === DiceRollConditionEnum.Over &&
+			$numberRolled > Number(round(parseFloat($rollOverUnder), 2))) ||
+		($isRollOverOrUnder === DiceRollConditionEnum.Under &&
+			$numberRolled < Number(round(parseFloat($rollOverUnder), 2)))
+			? '#01d180'
+			: '#ff2c55';
+
 	onMount(() => {
-		tweenedNumberRolled.set(value); // Use value here
+		tweenedNumberRolled.set(parseFloat($rollOverUnder));
 	});
 </script>
 
@@ -76,29 +131,42 @@
 		</div>
 	</div>
 	<div class="slider-content">
+		<div class="dice-shape-wrapper" style="transform: translate({$numberRolled - 5}%, -50%);">
+			<div class="dice-wrapper" style="transform: scale({$scale}); opacity: {$opacity};">
+				<div class="block select-none">
+					<DiceShapeIcon fill={fillColor} width="50px" height="56px" />
+				</div>
+				<div class="">
+					<span class="result">0</span>
+				</div>
+			</div>
+		</div>
+
 		<div class="range-slider-wrapper">
-			<div
-				class="range-slider-lower"
-				style:background-color={isRollOverOrUnder === DiceRollConditionEnum.Over
-					? '#01d180'
-					: '#ff2c55'}
-			/>
-			<div
-				class="range-slider-higher"
-				style:width="{rollOverUnder}%"
-				style:background-color={isRollOverOrUnder === DiceRollConditionEnum.Under
-					? '#01d180'
-					: '#ff2c55'}
-			/>
+			<div class="range-slider-wrapper">
+				<div
+					class="range-slider-lower"
+					style:background-color={$isRollOverOrUnder === DiceRollConditionEnum.Over
+						? '#01d180'
+						: '#ff2c55'}
+				/>
+				<div
+					class="range-slider-higher"
+					style:width="{$rollOverUnder}%"
+					style:background-color={$isRollOverOrUnder === DiceRollConditionEnum.Under
+						? '#01d180'
+						: '#ff2c55'}
+				/>
+			</div>
 		</div>
 		<input
 			class="input-slider"
 			type="range"
 			min="2"
 			max="98"
-			bind:value={rollOverUnder}
+			bind:value={$rollOverUnder}
 			on:change={handleRollOverUnderChange}
-			disabled={gameInProgress || autoBetInProgress}
+			disabled={$gameInProgress || $autoBetInProgress}
 		/>
 	</div>
 </div>
@@ -290,4 +358,41 @@
 	/* .range-slider-higher {
 		left: 0;
 	} */
+
+	/* FOR DICE SHAPE */
+	.dice-shape-wrapper {
+		position: absolute;
+		display: flex;
+		bottom: 50%;
+		left: 0px;
+		right: 0px;
+		z-index: 5;
+		pointer-events: none;
+		will-change: transform;
+		transition: transform 400ms ease 0s;
+		user-select: none;
+	}
+
+	.dice-wrapper {
+		position: relative;
+		transform-origin: center bottom;
+		transition: all 0.3s ease;
+	}
+
+	.result {
+		font-family: 'Open Sans', serif;
+		font-size: 14px;
+		font-weight: 900;
+		font-stretch: normal;
+		font-style: normal;
+		line-height: normal;
+		letter-spacing: normal;
+		color: #ffffff;
+		position: absolute;
+		width: max-content;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+		transition: all 100ms ease;
+	}
 </style>

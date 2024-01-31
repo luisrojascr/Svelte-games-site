@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { writable } from 'svelte/store';
+	import { get, writable } from 'svelte/store';
+
 	import { DiceRollConditionEnum } from '../utils/cc.js';
 
 	import DiceIcon from '$lib/assets/images/diceIcon.png';
@@ -14,6 +15,18 @@
 
 	import { numberOnly, round } from '../utils/helper.js';
 
+	import {
+		autoBetInProgress,
+		cashout,
+		gameInProgress,
+		handleOnePlay,
+		isRollOverOrUnder,
+		pastBets,
+		rollOverUnder,
+		rotateBoxTo,
+		winChance
+	} from '$lib/parts/store/store.js';
+
 	let gameContainer: HTMLElement | undefined;
 	let mobile: false;
 
@@ -23,12 +36,10 @@
 	let isDiceWheelIconDisplayed = true;
 	let isDiceIconDisplayed = true;
 
-	let payout = 2.0;
+	let localWinChance: string = $winChance;
+	let localCashout: string = $cashout;
 	let rollOver = 50.5;
-	let winChance = 49.5;
 
-	const gameInProgress = writable(false);
-	const autoBetInProgress = writable(false);
 	const loading = writable(false);
 
 	const MIN_PAYOUT = 1;
@@ -41,15 +52,77 @@
 		isDiceIconDisplayed = !isDiceIconDisplayed;
 	}
 
-	function handleRollOverUnderChange(event: Event) {
-		// For later
-		console.log('test');
+	$: if ($cashout && parseFloat($cashout) >= MIN_PAYOUT) {
+		const newWinChanceValue: any = round(99 / parseFloat($cashout), 4);
+		winChance.set(newWinChanceValue.toString());
+
+		if ($isRollOverOrUnder === DiceRollConditionEnum.Over) {
+			rollOverUnder.set((100 - newWinChanceValue).toFixed(2));
+			rotateBoxTo.set((100 - newWinChanceValue) * 3.6);
+		} else {
+			rollOverUnder.set(newWinChanceValue.toFixed(2));
+			rotateBoxTo.set(parseFloat($cashout) * 3.6);
+		}
 	}
 
-	function handleSliderChange(newValue: number) {
-		payout = calculatePayout(newValue);
-		rollOver = calculateRollOver(newValue);
-		winChance = calculateWinChance(newValue);
+	// function handleCashoutChange(event: Event) {
+	// 	const inputElement = event.target as HTMLInputElement;
+	// 	const newValue = inputElement.value;
+	// 	cashout.set(newValue);
+
+	// 	if (parseFloat(newValue) >= MIN_PAYOUT) {
+	// 		const newWinChanceValue: any = round(99 / parseFloat(newValue), 4);
+	// 		winChance.set(newWinChanceValue.toString());
+
+	// 		let newRollOverUnderValue: string;
+	// 		let newRotateBoxToValue: number;
+
+	// 		const currentIsRollOverOrUnder = get(isRollOverOrUnder);
+
+	// 		if (currentIsRollOverOrUnder === DiceRollConditionEnum.Over) {
+	// 			newRollOverUnderValue = (100 - newWinChanceValue).toFixed(2);
+	// 			newRotateBoxToValue = (100 - newWinChanceValue) * 3.6;
+	// 		} else {
+	// 			newRollOverUnderValue = newWinChanceValue.toFixed(2);
+	// 			newRotateBoxToValue = parseFloat(newValue) * 3.6;
+	// 		}
+
+	// 		rollOverUnder.set(newRollOverUnderValue);
+	// 		rotateBoxTo.set(newRotateBoxToValue);
+	// 	}
+	// }
+
+	// function handleCashoutChangeBlur() {
+	// 	if (payout === '') {
+	// 		const winChanceValue = getCashoutValueFromWinChance(parseFloat($winChance));
+	// 		cashout.set(winChanceValue.toString());
+	// 	} else {
+	// 		const newPayout = parseFloat(payout);
+	// 		if (newPayout < MIN_PAYOUT) {
+	// 			cashout.set(MIN_PAYOUT.toString());
+	// 			winChance.set(MAX_WIN_CHANCE.toString());
+	// 		} else if (newPayout > MAX_PAYOUT) {
+	// 			cashout.set(MAX_PAYOUT.toString());
+	// 			winChance.set(MIN_WIN_CHANCE.toString());
+	// 		} else {
+	// 			cashout.set(round(payout, 4).toString());
+	// 		}
+	// 	}
+	// }
+
+	function handleSliderChange(event: CustomEvent<number>) {
+		const newValue = event.detail;
+		const newWinChanceValue: any = round(99 / newValue, 4);
+		winChance.set(newWinChanceValue.toString());
+
+		let newRollOverUnderValue =
+			get(isRollOverOrUnder) === DiceRollConditionEnum.Over
+				? (100 - newWinChanceValue).toFixed(2)
+				: newValue.toFixed(2);
+
+		rollOverUnder.set(newRollOverUnderValue);
+		cashout.set(newWinChanceValue.toString()); // Update cashout store
+		localCashout = newWinChanceValue.toString(); // Update local variable for input binding
 	}
 
 	function calculatePayout(value: number): number {
@@ -60,8 +133,9 @@
 		return value; // Placeholder
 	}
 
-	function calculateWinChance(value: number): number {
-		return value; // Placeholder
+	function handleWinChanceChange(event: Event) {
+		const inputElement = event.target as HTMLInputElement;
+		winChance.set(inputElement.value); // Directly setting the string value
 	}
 </script>
 
@@ -87,7 +161,7 @@
 		<!-- DICE CONTENT -->
 		<div class="dice-content">
 			{#if isDiceIconDisplayed}
-				<DiceSlider {disabled} {value} on:sliderchange={(e) => handleSliderChange(e.detail)} />
+				<DiceSlider {disabled} {value} on:sliderchange={handleSliderChange} />
 			{:else}
 				<DiceWheel />
 			{/if}
@@ -99,7 +173,12 @@
 				<Tooltip />
 				<span class="input-wrapper">
 					<span class="input-content">
-						<input class="game-input" type="number" value={payout} />
+						<input
+							class="game-input"
+							type="number"
+							min={MIN_PAYOUT.toString()}
+							bind:value={localCashout}
+						/>
 						<div class="input-content-img">
 							<CloseIconX width="10px" height="10px" stroke="#7b89c5" />
 						</div>
@@ -121,11 +200,16 @@
 				<span class="label-text">ROLL OVER</span>
 			</label>
 
-			<label class="input-label" for="">
+			<label class="input-label">
 				<Tooltip />
 				<span class="input-wrapper">
 					<span class="input-content">
-						<input class="game-input" type="number" value={winChance} />
+						<input
+							class="game-input"
+							type="number"
+							bind:value={localWinChance}
+							on:input={handleWinChanceChange}
+						/>
 						<div class="input-content-img">
 							<PercentIcon width="12px" height="12px" fill="#7b89c5" />
 						</div>

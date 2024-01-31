@@ -1,5 +1,5 @@
 import { CurrencyEnum, DiceRollConditionEnum, LanguageEnum } from '$lib/utils/cc.js';
-import { decimalCryptoDisplay, generateRandomHex } from '$lib/utils/helper.js';
+import { decimalCryptoDisplay, decimalDisplayLength, generateRandomHex } from '$lib/utils/helper.js';
 import { derived, get, writable } from 'svelte/store';
 
 import diceBetSound from '$lib/assets/sounds/bet-button-press.mp3';
@@ -10,6 +10,11 @@ interface Bet {
     id: string;
     numberRolled: string;
     win: boolean;
+}
+
+interface BalanceItem {
+    sessionId: number | string;
+    balance: number;
 }
 
 export enum BettingVariants {
@@ -54,7 +59,7 @@ export const angle = writable(0);
 
 export const numberRolled = writable(0);
 export const rollOverUnder = writable('50.50');
-export const isRollOverOrUnder = writable('Over');
+export const isRollOverOrUnder = writable<DiceRollConditionEnum>(DiceRollConditionEnum.Over);
 
 export const betAmount = writable('0.00');
 export const cashout = writable('2.0000');
@@ -165,7 +170,10 @@ export const handleOnePlay = async (isAutoBet: boolean) => {
         playDiceRollSound();
     }
 
-    const isWin = checkWinOrLose(result, parseFloat(get(rollOverUnder)), get(isRollOverOrUnder));
+    const parsedRollOverUnder = parseFloat(get(rollOverUnder));
+    const currentIsRollOverOrUnder = get(isRollOverOrUnder);
+
+    const isWin = checkWinOrLose(result, parsedRollOverUnder, currentIsRollOverOrUnder);
     updatePastBets(generateRandomHex(10), result, isWin);
 
 
@@ -180,30 +188,9 @@ export const handleOnePlay = async (isAutoBet: boolean) => {
         currentProfit.set(newProfit);
     }
 
-
     loading.set(false);
     gameInProgress.set(false);
 };
-
-export function checkWinOrLose(
-    result: number,
-    rolledNumber: number,
-    isRollOverOrUnder: DiceRollConditionEnum
-): boolean {
-    if (isRollOverOrUnder === DiceRollConditionEnum.Over) {
-        return result >= rolledNumber;
-    } else {
-        return result <= rolledNumber;
-    }
-}
-
-// Will do this later 
-export function updateBetAmountOnWin() {
-    const randomNum =
-        Math.floor(Math.random() * (100 * 100 - 1 * 100) + 1 * 100) / (1 * 100)
-    console.log(randomNum)
-}
-
 
 export function updatePastBets(id: string, result: number, isWin: boolean): void {
     pastBets.update((bets) => {
@@ -218,6 +205,87 @@ export function updatePastBets(id: string, result: number, isWin: boolean): void
 
         return newBetsArray;
     });
+}
+
+export const updateBetAmountOnWin = () => {
+    const currentBetAmount = parseFloat(get(betAmount));
+    let newBetAmount: string;
+
+    if (get(selectedOnWin) === OnWin.INCREASE) {
+        const amountToAdd = (currentBetAmount / 100) * parseFloat(get(onWin));
+        newBetAmount = (currentBetAmount + amountToAdd).toFixed(decimalDisplayLength(get(currentWalletState).type));
+    } else {
+        newBetAmount = get(initialBetAmount);
+    }
+
+    if (get(selectedFiatCurrency) && get(coinPriceData)) {
+        newBetAmount = Number(newBetAmount).toFixed(2);
+    }
+
+    betAmount.set(newBetAmount);
+};
+
+export const updateBetAmountOnLoss = () => {
+    const currentBetAmount = parseFloat(get(betAmount));
+    let newBetAmount: string;
+
+    if (get(selectedOnLoss) === OnLoss.INCREASE) {
+        const amountToAdd = (currentBetAmount / 100) * parseFloat(get(onLoss));
+        newBetAmount = (currentBetAmount + amountToAdd).toFixed(decimalDisplayLength(get(currentWalletState).type));
+    } else {
+        newBetAmount = get(initialBetAmount);
+    }
+
+    if (get(selectedFiatCurrency) && get(coinPriceData)) {
+        newBetAmount = Number(newBetAmount).toFixed(2);
+    }
+
+    betAmount.set(newBetAmount);
+};
+
+
+export function checkWinOrLose(
+    result: number,
+    rolledNumber: number,
+    isRollOverOrUnder: DiceRollConditionEnum
+): boolean {
+    if (isRollOverOrUnder === DiceRollConditionEnum.Over) {
+        return result >= rolledNumber;
+    } else {
+        return result <= rolledNumber;
+    }
+}
+
+export function checkStopOnLossOrProfit(
+    curProfit: number,
+    stopOnLoss: number,
+    stopOnProfit: number
+): boolean {
+    if (stopOnProfit > 0 && curProfit >= stopOnProfit) {
+        return true;
+    }
+    if (stopOnLoss > 0 && Math.abs(curProfit) >= stopOnLoss) {
+        return true;
+    }
+
+    return false;
+}
+
+// WILL ARRANGE LATER
+if (get(autoBetInProgress)) {
+    if (get(needToStopNextTime)) {
+        resetBoard(true);
+    } else {
+        if (!get(gameInProgress)) {
+            if (parseFloat(get(numOfBets)) === 0) {
+                handleOnePlay(true);
+            } else if (get(betsFinished) < parseFloat(get(numOfBets))) {
+                handleOnePlay(true);
+            } else {
+                resetBoard(true);
+            }
+        }
+    }
 }
 
 export function updateBalance(amount: number, profit = 0) {
@@ -242,6 +310,27 @@ export function updateBalance(amount: number, profit = 0) {
         updateStorageBalance(get(sessionId), balance);
     }
 }
+
+// $: {
+//     const session = get(sessionId);
+//     if (session) {
+//         const storedBalance = get(balanceList).find((item: any) => item.sessionId === session);
+//         if (storedBalance) {
+//             curBalance.set(storedBalance.balance);
+//             currentWalletState.update((state) => ({ ...state, available: storedBalance.balance }));
+//         } else {
+//             const startBal = Number(get(startBalance));
+//             updateStorageBalance(session, startBal);
+//             curBalance.set(startBal);
+//             currentWalletState.update((state) => ({ ...state, available: startBal }));
+//         }
+//     }
+// }
+
+// $: {
+//     const list = balanceList;
+//     localStorage.setItem('balance', JSON.stringify(list));
+// }
 
 export function updateStorageBalance(sessionIdToUpdate: number | string, newBalance: number): void {
     balanceList.update((list) => {
