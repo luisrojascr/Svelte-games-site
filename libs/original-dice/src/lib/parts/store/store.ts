@@ -6,7 +6,7 @@ import diceBetSound from '$lib/assets/sounds/bet-button-press.mp3';
 import diceRollSound from '$lib/assets/sounds/dice-roll-sound.mp3';
 import diceWinSound from '$lib/assets/sounds/dice-win.mp3';
 
-interface Bet {
+export interface Bet {
     id: string;
     numberRolled: string;
     win: boolean;
@@ -124,7 +124,6 @@ fiat.subscribe($fiat => {
     });
 });
 
-
 export const isSound = writable(true);
 export const lang = writable(LanguageEnum.En);
 export const maxPayoutData = writable(maxWin);
@@ -132,7 +131,7 @@ export const loading = writable(false);
 export const curBalance = writable(0);
 export const needToStopNextTime = writable(false);
 
-export const balanceList = writable(JSON.parse(localStorage.getItem('balance') || '[]'));
+export const balanceList = writable(JSON.parse(localStorage.getItem('balance') || '100'));
 // Subscribe to balanceList to update localStorage when it changes
 balanceList.subscribe(($balanceList) => {
     localStorage.setItem('balance', JSON.stringify($balanceList));
@@ -140,7 +139,7 @@ balanceList.subscribe(($balanceList) => {
 
 export const handleManualBet = () => {
     handleOnePlay(false);
-};
+}
 
 export const handleAutoBet = () => {
     autoBetInProgress.set(true);
@@ -148,9 +147,9 @@ export const handleAutoBet = () => {
 };
 
 export const handleOnePlay = async (isAutoBet: boolean) => {
+    loading.set(true);
     gameInProgress.set(true);
     updateBalance(parseFloat(get(betAmount)));
-    loading.set(true);
 
     if (isSound) {
         playBetSound();
@@ -166,6 +165,8 @@ export const handleOnePlay = async (isAutoBet: boolean) => {
     const result = await handleGetResult(); // Replace this later with actual API call 
     numberRolled.set(result);
 
+    console.log(result)
+
     if (isSound) {
         playDiceRollSound();
     }
@@ -175,6 +176,8 @@ export const handleOnePlay = async (isAutoBet: boolean) => {
 
     const isWin = checkWinOrLose(result, parsedRollOverUnder, currentIsRollOverOrUnder);
     updatePastBets(generateRandomHex(10), result, isWin);
+
+    console.log(isWin)
 
 
     let newProfit = get(currentProfit);
@@ -188,24 +191,12 @@ export const handleOnePlay = async (isAutoBet: boolean) => {
         currentProfit.set(newProfit);
     }
 
-    loading.set(false);
-    gameInProgress.set(false);
+    setTimeout(() => {
+        loading.set(false);
+        gameInProgress.set(false)
+    }, 1000);
+
 };
-
-export function updatePastBets(id: string, result: number, isWin: boolean): void {
-    pastBets.update((bets) => {
-        const newBet: Bet = {
-            id,
-            numberRolled: result.toFixed(2),
-            win: isWin
-        };
-
-        // Keep only the latest 6 bets and add the new bet at the beginning
-        const newBetsArray = [newBet, ...bets.slice(0, 6)];
-
-        return newBetsArray;
-    });
-}
 
 export const updateBetAmountOnWin = () => {
     const currentBetAmount = parseFloat(get(betAmount));
@@ -243,6 +234,82 @@ export const updateBetAmountOnLoss = () => {
     betAmount.set(newBetAmount);
 };
 
+
+export function updateBalance(amount: number, profit = 0) {
+    let balance: 0;
+
+    const currentBalanceValue = get(curBalance);
+
+    if (profit === 0) {
+        balance = currentBalanceValue - amount;
+    } else {
+        balance = currentBalanceValue + profit;
+    }
+
+    curBalance.set(balance);
+
+    currentWalletState.update(state => ({
+        ...state,
+        available: balance
+    }));
+
+    if (get(sessionId)) {
+        updateStorageBalance(get(sessionId), balance);
+    }
+}
+
+export function updateStorageBalance(sessionIdToUpdate: number | string, newBalance: number): void {
+    balanceList.update((list) => {
+        const updatedList = [list];
+        const indexToUpdate = updatedList.findIndex(
+            (item) => item.sessionId === sessionIdToUpdate
+        );
+
+        if (indexToUpdate !== -1) {
+            updatedList[indexToUpdate].balance = newBalance;
+        } else {
+            updatedList.push({ sessionId: sessionIdToUpdate, balance: newBalance });
+        }
+
+        return updatedList;
+    });
+}
+
+// $: {
+//     const session = get(sessionId);
+//     if (session) {
+//         const storedBalance = get(balanceList).find((item: any) => item.sessionId === session);
+//         if (storedBalance) {
+//             curBalance.set(storedBalance.balance);
+//             currentWalletState.update((state) => ({ ...state, available: storedBalance.balance }));
+//         } else {
+//             const startBal = Number(get(startBalance));
+//             updateStorageBalance(session, startBal);
+//             curBalance.set(startBal);
+//             currentWalletState.update((state) => ({ ...state, available: startBal }));
+//         }
+//     }
+// }
+
+// $: {
+//     const list = balanceList;
+//     localStorage.setItem('balance', JSON.stringify(list));
+// }
+
+export function updatePastBets(id: string, result: number, isWin: boolean): void {
+    pastBets.update((bets) => {
+        const newBet: Bet = {
+            id,
+            numberRolled: result.toFixed(2),
+            win: isWin
+        };
+
+        // Keep only the latest 5 bets and add the new bet at the beginning
+        const newBetsArray = [newBet, ...bets.slice(0, 4)];
+
+        return newBetsArray;
+    });
+}
 
 export function checkWinOrLose(
     result: number,
@@ -286,67 +353,6 @@ if (get(autoBetInProgress)) {
             }
         }
     }
-}
-
-export function updateBalance(amount: number, profit = 0) {
-    let balance: 0;
-
-    const currentBalanceValue = get(curBalance);
-
-    if (profit === 0) {
-        balance = currentBalanceValue - amount;
-    } else {
-        balance = currentBalanceValue + profit;
-    }
-
-    curBalance.set(balance);
-
-    currentWalletState.update(state => ({
-        ...state,
-        available: balance
-    }));
-
-    if (get(sessionId)) {
-        updateStorageBalance(get(sessionId), balance);
-    }
-}
-
-// $: {
-//     const session = get(sessionId);
-//     if (session) {
-//         const storedBalance = get(balanceList).find((item: any) => item.sessionId === session);
-//         if (storedBalance) {
-//             curBalance.set(storedBalance.balance);
-//             currentWalletState.update((state) => ({ ...state, available: storedBalance.balance }));
-//         } else {
-//             const startBal = Number(get(startBalance));
-//             updateStorageBalance(session, startBal);
-//             curBalance.set(startBal);
-//             currentWalletState.update((state) => ({ ...state, available: startBal }));
-//         }
-//     }
-// }
-
-// $: {
-//     const list = balanceList;
-//     localStorage.setItem('balance', JSON.stringify(list));
-// }
-
-export function updateStorageBalance(sessionIdToUpdate: number | string, newBalance: number): void {
-    balanceList.update((list) => {
-        const updatedList = [...list];
-        const indexToUpdate = updatedList.findIndex(
-            (item) => item.sessionId === sessionIdToUpdate
-        );
-
-        if (indexToUpdate !== -1) {
-            updatedList[indexToUpdate].balance = newBalance;
-        } else {
-            updatedList.push({ sessionId: sessionIdToUpdate, balance: newBalance });
-        }
-
-        return updatedList;
-    });
 }
 
 export function resetBoard(isAuto: boolean) {

@@ -35,7 +35,7 @@
 	});
 
 	const diceTween = tweened(0, {
-		duration: 400,
+		duration: 100,
 		easing: cubicOut
 	});
 
@@ -45,15 +45,23 @@
 	// Start the animation when numberRolled changes
 	$: {
 		if ($numberRolled) {
-			scale.set(1.2); // Target value for scale
-			opacity.set(1); // Target value for opacity
-			// Reset the values after the animation
+			scale.set(1);
+			opacity.set(1);
+
 			setTimeout(() => {
-				scale.set(1);
+				scale.set(1.2);
+			}, 500);
+
+			setTimeout(() => {
+				scale.set(1.2);
+				setTimeout(() => {
+					scale.set(1);
+				}, 350);
 			}, 350);
+
 			setTimeout(() => {
 				opacity.set(0);
-			}, 5000);
+			}, 3000);
 		}
 	}
 
@@ -65,7 +73,6 @@
 		rollOverUnder.set(newValue.toFixed(2));
 		dispatch('sliderchange', newValue);
 
-		// Perform the correct calculations for winChance and cashout
 		let newWinChance;
 		let newCashout;
 
@@ -137,7 +144,7 @@
 					<DiceShapeIcon fill={fillColor} width="50px" height="56px" />
 				</div>
 				<div class="">
-					<span class="result">0</span>
+					<span class="result">{$numberRolled}</span>
 				</div>
 			</div>
 		</div>

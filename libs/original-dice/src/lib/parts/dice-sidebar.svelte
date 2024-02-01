@@ -6,6 +6,14 @@
 	import { writable } from 'svelte/store';
 	import { decimalCryptoDisplay, getNextDecimal } from '../utils/helper.js';
 
+	import {
+		coinPriceData,
+		handleAutoBet,
+		handleManualBet,
+		loading,
+		selectedFiatCurrency
+	} from '$lib/parts/store/store.js';
+
 	enum BettingVariants {
 		MANUAL = 'MANUAL',
 		AUTO = 'AUTO'
@@ -22,8 +30,6 @@
 	}
 
 	let betAmount: string;
-	let selectedFiatCurrency: any;
-	let coinPriceData: any;
 	let currentWalletState: any;
 
 	let tooltip = false;
@@ -31,17 +37,14 @@
 
 	const bettingVariant = writable(BettingVariants.MANUAL);
 
-	// TEST THE LOADING STATE FOR SPINNER ANIMATION
-	const loading = writable(false);
-
-	async function buttonClickHandler() {
-		loading.set(true); // Start loading
-		// Simulate a delay, for example, 2 seconds
-		await new Promise((resolve) => setTimeout(resolve, 2000));
-		loading.set(false); // Stop loading
+	function buttonClickHandler() {
+		handleManualBet();
 	}
 
-	// TEST THE LOADING STATE FOR SPINNER ANIMATION
+	function autoButtonClickHandler() {
+		handleAutoBet();
+	}
+
 	function setActiveVariant(variant: BettingVariants) {
 		bettingVariant.set(variant);
 	}
@@ -87,7 +90,7 @@
 			<div>
 				<LabelInput
 					min={0}
-					step={selectedFiatCurrency && coinPriceData
+					step={$selectedFiatCurrency && $coinPriceData
 						? '0.01'
 						: getNextDecimal(decimalCryptoDisplay(0, currentWalletState))}
 					type={'number'}
@@ -144,11 +147,10 @@
 					color={'#fff'}
 					padding={'16px'}
 					margin={'10px 0px'}
-					disabled={false}
+					disabled={$loading}
 					hoverColor={'#00b16c'}
 					dataTestId={'bet-button'}
 					buttonText={'Bet'}
-					loading={$loading}
 				></CustomButton>
 			</div>
 		{/if}
@@ -157,7 +159,7 @@
 			<div>
 				<LabelInput
 					min={0}
-					step={selectedFiatCurrency && coinPriceData
+					step={$selectedFiatCurrency && $coinPriceData
 						? '0.01'
 						: getNextDecimal(decimalCryptoDisplay(0, currentWalletState))}
 					type={'number'}
@@ -203,7 +205,7 @@
 			<div>
 				<LabelInput
 					min={0}
-					step={selectedFiatCurrency && coinPriceData
+					step={$selectedFiatCurrency && $coinPriceData
 						? '0.01'
 						: getNextDecimal(decimalCryptoDisplay(0, currentWalletState))}
 					type={'number'}
@@ -272,17 +274,16 @@
 				<div>
 					<CustomButton
 						type="submit"
-						onClick={buttonClickHandler}
+						onClick={autoButtonClickHandler}
 						width={'100%'}
 						bgColor={'#01d180'}
 						color={'#fff'}
 						padding={'16px'}
 						margin={'10px 0px'}
-						disabled={false}
+						disabled={$loading}
 						hoverColor={'#00b16c'}
 						dataTestId={'bet-button'}
 						buttonText={'Start Autobet'}
-						loading={$loading}
 					></CustomButton>
 				</div>
 			</div>

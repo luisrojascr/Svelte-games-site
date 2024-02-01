@@ -1,6 +1,8 @@
 <script lang="ts">
 	import Spinner from './spinner.svelte';
 
+	import { loading } from '$lib/parts/store/store.js';
+
 	export let type: 'button' | 'submit' = 'button';
 	export let onClick: () => void;
 	export let width: string = 'initial';
@@ -8,8 +10,7 @@
 	export let color: string = '#ffffff';
 	export let padding: string = '16px';
 	export let margin: string = '0px';
-	export let loading: boolean = false;
-	export let disabled: boolean = false;
+	export let disabled: boolean = true;
 	export let isInRedState: boolean = false;
 	export let secondary: boolean = false;
 	export let hoverColor: string;
@@ -19,13 +20,15 @@
 	let hover = false;
 
 	const backgroundColor = secondary ? '#4769fc' : bgColor;
-	// Define a function to handle hover color
+
 	function getHoverColor() {
 		if (isInRedState) return '#de2348';
 		if (secondary) return '#334aaf';
 		if (hoverColor) return hoverColor;
 		return '#00b16c';
 	}
+
+	$: isDisabled = $loading || disabled;
 </script>
 
 <button
@@ -37,14 +40,9 @@
 	style={`background-color: ${
 		hover ? getHoverColor() : backgroundColor
 	}; color: ${color}; padding: ${padding}; margin: ${margin}; width: ${width};`}
-	class:loading
-	class:disabled
-	class:hover
-	class:secondary
-	class:in-red-state={isInRedState}
-	data-testid={dataTestId}
+	disabled={isDisabled}
 >
-	{#if loading}
+	{#if $loading}
 		<Spinner />
 	{:else}
 		<span>
@@ -81,7 +79,7 @@
 	.custom-button:hover {
 		background-color: var(--hover-color);
 	}
-	.disabled {
+	.custom-button:disabled {
 		cursor: not-allowed;
 		background-color: var(--disabled-bg-color);
 	}

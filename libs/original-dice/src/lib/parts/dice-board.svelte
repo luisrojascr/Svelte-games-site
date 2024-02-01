@@ -1,5 +1,8 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { get, writable } from 'svelte/store';
+
+	import PastBetButton from './components/common/past-bet-button.svelte';
 
 	import { DiceRollConditionEnum } from '../utils/cc.js';
 
@@ -21,6 +24,7 @@
 		gameInProgress,
 		handleOnePlay,
 		isRollOverOrUnder,
+		numberRolled,
 		pastBets,
 		rollOverUnder,
 		rotateBoxTo,
@@ -39,6 +43,8 @@
 	let localWinChance: string = $winChance;
 	let localCashout: string = $cashout;
 	let rollOver = 50.5;
+
+	let displayedBets: any = [];
 
 	const loading = writable(false);
 
@@ -65,51 +71,6 @@
 		}
 	}
 
-	// function handleCashoutChange(event: Event) {
-	// 	const inputElement = event.target as HTMLInputElement;
-	// 	const newValue = inputElement.value;
-	// 	cashout.set(newValue);
-
-	// 	if (parseFloat(newValue) >= MIN_PAYOUT) {
-	// 		const newWinChanceValue: any = round(99 / parseFloat(newValue), 4);
-	// 		winChance.set(newWinChanceValue.toString());
-
-	// 		let newRollOverUnderValue: string;
-	// 		let newRotateBoxToValue: number;
-
-	// 		const currentIsRollOverOrUnder = get(isRollOverOrUnder);
-
-	// 		if (currentIsRollOverOrUnder === DiceRollConditionEnum.Over) {
-	// 			newRollOverUnderValue = (100 - newWinChanceValue).toFixed(2);
-	// 			newRotateBoxToValue = (100 - newWinChanceValue) * 3.6;
-	// 		} else {
-	// 			newRollOverUnderValue = newWinChanceValue.toFixed(2);
-	// 			newRotateBoxToValue = parseFloat(newValue) * 3.6;
-	// 		}
-
-	// 		rollOverUnder.set(newRollOverUnderValue);
-	// 		rotateBoxTo.set(newRotateBoxToValue);
-	// 	}
-	// }
-
-	// function handleCashoutChangeBlur() {
-	// 	if (payout === '') {
-	// 		const winChanceValue = getCashoutValueFromWinChance(parseFloat($winChance));
-	// 		cashout.set(winChanceValue.toString());
-	// 	} else {
-	// 		const newPayout = parseFloat(payout);
-	// 		if (newPayout < MIN_PAYOUT) {
-	// 			cashout.set(MIN_PAYOUT.toString());
-	// 			winChance.set(MAX_WIN_CHANCE.toString());
-	// 		} else if (newPayout > MAX_PAYOUT) {
-	// 			cashout.set(MAX_PAYOUT.toString());
-	// 			winChance.set(MIN_WIN_CHANCE.toString());
-	// 		} else {
-	// 			cashout.set(round(payout, 4).toString());
-	// 		}
-	// 	}
-	// }
-
 	function handleSliderChange(event: CustomEvent<number>) {
 		const newValue = event.detail;
 		const newWinChanceValue: any = round(99 / newValue, 4);
@@ -125,18 +86,23 @@
 		localCashout = newWinChanceValue.toString(); // Update local variable for input binding
 	}
 
-	function calculatePayout(value: number): number {
-		return value; // Placeholder
-	}
-
-	function calculateRollOver(value: number): number {
-		return value; // Placeholder
-	}
-
 	function handleWinChanceChange(event: Event) {
 		const inputElement = event.target as HTMLInputElement;
 		winChance.set(inputElement.value); // Directly setting the string value
 	}
+
+	onMount(() => {
+		const maxBetsToShow = window.innerWidth > 480 ? 5 : 4;
+
+		$pastBets.slice(0, maxBetsToShow).forEach((bet, index) => {
+			if (bet.id) {
+				displayedBets.push({
+					...bet,
+					index: index
+				});
+			}
+		});
+	});
 </script>
 
 <div bind:this={gameContainer} class="game-container">
@@ -155,7 +121,9 @@
 		</button>
 
 		<div class="past-bets-wrapper">
-			<!-- Will add this part later -->
+			{#each $pastBets as pastBet (pastBet.id)}
+				<PastBetButton pastBet={pastBet.numberRolled} win={pastBet.win} id={pastBet.id} />
+			{/each}
 		</div>
 
 		<!-- DICE CONTENT -->
@@ -236,7 +204,7 @@
 	}
 
 	.past-bets-wrapper {
-		@apply w-full relative h-8 flex flex-row-reverse overflow-hidden z-[9];
+		@apply w-full relative h-8 flex flex-row-reverse overflow-hidden z-[9] gap-x-2;
 	}
 
 	.dice-content {

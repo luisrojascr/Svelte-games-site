@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { numberOnly } from '$lib/utils/helper';
+	import { numberOnly } from '$lib/utils/helper.js';
 	import { createEventDispatcher, onMount } from 'svelte';
 
 	export let type: string = 'text';
