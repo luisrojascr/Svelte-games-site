@@ -3,37 +3,36 @@
 	import CustomButton from '$lib/parts/components/common/custom-button.svelte';
 	import LabelInput from '$lib/parts/components/common/label-input.svelte';
 	import { Tooltip } from '@svelte-plugins/tooltips';
-	import { writable } from 'svelte/store';
-	import { decimalCryptoDisplay, getNextDecimal } from '../utils/helper.js';
+	import { derived, get, writable } from 'svelte/store';
+	import {
+		decimalCryptoDisplay,
+		decimalDisplayLength,
+		getNextDecimal,
+		roundOff,
+		roundOff2
+	} from '../utils/helper.js';
 
 	import {
+		BettingVariants,
+		balanceList,
+		betAmount,
 		coinPriceData,
+		curBalance,
+		currentWalletState,
 		handleAutoBet,
 		handleManualBet,
 		loading,
+		maxBet,
+		maxPayoutData,
+		minBet,
+		profitOnWin,
 		selectedFiatCurrency
 	} from '$lib/parts/store/store.js';
 
-	enum BettingVariants {
-		MANUAL = 'MANUAL',
-		AUTO = 'AUTO'
-	}
-
-	enum OnWin {
-		AUTO = 'AUTO',
-		INCREASE = 'INCREASE'
-	}
-
-	enum OnLoss {
-		AUTO = 'AUTO',
-		INCREASE = 'INCREASE'
-	}
-
-	let betAmount: string;
-	let currentWalletState: any;
-
 	let tooltip = false;
 	let active = true;
+
+	const validBetAmount = writable(false);
 
 	const bettingVariant = writable(BettingVariants.MANUAL);
 
@@ -88,16 +87,23 @@
 		{#if $bettingVariant === BettingVariants.MANUAL}
 			<!-- FIRST INPUT -->
 			<div>
+				<div
+					style="display: flex; flex-direction: column; justify-content: flex-start; align-items: start;"
+					class="label-content"
+				>
+					<span>Bet Amount</span>
+					<button>(Min 0 to 100.00 Max)</button>
+					<span>(Balance - {$curBalance})</span>
+				</div>
 				<LabelInput
 					min={0}
 					step={$selectedFiatCurrency && $coinPriceData
 						? '0.01'
-						: getNextDecimal(decimalCryptoDisplay(0, currentWalletState))}
+						: getNextDecimal(decimalCryptoDisplay(0, $currentWalletState.type))}
 					type={'number'}
-					value={betAmount}
+					value={$betAmount}
 					dataTestId="bet-amount"
 					integerOnly={true}
-					labelContent="Bet Amount (Max - 1.26530535)"
 				>
 					<div class="btn-parent-v1" slot="buttons">
 						<button class="buttons-v1">
@@ -135,7 +141,17 @@
 
 			<!-- SECOND INPUT -->
 			<div>
-				<LabelInput type="text" labelContent="Profit on Win" />
+				<LabelInput
+					min={0}
+					step={$selectedFiatCurrency && $coinPriceData
+						? '0.01'
+						: getNextDecimal(decimalCryptoDisplay(0, $currentWalletState.type))}
+					type={'number'}
+					value={parseFloat($profitOnWin).toFixed(2)}
+					dataTestId="bet-amount"
+					integerOnly={true}
+					labelContent="Profit on Win"
+				/>
 			</div>
 
 			<div>
@@ -161,7 +177,7 @@
 					min={0}
 					step={$selectedFiatCurrency && $coinPriceData
 						? '0.01'
-						: getNextDecimal(decimalCryptoDisplay(0, currentWalletState))}
+						: getNextDecimal(decimalCryptoDisplay(0, $currentWalletState.type))}
 					type={'number'}
 					value={betAmount}
 					dataTestId="bet-amount"
@@ -207,9 +223,9 @@
 					min={0}
 					step={$selectedFiatCurrency && $coinPriceData
 						? '0.01'
-						: getNextDecimal(decimalCryptoDisplay(0, currentWalletState))}
+						: getNextDecimal(decimalCryptoDisplay(0, $currentWalletState.type))}
 					type={'number'}
-					value={betAmount}
+					value={profitOnWin}
 					dataTestId="bet-amount"
 					integerOnly={true}
 					labelContent="Number Of Bets"
@@ -221,7 +237,7 @@
 					min={0}
 					step={selectedFiatCurrency && coinPriceData
 						? '0.01'
-						: getNextDecimal(decimalCryptoDisplay(0, currentWalletState))}
+						: getNextDecimal(decimalCryptoDisplay(0, $currentWalletState.type))}
 					type={'number'}
 					value={betAmount}
 					dataTestId="bet-amount"
@@ -247,7 +263,7 @@
 					min={0}
 					step={selectedFiatCurrency && coinPriceData
 						? '0.01'
-						: getNextDecimal(decimalCryptoDisplay(0, currentWalletState))}
+						: getNextDecimal(decimalCryptoDisplay(0, $currentWalletState.type))}
 					type={'number'}
 					value={betAmount}
 					dataTestId="bet-amount"
@@ -261,7 +277,7 @@
 					min={0}
 					step={selectedFiatCurrency && coinPriceData
 						? '0.01'
-						: getNextDecimal(decimalCryptoDisplay(0, currentWalletState))}
+						: getNextDecimal(decimalCryptoDisplay(0, $currentWalletState.type))}
 					type={'number'}
 					value={betAmount}
 					dataTestId="bet-amount"
@@ -364,6 +380,24 @@
 		letter-spacing: 0.91px;
 		text-align: center;
 		color: #ffffff;
+	}
+
+	.label-content span,
+	button {
+		display: inline-flex;
+		-webkit-box-align: center;
+		align-items: center;
+		font-size: 10px;
+		font-weight: bold;
+		font-stretch: normal;
+		font-style: normal;
+		line-height: 1.6;
+		letter-spacing: 0.6px;
+		color: #ffffff;
+		opacity: 0.7;
+		margin: 0px 0px 0.25em;
+		transition: all 200ms ease-out 0s;
+		margin-bottom: 5px;
 	}
 
 	.betting-variant-button span {

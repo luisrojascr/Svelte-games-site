@@ -3,7 +3,7 @@
 	import { createEventDispatcher, onMount } from 'svelte';
 
 	export let type: string = 'text';
-	export let value: string | number = '';
+	export let value: any;
 	export let integerOnly: boolean = false;
 	export let readOnly: boolean = false;
 	export let buttonsPosition: 'start' | 'end' = 'end';
@@ -15,7 +15,7 @@
 	export let paddingRight: string = '36px';
 	export let dataTestId: string = '';
 	export let labelContent: string = '';
-	export let placeholder: string = '0,0000000';
+	export let placeholder: string = '0.00';
 
 	const dispatch = createEventDispatcher();
 
@@ -95,7 +95,7 @@
 <style lang="postcss">
 	.input-label {
 		display: flex;
-		display: inline-flex;
+		/* display: inline-flex; */
 		flex-direction: column-reverse;
 		touch-action: manipulation;
 		width: 100%;
@@ -188,7 +188,7 @@
 	}
 
 	.label-content {
-		@apply uppercase;
+		/* @apply uppercase; */
 		font-size: 10px;
 		display: inline-flex;
 		font-weight: bold;

@@ -16,6 +16,17 @@ export function round(value: number, decimalPlaces: number = 0): string {
     return new Big(value).round(decimalPlaces, Big.roundHalfUp).toFixed(decimalPlaces);
 }
 
+// Round off to 2 decimal places
+export function roundOff2(val: number): string {
+    if (isNaN(val)) return '0.00';
+    return Big(Math.floor(val * 100)).div(100).toFixed(2) || '0.00';
+}
+
+// Round off to 8 decimal places
+export function roundOff(val: number): string {
+    return Big(Math.floor(val * 1e8)).div(1e8).toFixed(2) || '0.00';
+}
+
 // Cache disallowed keys outside of function scope to avoid recreation
 const disallowedKeys = ['e', '*', '+', '-', '/', '.', '=', 'Enter', 'NumpadEnter'];
 export const numberOnly = (e: KeyboardEvent): void => {
