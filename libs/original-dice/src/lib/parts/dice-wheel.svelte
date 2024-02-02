@@ -1,10 +1,10 @@
 <script lang="ts">
+	import DiceShape from '$lib/assets/images/DiceResultWheel.svelte';
+	import DiceWheelArrow from '$lib/assets/images/DiceWheelArrow.svelte';
+	import DiceWheelBorder from '$lib/assets/images/DiceWheelBorder.svelte';
+	import DiceWheelCircleV2 from '$lib/assets/images/DiceWheelCircleV2.svelte';
+	import { DiceRollConditionEnum } from '$lib/utils/cc.js';
 	import { onMount, tick } from 'svelte';
-	import DiceWheelArrow from '../assets/images/DiceWheelArrow.svelte';
-	import DiceWheelBorder from '../assets/images/DiceWheelBorder.svelte';
-	import DiceWheelCircleV2 from '../assets/images/DiceWheelCircleV2.svelte';
-
-	import { DiceRollConditionEnum } from '../utils/cc.js';
 	import { round } from '../utils/helper.js';
 
 	let rollOverUnder: number;
@@ -24,6 +24,7 @@
 	let gameInProgress = false;
 	let isSound = true;
 	let thumbButtonWrapper: HTMLElement | null = null;
+	let numberRolled: number;
 
 	function playSelectorSound() {
 		// Sound play logic here later
@@ -84,7 +85,26 @@
 			const newAngle = 90 - Math.atan2(fromBoxCenter.y, fromBoxCenter.x) * (180 / Math.PI);
 			rotateBoxTo = currentAngle + (newAngle - startAngle);
 			angle = newAngle;
+			// const newUnderOver = round(getNewProgress(newAngle), 2).toFixed(2)
+			// if (isRollOverOrUnder === DiceRollConditionEnum.Over) {
+			// 	setWinChance(round(100 - getNewProgress(newAngle), 2).toFixed(2))
+			// 	setCashout(round(99 / (100 - getNewProgress(newAngle)), 4).toFixed(4))
+			// 	setrollOverUnder(newUnderOver)
+			// } else {
+			// 	setrollOverUnder(newUnderOver)
+			// 	setWinChance(getNewProgress(newAngle).toFixed(2))
+			// 	setCashout(round(99 / getNewProgress(newAngle), 4).toFixed(4))
+			// }
 		}
+	}
+
+	function touchStartHandler(event: TouchEvent) {
+		event.stopPropagation();
+		const fromBoxCenter = getPositionFromCenterTouch(event);
+		const newAngle = 90 - Math.atan2(fromBoxCenter.y, fromBoxCenter.x) * (180 / Math.PI);
+		rotateBoxTo = currentAngle + (newAngle - startAngle);
+		angle = newAngle;
+		isActive = true;
 	}
 
 	function touchEndHandler(event: TouchEvent) {
@@ -174,6 +194,12 @@
 	/>
 	<DiceWheelBorder />
 	<DiceWheelArrow />
+	<div class="dice-holder">
+		<div class="dice-shape-wrapper">
+			<span class="dice-result">{numberRolled}</span>
+			<DiceShape width="100%" height="100%" stroke="currentColor" />
+		</div>
+	</div>
 	<div class="position-handler"></div>
 	<div
 		class="thumb-button-wrapper"
@@ -185,12 +211,25 @@
 			on:mousedown={mouseDownHandler}
 			on:mouseup={mouseUpHandler}
 			on:mousemove={mouseMoveHandler}
-			on:touchstart={touchMoveHandler}
+			on:touchstart={touchStartHandler}
 			on:touchend={touchEndHandler}
 			on:touchmove={touchMoveHandler}
 			disabled={gameInProgress}
 		></button>
 	</div>
+	<div class="filler"></div>
+	<div
+		class="leftFiller"
+		style:background-color={isRollOverOrUnder === DiceRollConditionEnum.Under
+			? '#01d180'
+			: '#ff2c55'}
+	></div>
+	<div
+		class="rightFiller"
+		style:background-color={isRollOverOrUnder === DiceRollConditionEnum.Under
+			? '#ff2c55'
+			: '#01d180'}
+	></div>
 </div>
 
 <style lang="postcss">
@@ -222,6 +261,34 @@
 		transform: translate(-50%, -50%);
 		transition-property: transform, opacity;
 		transition-duration: 300ms;
+	}
+	.dice-holder {
+		transform: 'translate(-50%, -50%)';
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		width: 20%;
+		height: 20%;
+	}
+
+	.dice-result {
+		font-family: 'Open Sans', serif;
+		font-size: 19.2px;
+		font-weight: 900;
+		font-stretch: normal;
+		font-style: normal;
+		line-height: normal;
+		letter-spacing: normal;
+		color: #ffffff;
+		position: absolute;
+		width: 10ch;
+		top: 50%;
+		left: 50%;
+		text-align: center;
+		font-weight: 600;
+		transition-property: transform, opacity;
+		transition-duration: 300ms;
+		transform: translate(-50%, -50%);
 	}
 
 	.position-handler {
@@ -277,6 +344,36 @@
 
 	.thumb-button:active {
 		@apply cursor-grabbing;
+	}
+
+	.filler {
+		background-color: #334284;
+		position: absolute;
+		width: 5%;
+		height: 5%;
+		left: 47.48%;
+		top: 7%;
+		z-index: 9;
+	}
+
+	.leftFiller {
+		position: absolute;
+		width: 2.329%;
+		height: 2.329%;
+		left: 51.3%;
+		top: 8.197%;
+		z-index: 9;
+		border-radius: 50%;
+	}
+
+	.rightFiller {
+		position: absolute;
+		width: 2.329%;
+		height: 2.329%;
+		left: 46.3%;
+		top: 8.19%;
+		z-index: 9;
+		border-radius: 50%;
 	}
 
 	.number-limit {

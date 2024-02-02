@@ -1,5 +1,3 @@
-import { Big } from 'big.js'
-
 export enum FiatCurrencyEnumLower {
     usd = 'usd',
     eur = 'eur',
