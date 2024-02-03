@@ -142,6 +142,7 @@
 				<span class="input-wrapper">
 					<span class="input-content">
 						<input
+							disabled={$gameInProgress || $autoBetInProgress}
 							class="game-input"
 							type="number"
 							min={MIN_PAYOUT.toString()}

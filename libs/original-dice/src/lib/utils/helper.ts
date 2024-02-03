@@ -12,8 +12,10 @@ const cryptoCurrencies: CryptoCurrency[] = [
     { currency: CurrencyEnum.eth, decimalDisplayLength: 18, decimalRepLength: 18 },
 ];
 
-export function round(value: number, decimalPlaces: number = 0): string {
-    return new Big(value).round(decimalPlaces, Big.roundHalfUp).toFixed(decimalPlaces);
+export function round(value: number, decimalPlaces: number | undefined = 0): number {
+    return Number(
+        `${Math.round(parseFloat(`${value}e${decimalPlaces}`))}e-${decimalPlaces}`
+    )
 }
 
 // Round off to 2 decimal places

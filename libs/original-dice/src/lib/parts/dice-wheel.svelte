@@ -7,7 +7,6 @@
 	import { onMount, tick } from 'svelte';
 	import { round } from '../utils/helper.js';
 
-	let rollOverUnder: number;
 	let isRollOverOrUnder: DiceRollConditionEnum = DiceRollConditionEnum.Over;
 
 	let parentWidth: number;
@@ -25,6 +24,9 @@
 	let isSound = true;
 	let thumbButtonWrapper: HTMLElement | null = null;
 	let numberRolled: number;
+	let winChance = '0.00';
+	let cashout = '0.00';
+	let underOver = '0.00';
 
 	function playSelectorSound() {
 		// Sound play logic here later
@@ -71,8 +73,18 @@
 		if (isActive) {
 			const fromBoxCenter = getPositionFromCenter(event);
 			const newAngle = 90 - Math.atan2(fromBoxCenter.y, fromBoxCenter.x) * (180 / Math.PI);
-			rotateBoxTo = currentAngle + (newAngle - startAngle);
+			rotateBoxTo = currentAngle + (newAngle - (startAngle || 0));
 			angle = newAngle;
+			const newUnderOverValue = round(getNewProgress(newAngle), 2);
+			if (isRollOverOrUnder === DiceRollConditionEnum.Over) {
+				winChance = round(100 - getNewProgress(newAngle), 2).toFixed(2);
+				cashout = round(99 / (100 - getNewProgress(newAngle)), 4).toFixed(4);
+				underOver = newUnderOverValue.toFixed(2);
+			} else {
+				underOver = newUnderOverValue.toFixed(2);
+				winChance = getNewProgress(newAngle).toFixed(2);
+				cashout = round(99 / getNewProgress(newAngle), 4).toFixed(4);
+			}
 		}
 	}
 
@@ -85,16 +97,16 @@
 			const newAngle = 90 - Math.atan2(fromBoxCenter.y, fromBoxCenter.x) * (180 / Math.PI);
 			rotateBoxTo = currentAngle + (newAngle - startAngle);
 			angle = newAngle;
-			// const newUnderOver = round(getNewProgress(newAngle), 2).toFixed(2)
-			// if (isRollOverOrUnder === DiceRollConditionEnum.Over) {
-			// 	setWinChance(round(100 - getNewProgress(newAngle), 2).toFixed(2))
-			// 	setCashout(round(99 / (100 - getNewProgress(newAngle)), 4).toFixed(4))
-			// 	setrollOverUnder(newUnderOver)
-			// } else {
-			// 	setrollOverUnder(newUnderOver)
-			// 	setWinChance(getNewProgress(newAngle).toFixed(2))
-			// 	setCashout(round(99 / getNewProgress(newAngle), 4).toFixed(4))
-			// }
+			const newUnderOverValue = round(getNewProgress(newAngle), 2).toFixed(2);
+			if (isRollOverOrUnder === DiceRollConditionEnum.Over) {
+				winChance = round(100 - getNewProgress(newAngle), 2).toFixed(2);
+				cashout = round(99 / (100 - getNewProgress(newAngle)), 4).toFixed(4);
+				underOver = newUnderOverValue;
+			} else {
+				underOver = newUnderOverValue;
+				winChance = getNewProgress(newAngle).toFixed(2);
+				cashout = round(99 / getNewProgress(newAngle), 4).toFixed(4);
+			}
 		}
 	}
 
@@ -102,7 +114,7 @@
 		event.stopPropagation();
 		const fromBoxCenter = getPositionFromCenterTouch(event);
 		const newAngle = 90 - Math.atan2(fromBoxCenter.y, fromBoxCenter.x) * (180 / Math.PI);
-		rotateBoxTo = currentAngle + (newAngle - startAngle);
+		// rotateBoxTo = currentAngle + (newAngle - startAngle);
 		angle = newAngle;
 		isActive = true;
 	}
@@ -110,7 +122,8 @@
 	function touchEndHandler(event: TouchEvent) {
 		event.stopPropagation();
 		if (isActive) {
-			currentAngle += angle - startAngle;
+			const newCurrentAngle = currentAngle + (angle - startAngle);
+			currentAngle = newCurrentAngle;
 			isActive = false;
 		}
 	}
@@ -142,16 +155,28 @@
 
 	$: wheelWidth = getWheelWidth();
 
-	onMount(async () => {
+	onMount(() => {
 		parentWidth = document.body.clientWidth;
+
 		window.addEventListener('mouseup', mouseUpHandler);
+		window.addEventListener('mousedown', mouseDownHandler);
 		window.addEventListener('mousemove', mouseMoveHandler);
+		window.addEventListener('touchstart', touchStartHandler);
 		window.addEventListener('touchend', touchEndHandler);
 		window.addEventListener('touchmove', touchMoveHandler);
 
-		await tick();
 		thumbButtonWrapper = document.querySelector('.thumb-button-wrapper') as HTMLElement;
 		updateBoxCenterPoint();
+
+		return () => {
+			// Cleanup when the component is unmounted
+			window.removeEventListener('mouseup', mouseUpHandler);
+			window.removeEventListener('mousedown', mouseDownHandler);
+			window.removeEventListener('mousemove', mouseMoveHandler);
+			window.removeEventListener('touchstart', touchStartHandler);
+			window.removeEventListener('touchend', touchEndHandler);
+			window.removeEventListener('touchmove', touchMoveHandler);
+		};
 	});
 </script>
 
@@ -204,7 +229,7 @@
 	<div
 		class="thumb-button-wrapper"
 		bind:this={thumbButtonWrapper}
-		style="transform: rotate(${rotateBoxTo}deg);"
+		style={`transform: rotate(${rotateBoxTo}deg)`}
 	>
 		<button
 			class="thumb-button"
