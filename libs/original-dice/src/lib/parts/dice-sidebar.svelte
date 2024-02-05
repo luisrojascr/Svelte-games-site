@@ -16,6 +16,7 @@
 		BettingVariants,
 		balanceList,
 		betAmount,
+		cashout,
 		coinPriceData,
 		curBalance,
 		currentWalletState,
@@ -32,8 +33,6 @@
 	let tooltip = false;
 	let active = true;
 
-	const validBetAmount = writable(false);
-
 	const bettingVariant = writable(BettingVariants.MANUAL);
 
 	function buttonClickHandler() {
@@ -46,6 +45,25 @@
 
 	function setActiveVariant(variant: BettingVariants) {
 		bettingVariant.set(variant);
+	}
+
+	$: if (Number($betAmount) === 0) {
+		if ($selectedFiatCurrency && $coinPriceData) {
+			$profitOnWin = '0.00';
+		} else {
+			$profitOnWin = decimalCryptoDisplay(0, $currentWalletState.type);
+		}
+	} else {
+		const getProfitOnWin = () =>
+			parseFloat($betAmount) * parseFloat($cashout) - parseFloat($betAmount);
+
+		if ($selectedFiatCurrency && $coinPriceData) {
+			$profitOnWin = isNaN(getProfitOnWin()) ? '' : getProfitOnWin().toFixed(2);
+		} else {
+			$profitOnWin = isNaN(getProfitOnWin())
+				? ''
+				: getProfitOnWin().toFixed(decimalDisplayLength($currentWalletState.type));
+		}
 	}
 </script>
 

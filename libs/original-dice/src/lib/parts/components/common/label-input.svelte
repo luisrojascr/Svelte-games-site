@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { betAmount } from '$lib/parts/store/store.js';
 	import { numberOnly } from '$lib/utils/helper.js';
 	import { createEventDispatcher, onMount } from 'svelte';
 
@@ -31,18 +32,18 @@
 	}
 
 	function handleChange(event: Event): void {
-		const inputEvent = event as KeyboardEvent;
+		const input = event.target as HTMLInputElement;
 		if (integerOnly) {
-			numberOnly(inputEvent);
+			numberOnly(event as KeyboardEvent);
 		}
-		dispatch('change', { value: (event.target as HTMLInputElement).value });
+		betAmount.set(input.value);
+		dispatch('change', { value: input.value });
+		console.log(input.value);
 	}
 
 	$: computedClass = `input-label ${disabled ? 'opacity-80' : 'opacity-100'}`;
 
-	onMount(() => {
-		// onMount logic here later
-	});
+	onMount(() => {});
 </script>
 
 <div class={computedClass} {style}>
@@ -64,7 +65,7 @@
 						inputmode={type === 'number' ? 'decimal' : undefined}
 						{value}
 						data-testid={dataTestId}
-						on:change={handleChange}
+						on:input={handleChange}
 						on:focus={handleFocus}
 						on:blur={handleBlur}
 						style={`padding-right: ${paddingRight};`}

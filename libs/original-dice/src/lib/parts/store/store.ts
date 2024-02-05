@@ -61,8 +61,8 @@ export const numberRolled = writable(0);
 export const rollOverUnder = writable('50.50');
 export const isRollOverOrUnder = writable<DiceRollConditionEnum>(DiceRollConditionEnum.Over);
 
-export const betAmount = writable('2');
-export const cashout = writable('2.0000');
+export const betAmount = writable('0');
+export const cashout = writable('2.00');
 export const winChance = writable('49.50');
 
 export const currentWalletState = writable<{ type: CurrencyEnum; available: number }>({
@@ -74,14 +74,18 @@ export const initialBetAmount = derived(currentWalletState, ($currentWalletState
     decimalCryptoDisplay(0, $currentWalletState.type)
 );
 
-export const profitOnWin = derived(currentWalletState, ($currentWalletState) =>
-    decimalCryptoDisplay(5, $currentWalletState.type)
-);
-
 export const onWin = writable('0.00');
 export const onLoss = writable('0.00');
 export const currentProfit = writable(0);
+export const profitOnWin = writable('0');
 
+export const stopOnProfit = derived(currentWalletState, ($currentWalletState) =>
+    decimalCryptoDisplay(0, $currentWalletState.type)
+);
+
+export const stopOnLoss = derived(currentWalletState, ($currentWalletState) =>
+    decimalCryptoDisplay(0, $currentWalletState.type)
+);
 
 
 export const numOfBets = writable('0');
@@ -180,6 +184,35 @@ export const handleOnePlay = async (isAutoBet: boolean) => {
     updatePastBets(generateRandomHex(10), result, isWin);
 
     console.log(isWin)
+
+    if (isAutoBet) {
+        let newProfit = get(currentProfit);
+        if (isWin) {
+            setTimeout(() => {
+                playDiceWinSound();
+            }, 500);
+            updateBetAmountOnWin();
+            newProfit = get(currentProfit) + parseFloat(get(profitOnWin));
+        } else {
+            updateBetAmountOnLoss();
+            newProfit = get(currentProfit) - parseFloat(get(betAmount));
+        }
+        currentProfit.set(newProfit);
+
+        if (checkStopOnLossOrProfit(newProfit, parseFloat(get(stopOnLoss)), parseFloat(get(stopOnProfit)))) {
+            needToStopNextTime.set(true);
+        } else {
+            if (parseInt(get(numOfBets)) !== 0) {
+                if (parseInt(get(numOfBets)) === get(betsFinished)) {
+                    needToStopNextTime.set(true);
+                } else {
+                    betsFinished.update(n => n + 1);
+                }
+            }
+        }
+    } else {
+        currentProfit.set(0);
+    }
 
     if (isWin) {
         setTimeout(() => {

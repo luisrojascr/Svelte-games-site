@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { isSound } from '$lib/parts/store/store.js';
 	import { createEventDispatcher, onMount } from 'svelte';
 	import { cubicInOut, cubicOut } from 'svelte/easing';
 	import { tweened } from 'svelte/motion';
@@ -6,13 +7,16 @@
 	import { round } from '../utils/helper.js';
 
 	import DiceShapeIcon from '$lib/assets/images/DiceShapeIcon.svelte';
+	import diceSelectorSound from '$lib/assets/sounds/selector-move.mp3';
 
 	import {
 		autoBetInProgress,
+		betAmount,
 		cashout,
 		gameInProgress,
 		isRollOverOrUnder,
 		numberRolled,
+		profitOnWin,
 		rollOverUnder,
 		winChance
 	} from '$lib/parts/store/store.js';
@@ -38,6 +42,31 @@
 		duration: 100,
 		easing: cubicOut
 	});
+
+	type Func = (...args: any[]) => void;
+
+	function debounce(func: Func, wait: number): Func {
+		let timeout: number | null = null;
+
+		return function (...args: any[]): void {
+			const later = () => {
+				timeout = null;
+				func(...args);
+			};
+
+			if (timeout !== null) {
+				clearTimeout(timeout);
+			}
+			timeout = window.setTimeout(later, wait);
+		};
+	}
+
+	const playSelectorSound = (): void => {
+		const sound = new Audio(diceSelectorSound);
+		sound.play();
+	};
+
+	const debouncedPlaySelectorSound = debounce(playSelectorSound, 2);
 
 	// Reactively update the tweened value when numberRolled changes
 	$: diceTween.set($numberRolled - 5);
@@ -68,24 +97,28 @@
 	const tweenedNumberRolled = tweened(0, { duration: 2800, easing: cubicOut });
 
 	function handleRollOverUnderChange(event: Event) {
+		if ($isSound) {
+			debouncedPlaySelectorSound();
+		}
 		const input = event.target as HTMLInputElement;
 		const newValue = parseFloat(input.value);
 		rollOverUnder.set(newValue.toFixed(2));
 		dispatch('sliderchange', newValue);
 
-		let newWinChance;
-		let newCashout;
-
 		if ($isRollOverOrUnder === DiceRollConditionEnum.Over) {
-			newWinChance = (100 - newValue).toFixed(2);
-			newCashout = round(99 / (100 - newValue), 4).toString();
+			$winChance = (100 - newValue).toFixed(2);
+			$cashout = round(99 / (100 - newValue), 4).toString();
 		} else {
-			newWinChance = newValue.toFixed(2);
-			newCashout = round(99 / newValue, 4).toString();
+			$winChance = newValue.toFixed(2);
+			$cashout = round(99 / newValue, 4).toString();
 		}
 
-		winChance.set(newWinChance);
-		cashout.set(newCashout);
+		winChance.set($winChance);
+		cashout.set($cashout);
+		console.log('slide-value:', newValue);
+		console.log('winChance:', $winChance, 'cashout:', $cashout);
+		console.log('profit:', $profitOnWin);
+		console.log($betAmount);
 	}
 
 	$: fillColor =
@@ -172,7 +205,7 @@
 			min="2"
 			max="98"
 			bind:value={$rollOverUnder}
-			on:change={handleRollOverUnderChange}
+			on:input={handleRollOverUnderChange}
 			disabled={$gameInProgress || $autoBetInProgress}
 		/>
 	</div>

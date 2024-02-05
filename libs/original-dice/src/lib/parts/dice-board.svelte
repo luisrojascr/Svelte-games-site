@@ -71,21 +71,6 @@
 		}
 	}
 
-	function handleSliderChange(event: CustomEvent<number>) {
-		const newValue = event.detail;
-		const newWinChanceValue: any = round(99 / newValue, 4);
-		winChance.set(newWinChanceValue.toString());
-
-		let newRollOverUnderValue =
-			get(isRollOverOrUnder) === DiceRollConditionEnum.Over
-				? (100 - newWinChanceValue).toFixed(2)
-				: newValue.toFixed(2);
-
-		rollOverUnder.set(newRollOverUnderValue);
-		cashout.set(newWinChanceValue.toString()); // Update cashout store
-		localCashout = newWinChanceValue.toString(); // Update local variable for input binding
-	}
-
 	function handleWinChanceChange(event: Event) {
 		const inputElement = event.target as HTMLInputElement;
 		winChance.set(inputElement.value); // Directly setting the string value
@@ -129,7 +114,7 @@
 		<!-- DICE CONTENT -->
 		<div class="dice-content">
 			{#if isDiceIconDisplayed}
-				<DiceSlider {disabled} {value} on:sliderchange={handleSliderChange} />
+				<DiceSlider {disabled} {value} />
 			{:else}
 				<DiceWheel />
 			{/if}
@@ -146,7 +131,7 @@
 							class="game-input"
 							type="number"
 							min={MIN_PAYOUT.toString()}
-							bind:value={localCashout}
+							bind:value={$cashout}
 						/>
 						<div class="input-content-img">
 							<CloseIconX width="10px" height="10px" stroke="#7b89c5" />
@@ -176,7 +161,7 @@
 						<input
 							class="game-input"
 							type="number"
-							bind:value={localWinChance}
+							bind:value={$winChance}
 							on:input={handleWinChanceChange}
 						/>
 						<div class="input-content-img">
