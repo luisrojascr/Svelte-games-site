@@ -14,19 +14,24 @@
 
 	import {
 		BettingVariants,
+		autoBetInProgress,
 		balanceList,
 		betAmount,
 		cashout,
 		coinPriceData,
 		curBalance,
+		currentProfit,
 		currentWalletState,
+		gameInProgress,
 		handleAutoBet,
+		handleAutoBettingContinuation,
 		handleManualBet,
 		loading,
 		maxBet,
 		maxPayoutData,
 		minBet,
 		profitOnWin,
+		resetBoard,
 		selectedFiatCurrency
 	} from '$lib/parts/store/store.js';
 
@@ -40,7 +45,12 @@
 	}
 
 	function autoButtonClickHandler() {
-		handleAutoBet();
+		autoBetInProgress.update((state) => !state);
+		if (get(autoBetInProgress)) {
+			handleAutoBet();
+		} else {
+			resetBoard(true);
+		}
 	}
 
 	function setActiveVariant(variant: BettingVariants) {
@@ -111,7 +121,7 @@
 				>
 					<span>Bet Amount</span>
 					<button>(Min 0 to 100.00 Max)</button>
-					<span>(Balance - {$curBalance})</span>
+					<span>(Balance - {$curBalance} and {$currentProfit})</span>
 				</div>
 				<LabelInput
 					min={0}
@@ -191,16 +201,23 @@
 
 		{#if $bettingVariant === BettingVariants.AUTO}
 			<div>
+				<div
+					style="display: flex; flex-direction: column; justify-content: flex-start; align-items: start;"
+					class="label-content"
+				>
+					<span>Bet Amount</span>
+					<button>(Min 0 to 100.00 Max)</button>
+					<span>(Balance - {$curBalance} and {$currentProfit})</span>
+				</div>
 				<LabelInput
 					min={0}
 					step={$selectedFiatCurrency && $coinPriceData
 						? '0.01'
 						: getNextDecimal(decimalCryptoDisplay(0, $currentWalletState.type))}
 					type={'number'}
-					value={betAmount}
+					value={$betAmount}
 					dataTestId="bet-amount"
 					integerOnly={true}
-					labelContent="Bet Amount (Max - 1.26530535)"
 				>
 					<div class="btn-parent-v1" slot="buttons">
 						<button class="buttons-v1">
@@ -247,7 +264,11 @@
 					dataTestId="bet-amount"
 					integerOnly={true}
 					labelContent="Number Of Bets"
-				></LabelInput>
+				>
+					<div slot="count" class="bet-countdown">
+						<span>1</span>
+					</div>
+				</LabelInput>
 			</div>
 
 			<div>
@@ -310,14 +331,14 @@
 						type="submit"
 						onClick={autoButtonClickHandler}
 						width={'100%'}
-						bgColor={'#01d180'}
+						bgColor={$autoBetInProgress ? 'red' : '#00b16c'}
 						color={'#fff'}
 						padding={'16px'}
 						margin={'10px 0px'}
 						disabled={$loading}
-						hoverColor={'#00b16c'}
+						hoverColor={$gameInProgress ? undefined : '#00b16c'}
 						dataTestId={'bet-button'}
-						buttonText={'Start Autobet'}
+						buttonText={$autoBetInProgress ? 'Stop Autobet' : 'Start Autobet'}
 					></CustomButton>
 				</div>
 			</div>
@@ -544,5 +565,32 @@
 		left: 50%;
 		transform: translate(-50%, -50%);
 		z-index: 100;
+	}
+
+	.is-greater-than-three {
+		/* Your specific styles when the count is greater than three */
+		right: 1em;
+	}
+
+	.bet-countdown {
+		position: relative;
+	}
+
+	.bet-countdown span {
+		display: inline-flex;
+		flex-shrink: 0;
+		justify-content: center;
+		align-items: center;
+		font-family: 'Open Sans', serif;
+		font-weight: bold;
+		color: #4769fc;
+		width: 18px;
+		white-space: nowrap;
+		position: absolute;
+		top: 50%;
+		transform: translate(0px, -50%);
+		pointer-events: none;
+		cursor: text;
+		right: 0.75em;
 	}
 </style>

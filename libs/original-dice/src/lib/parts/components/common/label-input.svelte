@@ -89,6 +89,11 @@
 				</button>
 			</div>
 		{/if}
+		{#if $$slots.count}
+			<div class="bet-countdown">
+				<slot name="count" />
+			</div>
+		{/if}
 	</div>
 	<span class="label-content">{labelContent}</span>
 </div>
@@ -212,4 +217,17 @@
 	.buttons-wrapper button:last-child {
 		font-size: 12px !important;
 	} */
+
+	.bet-countdown {
+		display: inline-flex;
+		flex-shrink: 0;
+		justify-content: center;
+		align-items: center;
+		font-family: 'Open Sans', serif;
+		font-weight: bold;
+		color: #4769fc;
+		white-space: nowrap;
+		pointer-events: none;
+		cursor: text;
+	}
 </style>

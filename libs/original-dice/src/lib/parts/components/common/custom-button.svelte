@@ -13,7 +13,7 @@
 	export let disabled: boolean = true;
 	export let isInRedState: boolean = false;
 	export let secondary: boolean = false;
-	export let hoverColor: string;
+	export let hoverColor: any;
 	export let dataTestId: string;
 	export let buttonText: string;
 

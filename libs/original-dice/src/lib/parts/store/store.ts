@@ -88,7 +88,7 @@ export const stopOnLoss = derived(currentWalletState, ($currentWalletState) =>
 );
 
 
-export const numOfBets = writable('0');
+export const numOfBets = writable('5');
 export const betsFinished = writable(0);
 export const selectedOnWin = writable(OnWin.AUTO);
 export const selectedOnLoss = writable(OnLoss.AUTO);
@@ -148,14 +148,12 @@ export const handleManualBet = () => {
 }
 
 export const handleAutoBet = () => {
-    autoBetInProgress.set(true);
     handleOnePlay(true);
 };
 
 export const handleOnePlay = async (isAutoBet: boolean) => {
     loading.set(true);
     gameInProgress.set(true);
-    updateBalance(parseFloat(get(betAmount)));
 
     if (isSound) {
         playBetSound();
@@ -187,48 +185,67 @@ export const handleOnePlay = async (isAutoBet: boolean) => {
 
     if (isAutoBet) {
         let newProfit = get(currentProfit);
+
         if (isWin) {
             setTimeout(() => {
                 playDiceWinSound();
             }, 500);
-            updateBetAmountOnWin();
-            newProfit = get(currentProfit) + parseFloat(get(profitOnWin));
+            updateBalance(0, parseFloat(get(profitOnWin)));
         } else {
-            updateBetAmountOnLoss();
-            newProfit = get(currentProfit) - parseFloat(get(betAmount));
+            updateBalance(parseFloat(get(betAmount)), 0);
         }
-        currentProfit.set(newProfit);
 
+        // Check for stop conditions
         if (checkStopOnLossOrProfit(newProfit, parseFloat(get(stopOnLoss)), parseFloat(get(stopOnProfit)))) {
             needToStopNextTime.set(true);
         } else {
-            if (parseInt(get(numOfBets)) !== 0) {
-                if (parseInt(get(numOfBets)) === get(betsFinished)) {
-                    needToStopNextTime.set(true);
-                } else {
-                    betsFinished.update(n => n + 1);
-                }
-            }
+            setTimeout(() => {
+                handleAutoBettingContinuation();
+            }, 500);
         }
-    } else {
-        currentProfit.set(0);
     }
+
 
     if (isWin) {
         setTimeout(() => {
             playDiceWinSound();
         }, 500);
         updateBalance(0, parseFloat(get(profitOnWin)));
-        currentProfit.update(n => n + parseFloat(get(betAmount)));
     } else {
-        updateBalance(parseFloat(get(betAmount)));
-        currentProfit.update(n => n - parseFloat(get(betAmount)));
+        updateBalance(parseFloat(get(betAmount)), 0);
     }
 
     loading.set(false);
     gameInProgress.set(false)
 
 };
+
+export function handleAutoBettingContinuation() {
+    if (!get(autoBetInProgress)) {
+        resetBoard(true);
+        return;
+    }
+
+    if (parseFloat(get(numOfBets)) === 0 || get(betsFinished) < parseFloat(get(numOfBets))) {
+        handleOnePlay(true);
+    } else {
+        resetBoard(true);
+    }
+}
+
+$: {
+    if (autoBetInProgress && !gameInProgress) {
+        if (needToStopNextTime) {
+            resetBoard(true);
+        } else {
+            if (parseFloat(numOfBets as any) === 0 || betsFinished as any < parseFloat(numOfBets as any)) {
+                handleOnePlay(true);
+            } else {
+                resetBoard(true);
+            }
+        }
+    }
+}
 
 export const updateBetAmountOnWin = () => {
     const currentBetAmount = parseFloat(get(betAmount));
@@ -266,18 +283,21 @@ export const updateBetAmountOnLoss = () => {
     betAmount.set(newBetAmount);
 };
 
-
-export function updateBalance(amount: number, profit = 0): void {
+export function updateBalance(bet: number, profit: number = 0): void {
     curBalance.update((balance) => {
-        const newBalance = profit === 0 ? balance - amount : balance + profit;
-        currentWalletState.update((state) => ({ ...state, available: newBalance }));
-        const currentSessionId = get(sessionId);
-        if (currentSessionId) {
-            updateStorageBalance(currentSessionId, newBalance);
+        let newBalance = balance;
+        if (profit > 0) {
+            newBalance += profit;
+        } else {
+            newBalance -= bet;
         }
+
+        currentWalletState.update((state) => ({ ...state, available: newBalance }));
+        updateStorageBalance(get(sessionId), newBalance);
         return newBalance;
     });
 }
+
 
 export function updateStorageBalance(sessionIdToUpdate: string, newBalance: number) {
     balanceList.update(list => {
@@ -354,22 +374,6 @@ export function checkStopOnLossOrProfit(
     return false;
 }
 
-// WILL ARRANGE LATER
-if (get(autoBetInProgress)) {
-    if (get(needToStopNextTime)) {
-        resetBoard(true);
-    } else {
-        if (!get(gameInProgress)) {
-            if (parseFloat(get(numOfBets)) === 0) {
-                handleOnePlay(true);
-            } else if (get(betsFinished) < parseFloat(get(numOfBets))) {
-                handleOnePlay(true);
-            } else {
-                resetBoard(true);
-            }
-        }
-    }
-}
 
 export function resetBoard(isAuto: boolean) {
     if (!isAuto) {
