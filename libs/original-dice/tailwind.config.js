@@ -16,6 +16,13 @@ const config = {
 			transitionProperty: {
 				'max-height': 'max-height',
 			},
+			transitionDuration: {
+				'100': '100ms',
+				'300': '300ms',
+			},
+			transitionTimingFunction: {
+				'ease': 'ease',
+			},
 			maxHeight: {
 				'1200': '1200px',
 			},

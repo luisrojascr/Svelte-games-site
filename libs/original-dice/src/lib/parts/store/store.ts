@@ -70,7 +70,7 @@ export const currentWalletState = writable<{ type: CurrencyEnum; available: numb
     available: 100,
 });
 
-export const initialBetAmount = derived(currentWalletState, ($currentWalletState) =>
+export const initialBetAmount = derived(currentWalletState, ($currentWalletState: { type: CurrencyEnum; available: number }) =>
     decimalCryptoDisplay(0, $currentWalletState.type)
 );
 
@@ -79,11 +79,11 @@ export const onLoss = writable('0.00');
 export const currentProfit = writable(0);
 export const profitOnWin = writable('0');
 
-export const stopOnProfit = derived(currentWalletState, ($currentWalletState) =>
+export const stopOnProfit = derived(currentWalletState, ($currentWalletState: { type: CurrencyEnum; available: number }) =>
     decimalCryptoDisplay(0, $currentWalletState.type)
 );
 
-export const stopOnLoss = derived(currentWalletState, ($currentWalletState) =>
+export const stopOnLoss = derived(currentWalletState, ($currentWalletState: { type: CurrencyEnum; available: number }) =>
     decimalCryptoDisplay(0, $currentWalletState.type)
 );
 
@@ -107,7 +107,7 @@ export const playDiceWinSound = () => {
     winSound.play();
 };
 
-export const selectedFiatCurrency = derived(fiat, $fiat =>
+export const selectedFiatCurrency = derived(fiat, ($fiat: string) =>
     $fiat && FiatArr.includes($fiat.toLowerCase()) ? $fiat : null
 );
 
@@ -195,8 +195,7 @@ export const handleOnePlay = async (isAutoBet: boolean) => {
             updateBalance(parseFloat(get(betAmount)), 0);
         }
 
-        // Check for stop conditions
-        if (checkStopOnLossOrProfit(newProfit, parseFloat(get(stopOnLoss)), parseFloat(get(stopOnProfit)))) {
+        if (checkStopOnLossOrProfit(newProfit, parseFloat(get(stopOnLoss) as string), parseFloat(get(stopOnProfit) as string))) {
             needToStopNextTime.set(true);
         } else {
             setTimeout(() => {
@@ -255,7 +254,7 @@ export const updateBetAmountOnWin = () => {
         const amountToAdd = (currentBetAmount / 100) * parseFloat(get(onWin));
         newBetAmount = (currentBetAmount + amountToAdd).toFixed(decimalDisplayLength(get(currentWalletState).type));
     } else {
-        newBetAmount = get(initialBetAmount);
+        newBetAmount = get(initialBetAmount) as string;
     }
 
     if (get(selectedFiatCurrency) && get(coinPriceData)) {
@@ -273,7 +272,7 @@ export const updateBetAmountOnLoss = () => {
         const amountToAdd = (currentBetAmount / 100) * parseFloat(get(onLoss));
         newBetAmount = (currentBetAmount + amountToAdd).toFixed(decimalDisplayLength(get(currentWalletState).type));
     } else {
-        newBetAmount = get(initialBetAmount);
+        newBetAmount = get(initialBetAmount) as string;
     }
 
     if (get(selectedFiatCurrency) && get(coinPriceData)) {
@@ -312,7 +311,7 @@ export function updateStorageBalance(sessionIdToUpdate: string, newBalance: numb
     });
 }
 
-derived(balanceList, $balanceList => {
+derived(balanceList, ($balanceList: Array<{ sessionId: string, balance: number }>) => {
     localStorage.setItem('balance', JSON.stringify($balanceList));
 });
 

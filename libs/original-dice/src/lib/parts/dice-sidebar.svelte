@@ -348,98 +348,48 @@
 
 <style lang="postcss">
 	.game-sidebar-wrapper {
-		display: flex;
-		flex-direction: column;
-		-webkit-box-align: stretch;
-		align-items: stretch;
-		min-width: 275px;
-		/* width: 100%; */
-		/* max-width: ${(props): string => (props.change ? '500px' : '285px')}; */
+		@apply flex flex-col items-stretch min-w-[275px];
 	}
 
 	.sidebar-main {
-		width: 100%;
-		height: 100%;
-		padding: 16px;
-		border-radius: 4px;
-		background-color: #222c55;
+		@apply w-full h-full p-4 rounded bg-[#222c55];
 	}
 
 	.sidebar-main > * + * {
-		margin-top: 1rem;
+		@apply mt-4;
 	}
 
 	.first-line-bet {
-		display: flex;
-		justify-content: center;
-		align-items: center;
+		@apply flex justify-center items-center;
 	}
 
 	.first-line-bet div:first-child {
-		margin-right: 15px;
+		@apply mr-4;
 	}
 
 	.betting-variant-line {
-		display: inline-flex;
-		width: 100%;
-		margin-bottom: 10px;
+		@apply inline-flex w-full mb-2.5;
 	}
 
 	.betting-variant-line button:first-child {
-		border-bottom-right-radius: 0;
-		border-top-right-radius: 0;
+		@apply rounded-br-none rounded-tr-none;
 	}
 
 	.betting-variant-line button:last-child {
-		border-bottom-left-radius: 0;
-		border-top-left-radius: 0;
+		@apply rounded-bl-none rounded-tl-none;
 	}
 
 	.betting-variant-button {
-		flex: 0 0 50%;
-		touch-action: manipulation;
-		position: relative;
-		display: inline-flex;
-		-webkit-box-pack: center;
-		justify-content: center;
-		-webkit-box-align: center;
-		align-items: center;
-		transition:
-			background 300ms ease 0s,
-			opacity 300ms ease 0s,
-			transform 100ms ease 0s;
-
-		padding: 9px 1em;
-		border-radius: 4px;
-		font-size: 10px;
-		font-weight: bold;
-		font-stretch: normal;
-		font-style: normal;
-		line-height: 1.6;
-		letter-spacing: 0.91px;
-		text-align: center;
-		color: #ffffff;
+		@apply flex-none w-1/2 touch-manipulation relative inline-flex justify-center items-center transition-transform duration-300 ease-in-out p-[9px] px-4 rounded-md text-xs font-bold leading-6 tracking-widest text-center text-white;
 	}
 
 	.label-content span,
 	button {
-		display: inline-flex;
-		-webkit-box-align: center;
-		align-items: center;
-		font-size: 10px;
-		font-weight: bold;
-		font-stretch: normal;
-		font-style: normal;
-		line-height: 1.6;
-		letter-spacing: 0.6px;
-		color: #ffffff;
-		opacity: 0.7;
-		margin: 0px 0px 0.25em;
-		transition: all 200ms ease-out 0s;
-		margin-bottom: 5px;
+		@apply inline-flex items-center text-xs font-bold leading-6 tracking-normal text-white opacity-70 transition-all duration-200 ease-out mb-[5px];
 	}
 
 	.betting-variant-button span {
+		@apply transition-[background_300ms_ease_0s,_opacity_300ms_ease_0s,_transform_100ms_ease_0s];
 		transition:
 			background 300ms ease 0s,
 			opacity 300ms ease 0s,
@@ -451,14 +401,7 @@
 	}
 
 	.button-text {
-		font-size: 12px;
-		font-weight: 600;
-		font-stretch: normal;
-		font-style: normal;
-		line-height: normal;
-		letter-spacing: 1px;
-		text-align: center;
-		color: #ffffff;
+		@apply text-sm font-semibold tracking-wide text-center text-white;
 	}
 
 	/* button.bet {
@@ -466,8 +409,7 @@
 	} */
 
 	.btn-parent-v1 {
-		display: flex;
-		gap: 4px;
+		@apply flex gap-4;
 	}
 
 	.buttons-v1 {
@@ -577,20 +519,6 @@
 	}
 
 	.bet-countdown span {
-		display: inline-flex;
-		flex-shrink: 0;
-		justify-content: center;
-		align-items: center;
-		font-family: 'Open Sans', serif;
-		font-weight: bold;
-		color: #4769fc;
-		width: 18px;
-		white-space: nowrap;
-		position: absolute;
-		top: 50%;
-		transform: translate(0px, -50%);
-		pointer-events: none;
-		cursor: text;
-		right: 0.75em;
+		@apply inline-flex flex-shrink-0 justify-center items-center font-bold text-blue-500 w-[18px] whitespace-nowrap absolute top-1/2 -translate-x-1 -translate-y-1/2 pointer-events-none cursor-text right-[0.75em];
 	}
 </style>

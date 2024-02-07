@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { get, writable } from 'svelte/store';
+	import { writable } from 'svelte/store';
 
 	import PastBetButton from './components/common/past-bet-button.svelte';
 
@@ -16,15 +16,13 @@
 	import DiceSlider from './dice-slider.svelte';
 	import DiceWheel from './dice-wheel.svelte';
 
-	import { numberOnly, round } from '../utils/helper.js';
+	import { round } from '../utils/helper.js';
 
 	import {
 		autoBetInProgress,
 		cashout,
 		gameInProgress,
-		handleOnePlay,
 		isRollOverOrUnder,
-		numberRolled,
 		pastBets,
 		rollOverUnder,
 		rotateBoxTo,
@@ -225,121 +223,61 @@
 	}
 
 	.game-input {
-		@apply font-normal text-lg overflow-scroll bg-deepBlue text-white rounded border border-gray-700 py-2 px-3 pr-7 transition-all duration-200 ease-out outline-none;
+		@apply font-normal text-lg overflow-scroll bg-deepBlue text-white rounded border border-gray-700 py-2 px-3 pr-7 transition-all duration-200 ease-out outline-none w-80;
 		/* Add hover, focus, active, and disabled states later */
 		/* Add responsive font size later */
 	}
 
 	/* Footer inputs */
 	.dice-footer {
-		color: rgb(213, 220, 235);
-		position: relative;
-		display: grid;
-		width: 100%;
-		grid-template-columns: 1fr 1fr 1fr;
-		gap: 0.5rem;
-		padding: 1rem;
+		@apply relative grid w-full grid-cols-3 gap-2 p-4;
 	}
 
 	.dice-footer input[type='button'] {
-		cursor: pointer;
-		text-align: left;
+		@apply cursor-pointer text-left;
 	}
 
 	.input-label {
-		display: inline-flex;
-		-webkit-box-align: center;
-		flex-direction: column-reverse;
-		align-items: flex-start;
-		touch-action: manipulation;
+		@apply inline-flex items-start flex-col-reverse touch-manipulation;
 	}
 
 	.input-wrapper {
-		width: 100%;
-		display: flex;
-		flex-shrink: 0;
+		@apply w-full flex flex-shrink-0;
 	}
 
 	.input-content {
-		position: relative;
-		-webkit-box-flex: 1;
-		flex-grow: 1;
-		width: 100%;
-		display: flex;
+		@apply relative flex-grow w-full flex;
 	}
-
 	.input-content-img {
-		position: absolute;
-		top: 50%;
-		transform: translate(0px, -50%);
-		pointer-events: none;
-		color: rgb(177, 186, 211);
-		cursor: text;
-		right: 0.75em;
-		overflow: hidden;
+		@apply absolute top-1/2 transform -translate-y-1/2 pointer-events-none text-[#B1BAD3] cursor-text right-[20%] overflow-hidden;
 	}
 
 	.game-input {
-		font-family: 'Open Sans', serif;
-		font-size: 14px;
-		-webkit-overflow-scrolling: touch;
-
-		font-weight: 500;
-		font-stretch: normal;
-		font-style: normal;
-		line-height: 2;
-		letter-spacing: normal;
-		color: #ffffff;
-		-webkit-appearance: none;
-		width: 100%;
-		cursor: text;
-		-webkit-appearance: none;
-		padding: 8px 12px;
-		padding-right: 28px;
-		border-radius: 4px;
-		border: solid 1px #404c7d;
-		background-color: #111a41;
-		transition: all 200ms ease-out 0s;
-		outline: none;
+		@apply font-normal text-base overflow-scroll bg-deepBlue text-white rounded border border-gray-700 py-2 px-3 pr-7 transition-all duration-200 ease-out outline-none;
 	}
 
 	.game-input:hover {
-		border: solid 1px #4769fc;
-		transition: border 200ms ease-out 0;
+		@apply border border-solid border-blue-500 transition-colors duration-200 ease-out;
 	}
 
 	.game-input:focus {
-		border: solid 1px #404c7d;
-		transition: border 200ms ease-out 0;
+		@apply border border-solid border-blue-700 transition-colors duration-200 ease-out;
 	}
 
 	.game-input:active {
-		border: solid 1px #4769fc;
-		transition: border 200ms ease-out 0;
+		@apply border border-solid border-blue-500 transition-colors duration-200 ease-out;
 	}
 
 	.game-input:disabled {
-		cursor: not-allowed;
+		@apply cursor-not-allowed;
 	}
-
 	.label-text {
-		display: inline-flex;
-		-webkit-box-align: center;
-		align-items: center;
-		font-size: 10px;
-		font-weight: bold;
-		font-stretch: normal;
-		font-style: normal;
-		line-height: 1.6;
-		letter-spacing: 0.6px;
-		color: #e6e7ed;
-		margin: 0px 0px 0.25em;
-		transition: all 200ms ease-out 0s;
+		@apply inline-flex items-center font-bold text-xs leading-6 tracking-widest text-lightGray mb-1 transition-all duration-200 ease-out;
 	}
 
 	@media (max-width: 1030px) {
 		.game-input {
-			font-size: 16px;
+			@apply text-base;
 		}
 	}
 </style>
