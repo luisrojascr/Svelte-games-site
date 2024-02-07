@@ -230,3 +230,18 @@ export const cryptoCurrencies: CryptoCurrency[] = [
     usdc,
     usdt,
 ]
+
+export enum OnLoss {
+    AUTO = 'AUTO',
+    INCREASE = 'INCREASE'
+}
+
+export enum BettingVariants {
+    MANUAL = 'MANUAL',
+    AUTO = 'AUTO'
+}
+
+export enum OnWin {
+    AUTO = 'AUTO',
+    INCREASE = 'INCREASE'
+}

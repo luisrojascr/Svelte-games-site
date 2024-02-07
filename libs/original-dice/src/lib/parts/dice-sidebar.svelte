@@ -2,6 +2,7 @@
 	import PercentIcon from '$lib/assets/images/PercentIcon.svelte';
 	import CustomButton from '$lib/parts/components/common/custom-button.svelte';
 	import LabelInput from '$lib/parts/components/common/label-input.svelte';
+	import { BettingVariants, OnLoss, OnWin } from '$lib/utils/cc.js';
 	import { Tooltip } from '@svelte-plugins/tooltips';
 	import { derived, get, writable } from 'svelte/store';
 	import {
@@ -13,7 +14,6 @@
 	} from '../utils/helper.js';
 
 	import {
-		BettingVariants,
 		autoBetInProgress,
 		balanceList,
 		betAmount,
@@ -30,9 +30,11 @@
 		maxBet,
 		maxPayoutData,
 		minBet,
+		onLoss,
 		profitOnWin,
 		resetBoard,
-		selectedFiatCurrency
+		selectedFiatCurrency,
+		selectedOnLoss
 	} from '$lib/parts/store/store.js';
 
 	let tooltip = false;
@@ -56,6 +58,17 @@
 	function setActiveVariant(variant: BettingVariants) {
 		bettingVariant.set(variant);
 	}
+
+	function handleReset() {
+		selectedOnLoss.set(OnLoss.AUTO);
+		onLoss.set('0.00'); // Reset the onLoss value
+	}
+
+	function handleIncrease() {
+		selectedOnLoss.set(OnLoss.INCREASE);
+	}
+
+	$: inputDisabled = $selectedOnLoss === OnLoss.AUTO;
 
 	$: if (Number($betAmount) === 0) {
 		if ($selectedFiatCurrency && $coinPriceData) {
@@ -121,7 +134,7 @@
 				>
 					<span>Bet Amount</span>
 					<button>(Min 0 to 100.00 Max)</button>
-					<span>(Balance - {$curBalance} and {$currentProfit})</span>
+					<span>(Balance - {$curBalance})</span>
 				</div>
 				<LabelInput
 					min={0}
@@ -175,7 +188,7 @@
 						? '0.01'
 						: getNextDecimal(decimalCryptoDisplay(0, $currentWalletState.type))}
 					type={'number'}
-					value={parseFloat($profitOnWin).toFixed(2)}
+					value={$profitOnWin}
 					dataTestId="bet-amount"
 					integerOnly={true}
 					labelContent="Profit on Win"
@@ -260,7 +273,7 @@
 						? '0.01'
 						: getNextDecimal(decimalCryptoDisplay(0, $currentWalletState.type))}
 					type={'number'}
-					value={profitOnWin}
+					value={$profitOnWin}
 					dataTestId="bet-amount"
 					integerOnly={true}
 					labelContent="Number Of Bets"
@@ -278,19 +291,28 @@
 						? '0.01'
 						: getNextDecimal(decimalCryptoDisplay(0, $currentWalletState.type))}
 					type={'number'}
-					value={betAmount}
-					dataTestId="bet-amount"
+					value={$onLoss}
+					dataTestId="on-loss"
 					integerOnly={true}
 					labelContent="On Loss"
 					buttonsPosition={'start'}
+					disabled={inputDisabled}
 				>
 					<PercentIcon width="11px" height="13px" fill="#848aa0" slot="inputIcon" />
 
 					<div class="btn-parent-v1" slot="buttons">
-						<button class="buttons-v2">
+						<button
+							class="buttons-v2"
+							class:selected={get(selectedOnLoss) === OnLoss.AUTO}
+							on:click={handleReset}
+						>
 							<span>RESET</span>
 						</button>
-						<button class="buttons-v2">
+						<button
+							class="buttons-v2"
+							class:selected={get(selectedOnLoss) === OnLoss.INCREASE}
+							on:click={handleIncrease}
+						>
 							<span>INCREASE BY</span>
 						</button>
 					</div>
@@ -304,13 +326,12 @@
 						? '0.01'
 						: getNextDecimal(decimalCryptoDisplay(0, $currentWalletState.type))}
 					type={'number'}
-					value={betAmount}
+					value={$betAmount}
 					dataTestId="bet-amount"
 					integerOnly={true}
 					labelContent="Stop On Profit"
 				></LabelInput>
 			</div>
-
 			<div>
 				<LabelInput
 					min={0}
@@ -318,7 +339,7 @@
 						? '0.01'
 						: getNextDecimal(decimalCryptoDisplay(0, $currentWalletState.type))}
 					type={'number'}
-					value={betAmount}
+					value={$betAmount}
 					dataTestId="bet-amount"
 					integerOnly={true}
 					labelContent="Stop On Loss"

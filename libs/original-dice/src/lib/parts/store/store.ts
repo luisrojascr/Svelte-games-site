@@ -1,4 +1,4 @@
-import { CurrencyEnum, DiceRollConditionEnum, LanguageEnum } from '$lib/utils/cc.js';
+import { BettingVariants, CurrencyEnum, DiceRollConditionEnum, LanguageEnum, OnLoss, OnWin } from '$lib/utils/cc.js';
 import { decimalCryptoDisplay, decimalDisplayLength, generateRandomHex } from '$lib/utils/helper.js';
 import { derived, get, writable } from 'svelte/store';
 
@@ -17,20 +17,6 @@ export interface BalanceItem {
     balance: number;
 }
 
-export enum BettingVariants {
-    MANUAL = 'MANUAL',
-    AUTO = 'AUTO'
-}
-
-export enum OnWin {
-    AUTO = 'AUTO',
-    INCREASE = 'INCREASE'
-}
-
-export enum OnLoss {
-    AUTO = 'AUTO',
-    INCREASE = 'INCREASE'
-}
 
 export const FiatArr = ['usd', 'jpy', 'eur'];
 export const CryptoArr = [
@@ -74,8 +60,8 @@ export const initialBetAmount = derived(currentWalletState, ($currentWalletState
     decimalCryptoDisplay(0, $currentWalletState.type)
 );
 
-export const onWin = writable('0.00');
-export const onLoss = writable('0.00');
+export const onWin = writable('3');
+export const onLoss = writable('0');
 export const currentProfit = writable(0);
 export const profitOnWin = writable('0');
 
@@ -87,11 +73,11 @@ export const stopOnLoss = derived(currentWalletState, ($currentWalletState: { ty
     decimalCryptoDisplay(0, $currentWalletState.type)
 );
 
-
 export const numOfBets = writable('5');
 export const betsFinished = writable(0);
 export const selectedOnWin = writable(OnWin.AUTO);
 export const selectedOnLoss = writable(OnLoss.AUTO);
+
 
 // This is for the sound
 export const playBetSound = () => {
@@ -169,7 +155,7 @@ export const handleOnePlay = async (isAutoBet: boolean) => {
     const result = await handleGetResult(); // Replace this later with actual API call 
     numberRolled.set(result);
 
-    console.log(result)
+    // console.log(result)
 
     if (isSound) {
         playDiceRollSound();
@@ -181,31 +167,40 @@ export const handleOnePlay = async (isAutoBet: boolean) => {
     const isWin = checkWinOrLose(result, parsedRollOverUnder, currentIsRollOverOrUnder);
     updatePastBets(generateRandomHex(10), result, isWin);
 
-    console.log(isWin)
+    // console.log(isWin)
 
+    // AUTOBET
     if (isAutoBet) {
         let newProfit = get(currentProfit);
 
-        if (isWin) {
+        if (isWin && isAutoBet) {
+            newProfit += parseFloat(get(profitOnWin));
             setTimeout(() => {
                 playDiceWinSound();
             }, 500);
+            // updateBetAmountOnWin()
             updateBalance(0, parseFloat(get(profitOnWin)));
+            // newProfit = currentProfit + parseFloat(profitOnWin)
         } else {
+            updateBetAmountOnLoss()
+            newProfit -= parseFloat(get(profitOnWin));
             updateBalance(parseFloat(get(betAmount)), 0);
-        }
 
-        if (checkStopOnLossOrProfit(newProfit, parseFloat(get(stopOnLoss) as string), parseFloat(get(stopOnProfit) as string))) {
+        }
+        console.log((parseFloat(get(betAmount))))
+        currentProfit.set(newProfit)
+
+        if (checkStopOnLossOrProfit(newProfit, parseFloat(get(stopOnLoss)), parseFloat(get(stopOnProfit)))) {
             needToStopNextTime.set(true);
+            resetBoard(true); // Make sure to define this function to reset the necessary states
         } else {
             setTimeout(() => {
                 handleAutoBettingContinuation();
             }, 500);
         }
     }
-
-
-    if (isWin) {
+    // MANUAL BET
+    else if (isWin && !isAutoBet) {
         setTimeout(() => {
             playDiceWinSound();
         }, 500);
@@ -213,6 +208,7 @@ export const handleOnePlay = async (isAutoBet: boolean) => {
     } else {
         updateBalance(parseFloat(get(betAmount)), 0);
     }
+
 
     loading.set(false);
     gameInProgress.set(false)
@@ -233,7 +229,7 @@ export function handleAutoBettingContinuation() {
 }
 
 $: {
-    if (autoBetInProgress && !gameInProgress) {
+    if (autoBetInProgress) {
         if (needToStopNextTime) {
             resetBoard(true);
         } else {
@@ -246,23 +242,24 @@ $: {
     }
 }
 
-export const updateBetAmountOnWin = () => {
-    const currentBetAmount = parseFloat(get(betAmount));
-    let newBetAmount: string;
+// export const updateBetAmountOnWin = () => {
+//     const currentBetAmount = parseFloat(get(betAmount));
+//     let newBetAmount: string;
 
-    if (get(selectedOnWin) === OnWin.INCREASE) {
-        const amountToAdd = (currentBetAmount / 100) * parseFloat(get(onWin));
-        newBetAmount = (currentBetAmount + amountToAdd).toFixed(decimalDisplayLength(get(currentWalletState).type));
-    } else {
-        newBetAmount = get(initialBetAmount) as string;
-    }
+//     if (get(selectedOnWin) === OnWin.INCREASE) {
+//         const amountToAdd = (currentBetAmount / 100) * parseFloat(get(onWin));
+//         newBetAmount = (currentBetAmount + amountToAdd).toFixed(decimalDisplayLength(get(currentWalletState).type));
+//     } else {
+//         newBetAmount = get(betAmount);
+//     }
 
-    if (get(selectedFiatCurrency) && get(coinPriceData)) {
-        newBetAmount = Number(newBetAmount).toFixed(2);
-    }
+//     if (get(selectedFiatCurrency) && get(coinPriceData)) {
+//         newBetAmount = Number(newBetAmount).toFixed(2);
+//     }
 
-    betAmount.set(newBetAmount);
-};
+//     betAmount.set(newBetAmount);
+//     console.log("test:", newBetAmount)
+// };
 
 export const updateBetAmountOnLoss = () => {
     const currentBetAmount = parseFloat(get(betAmount));
@@ -272,7 +269,7 @@ export const updateBetAmountOnLoss = () => {
         const amountToAdd = (currentBetAmount / 100) * parseFloat(get(onLoss));
         newBetAmount = (currentBetAmount + amountToAdd).toFixed(decimalDisplayLength(get(currentWalletState).type));
     } else {
-        newBetAmount = get(initialBetAmount) as string;
+        newBetAmount = get(betAmount) as string;
     }
 
     if (get(selectedFiatCurrency) && get(coinPriceData)) {
@@ -280,6 +277,7 @@ export const updateBetAmountOnLoss = () => {
     }
 
     betAmount.set(newBetAmount);
+    console.log("test:", newBetAmount)
 };
 
 export function updateBalance(bet: number, profit: number = 0): void {
@@ -310,7 +308,7 @@ export function updateStorageBalance(sessionIdToUpdate: string, newBalance: numb
         return list;
     });
 }
-
+// @ts-ignore
 derived(balanceList, ($balanceList: Array<{ sessionId: string, balance: number }>) => {
     localStorage.setItem('balance', JSON.stringify($balanceList));
 });
@@ -369,7 +367,7 @@ export function checkStopOnLossOrProfit(
     if (stopOnLoss > 0 && Math.abs(curProfit) >= stopOnLoss) {
         return true;
     }
-
+    console.log("current:", curProfit, "stoploss:", stopOnLoss, "stopwin:", stopOnProfit)
     return false;
 }
 

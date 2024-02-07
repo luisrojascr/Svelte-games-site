@@ -115,10 +115,10 @@
 
 		winChance.set($winChance);
 		cashout.set($cashout);
-		console.log('slide-value:', newValue);
-		console.log('winChance:', $winChance, 'cashout:', $cashout);
-		console.log('profit:', $profitOnWin);
-		console.log($betAmount);
+		// console.log('slide-value:', newValue);
+		// console.log('winChance:', $winChance, 'cashout:', $cashout);
+		// console.log('profit:', $profitOnWin);
+		// console.log($betAmount);
 	}
 
 	$: fillColor =

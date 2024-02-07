@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { betAmount } from '$lib/parts/store/store.js';
 	import { numberOnly } from '$lib/utils/helper.js';
 	import { createEventDispatcher, onMount } from 'svelte';
+	import { writable } from 'svelte/store';
 
 	export let type: string = 'text';
 	export let value: any;
@@ -31,14 +31,14 @@
 		isActive = true;
 	}
 
-	function handleChange(event: Event): void {
+	function handleChange(event: Event) {
 		const input = event.target as HTMLInputElement;
 		if (integerOnly) {
-			numberOnly(event as KeyboardEvent);
+			//@ts-ignore
+			numberOnly(event);
 		}
-		betAmount.set(input.value);
+		value.set(input.value);
 		dispatch('change', { value: input.value });
-		console.log(input.value);
 	}
 
 	$: computedClass = `input-label ${disabled ? 'opacity-80' : 'opacity-100'}`;
