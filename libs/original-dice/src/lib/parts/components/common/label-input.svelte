@@ -1,10 +1,8 @@
 <script lang="ts">
-	import { numberOnly } from '$lib/utils/helper.js';
-	import { createEventDispatcher, onMount } from 'svelte';
-	import { writable } from 'svelte/store';
+	import { createEventDispatcher, onDestroy, onMount } from 'svelte';
 
 	export let type: string = 'text';
-	export let value: any;
+	export let valueStore: any;
 	export let integerOnly: boolean = false;
 	export let readOnly: boolean = false;
 	export let buttonsPosition: 'start' | 'end' = 'end';
@@ -17,10 +15,23 @@
 	export let dataTestId: string = '';
 	export let labelContent: string = '';
 	export let placeholder: string = '0.00';
+	export let allowUpdate: boolean = true;
 
 	const dispatch = createEventDispatcher();
 
 	let isActive: boolean = false;
+	let inputValue = $valueStore;
+
+	//@ts-ignore
+	function handleInput(event) {
+		const parsedValue = integerOnly ? parseInt(event.target.value) || 0 : event.target.value;
+
+		// Directly set the inputValue to what user types
+		inputValue = event.target.value;
+
+		// Always update the store regardless of allowUpdate
+		valueStore.set(parsedValue);
+	}
 
 	function handleBlur(): void {
 		dispatch('blur');
@@ -31,19 +42,11 @@
 		isActive = true;
 	}
 
-	function handleChange(event: Event) {
-		const input = event.target as HTMLInputElement;
-		if (integerOnly) {
-			//@ts-ignore
-			numberOnly(event);
-		}
-		value.set(input.value);
-		dispatch('change', { value: input.value });
-	}
-
 	$: computedClass = `input-label ${disabled ? 'opacity-80' : 'opacity-100'}`;
 
-	onMount(() => {});
+	$: if (allowUpdate) {
+		inputValue = $valueStore;
+	}
 </script>
 
 <div class={computedClass} {style}>
@@ -61,11 +64,11 @@
 						{step}
 						{disabled}
 						readonly={readOnly}
-						{type}
+						type="number"
 						inputmode={type === 'number' ? 'decimal' : undefined}
-						{value}
 						data-testid={dataTestId}
-						on:input={handleChange}
+						value={inputValue}
+						on:input={handleInput}
 						on:focus={handleFocus}
 						on:blur={handleBlur}
 						style={`padding-right: ${paddingRight};`}
@@ -94,6 +97,11 @@
 				<slot name="count" />
 			</div>
 		{/if}
+		<!-- {#if $$slots.icon}
+			<div class="">
+				<slot name="icon" />
+			</div>
+		{/if} -->
 	</div>
 	<span class="label-content">{labelContent}</span>
 </div>

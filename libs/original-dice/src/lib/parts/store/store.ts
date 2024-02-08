@@ -29,6 +29,11 @@ function getURLParameter(param: string, defaultValue: string) {
     return params.get(param) || defaultValue;
 }
 
+export const currentWalletState = writable<{ type: CurrencyEnum; available: number }>({
+    type: CurrencyEnum.btc,
+    available: 100,
+});
+
 export const currency = writable(getURLParameter('currency', 'usdt'));
 export const fiat = writable(getURLParameter('fiat', ''));
 export const startBalance = writable(getURLParameter('startBalance', '1000'))
@@ -51,29 +56,31 @@ export const betAmount = writable('0');
 export const cashout = writable('2.00');
 export const winChance = writable('49.50');
 
-export const currentWalletState = writable<{ type: CurrencyEnum; available: number }>({
-    type: CurrencyEnum.btc,
-    available: 100,
-});
 
 export const initialBetAmount = derived(currentWalletState, ($currentWalletState: { type: CurrencyEnum; available: number }) =>
     decimalCryptoDisplay(0, $currentWalletState.type)
 );
+
 
 export const onWin = writable('3');
 export const onLoss = writable('0');
 export const currentProfit = writable(0);
 export const profitOnWin = writable('0');
 
-export const stopOnProfit = derived(currentWalletState, ($currentWalletState: { type: CurrencyEnum; available: number }) =>
-    decimalCryptoDisplay(0, $currentWalletState.type)
+export const inputStopOnProfit = writable(0);
+export const inputStopOnLoss = writable(0);
+
+export const stopOnProfit = derived(
+    [inputStopOnProfit, currentWalletState],
+    ([$inputStopOnProfit, $currentWalletState]) => decimalCryptoDisplay($inputStopOnProfit, $currentWalletState.type)
 );
 
-export const stopOnLoss = derived(currentWalletState, ($currentWalletState: { type: CurrencyEnum; available: number }) =>
-    decimalCryptoDisplay(0, $currentWalletState.type)
+export const stopOnLoss = derived(
+    [inputStopOnLoss, currentWalletState],
+    ([$inputStopOnLoss, $currentWalletState]) => decimalCryptoDisplay($inputStopOnLoss, $currentWalletState.type)
 );
 
-export const numOfBets = writable('5');
+export const numOfBets = writable('0');
 export const betsFinished = writable(0);
 export const selectedOnWin = writable(OnWin.AUTO);
 export const selectedOnLoss = writable(OnLoss.AUTO);
@@ -173,6 +180,12 @@ export const handleOnePlay = async (isAutoBet: boolean) => {
     if (isAutoBet) {
         let newProfit = get(currentProfit);
 
+        // Decrement the number of bets if it's not zero
+        // numOfBets.update(n => n > 0 ? n - 1 : 0);
+
+        // Retrieve the current number of bets after decrementing
+        const currentNumOfBets = get(numOfBets);
+
         if (isWin && isAutoBet) {
             newProfit += parseFloat(get(profitOnWin));
             setTimeout(() => {
@@ -192,12 +205,33 @@ export const handleOnePlay = async (isAutoBet: boolean) => {
 
         if (checkStopOnLossOrProfit(newProfit, parseFloat(get(stopOnLoss)), parseFloat(get(stopOnProfit)))) {
             needToStopNextTime.set(true);
-            resetBoard(true); // Make sure to define this function to reset the necessary states
+            resetBoard(true);
         } else {
-            setTimeout(() => {
-                handleAutoBettingContinuation();
-            }, 500);
+            // If there is a specific number of bets set (greater than zero), decrement it
+            // @ts-ignore
+            if (currentNumOfBets > 0) {
+                // @ts-ignore
+                numOfBets.update(n => n - 1);
+
+                // After decrementing, check if the number of bets has reached zero
+                // @ts-ignore
+                if (get(numOfBets) === 0) {
+                    needToStopNextTime.set(true);
+                    resetBoard(true);
+                } else {
+                    // If there are still bets left, continue with the next bet
+                    setTimeout(() => {
+                        handleAutoBettingContinuation();
+                    }, 500);
+                }
+            } else {
+                // If numOfBets was initially 0, continue without decrementing
+                setTimeout(() => {
+                    handleAutoBettingContinuation();
+                }, 500);
+            }
         }
+        console.log("update the bet:", (parseFloat(get(betAmount))))
     }
     // MANUAL BET
     else if (isWin && !isAutoBet) {

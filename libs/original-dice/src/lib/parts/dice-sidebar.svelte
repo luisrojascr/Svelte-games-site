@@ -1,5 +1,7 @@
 <script lang="ts">
+	import InfinityIcon from '$lib/assets/images/InfinityIcon.svelte';
 	import PercentIcon from '$lib/assets/images/PercentIcon.svelte';
+
 	import CustomButton from '$lib/parts/components/common/custom-button.svelte';
 	import LabelInput from '$lib/parts/components/common/label-input.svelte';
 	import { BettingVariants, OnLoss, OnWin } from '$lib/utils/cc.js';
@@ -26,15 +28,20 @@
 		handleAutoBet,
 		handleAutoBettingContinuation,
 		handleManualBet,
+		inputStopOnLoss,
+		inputStopOnProfit,
 		loading,
 		maxBet,
 		maxPayoutData,
 		minBet,
+		numOfBets,
 		onLoss,
 		profitOnWin,
 		resetBoard,
 		selectedFiatCurrency,
-		selectedOnLoss
+		selectedOnLoss,
+		stopOnLoss,
+		stopOnProfit
 	} from '$lib/parts/store/store.js';
 
 	let tooltip = false;
@@ -88,6 +95,19 @@
 				: getProfitOnWin().toFixed(decimalDisplayLength($currentWalletState.type));
 		}
 	}
+
+	$: if (parseFloat($betAmount) <= 0 || $betAmount <= '0') {
+		tooltip = true;
+	} else {
+		tooltip = false;
+	}
+
+	// let displayValueStore;
+	// $: if ($autoBetInProgress) {
+	// 	displayValueStore = $betAmount; // Pass the store itself when the game is in progress
+	// } else if (!$autoBetInProgress) {
+	// 	displayValueStore = betAmount; // Pass the store's value when the game is not in progress
+	// }
 </script>
 
 <div class="game-sidebar-wrapper">
@@ -110,6 +130,7 @@
 					: '#3F4B79'}; opacity: {$bettingVariant === BettingVariants.MANUAL ? 1 : 0.7};"
 				on:click={() => setActiveVariant(BettingVariants.MANUAL)}
 				data-testid="manual-bet"
+				disabled={$autoBetInProgress}
 			>
 				<span class="button-text">Manual</span>
 			</button>
@@ -120,6 +141,7 @@
 					: '#3F4B79'}; opacity: {$bettingVariant === BettingVariants.AUTO ? 1 : 0.7};"
 				on:click={() => setActiveVariant(BettingVariants.AUTO)}
 				data-testid="auto-bet"
+				disabled={$autoBetInProgress}
 			>
 				<span class="button-text">Auto</span>
 			</button>
@@ -142,7 +164,7 @@
 						? '0.01'
 						: getNextDecimal(decimalCryptoDisplay(0, $currentWalletState.type))}
 					type={'number'}
-					value={$betAmount}
+					valueStore={betAmount}
 					dataTestId="bet-amount"
 					integerOnly={true}
 				>
@@ -188,7 +210,7 @@
 						? '0.01'
 						: getNextDecimal(decimalCryptoDisplay(0, $currentWalletState.type))}
 					type={'number'}
-					value={$profitOnWin}
+					valueStore={profitOnWin}
 					dataTestId="bet-amount"
 					integerOnly={true}
 					labelContent="Profit on Win"
@@ -220,7 +242,7 @@
 				>
 					<span>Bet Amount</span>
 					<button>(Min 0 to 100.00 Max)</button>
-					<span>(Balance - {$curBalance} and {$currentProfit})</span>
+					<span>(Balance - {$curBalance})</span>
 				</div>
 				<LabelInput
 					min={0}
@@ -228,7 +250,7 @@
 						? '0.01'
 						: getNextDecimal(decimalCryptoDisplay(0, $currentWalletState.type))}
 					type={'number'}
-					value={$betAmount}
+					valueStore={betAmount}
 					dataTestId="bet-amount"
 					integerOnly={true}
 				>
@@ -273,13 +295,20 @@
 						? '0.01'
 						: getNextDecimal(decimalCryptoDisplay(0, $currentWalletState.type))}
 					type={'number'}
-					value={$profitOnWin}
+					valueStore={numOfBets}
 					dataTestId="bet-amount"
 					integerOnly={true}
 					labelContent="Number Of Bets"
+					allowUpdate={false}
 				>
-					<div slot="count" class="bet-countdown">
-						<span>1</span>
+					<div slot="count">
+						{#if parseFloat($numOfBets) === 0 || $numOfBets === '0'}
+							<InfinityIcon />
+						{:else}
+							<div class="bet-countdown">
+								<span>{$numOfBets}</span>
+							</div>
+						{/if}
 					</div>
 				</LabelInput>
 			</div>
@@ -291,7 +320,7 @@
 						? '0.01'
 						: getNextDecimal(decimalCryptoDisplay(0, $currentWalletState.type))}
 					type={'number'}
-					value={$onLoss}
+					valueStore={onLoss}
 					dataTestId="on-loss"
 					integerOnly={true}
 					labelContent="On Loss"
@@ -300,17 +329,17 @@
 				>
 					<PercentIcon width="11px" height="13px" fill="#848aa0" slot="inputIcon" />
 
-					<div class="btn-parent-v1" slot="buttons">
+					<div class="btn-parent-v2" slot="buttons">
 						<button
 							class="buttons-v2"
-							class:selected={get(selectedOnLoss) === OnLoss.AUTO}
+							class:selected={$selectedOnLoss === OnLoss.AUTO}
 							on:click={handleReset}
 						>
 							<span>RESET</span>
 						</button>
 						<button
 							class="buttons-v2"
-							class:selected={get(selectedOnLoss) === OnLoss.INCREASE}
+							class:selected={$selectedOnLoss === OnLoss.INCREASE}
 							on:click={handleIncrease}
 						>
 							<span>INCREASE BY</span>
@@ -326,7 +355,7 @@
 						? '0.01'
 						: getNextDecimal(decimalCryptoDisplay(0, $currentWalletState.type))}
 					type={'number'}
-					value={$betAmount}
+					valueStore={inputStopOnProfit}
 					dataTestId="bet-amount"
 					integerOnly={true}
 					labelContent="Stop On Profit"
@@ -339,7 +368,7 @@
 						? '0.01'
 						: getNextDecimal(decimalCryptoDisplay(0, $currentWalletState.type))}
 					type={'number'}
-					value={$betAmount}
+					valueStore={inputStopOnLoss}
 					dataTestId="bet-amount"
 					integerOnly={true}
 					labelContent="Stop On Loss"
@@ -352,11 +381,14 @@
 						type="submit"
 						onClick={autoButtonClickHandler}
 						width={'100%'}
-						bgColor={$autoBetInProgress ? 'red' : '#00b16c'}
+						bgColor={$autoBetInProgress ? '#ff2c55' : '#00b16c'}
 						color={'#fff'}
 						padding={'16px'}
 						margin={'10px 0px'}
-						disabled={$loading}
+						disabled={$loading ||
+							$gameInProgress ||
+							parseFloat($betAmount) <= 0 ||
+							$betAmount <= '0'}
 						hoverColor={$gameInProgress ? undefined : '#00b16c'}
 						dataTestId={'bet-button'}
 						buttonText={$autoBetInProgress ? 'Stop Autobet' : 'Start Autobet'}
@@ -430,7 +462,11 @@
 	} */
 
 	.btn-parent-v1 {
-		@apply flex gap-4;
+		@apply flex gap-2;
+	}
+
+	.btn-parent-v2 {
+		@apply flex gap-2 h-full;
 	}
 
 	.buttons-v1 {
@@ -484,7 +520,7 @@
 		align-items: center;
 		flex-shrink: 0;
 		border-radius: 2px;
-		background-color: #4769fc;
+		background-color: #3f4b79;
 		padding: 2px 8px;
 		font-size: 9px;
 		font-weight: bold;
@@ -493,7 +529,7 @@
 		line-height: 1.6;
 		letter-spacing: 0.91px;
 		text-align: center;
-		color: #ffffff;
+		color: #848aa0;
 		transition:
 			background 300ms ease 0s,
 			opacity 300ms ease 0s,
@@ -501,6 +537,11 @@
 
 		margin-top: 4px;
 		margin-bottom: 4px;
+	}
+
+	.buttons-v2.selected {
+		background-color: #4769fc;
+		color: #ffffff;
 	}
 
 	.buttons-v2 span {

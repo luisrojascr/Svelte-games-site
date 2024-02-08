@@ -19,7 +19,7 @@
 
 	let hover = false;
 
-	const backgroundColor = secondary ? '#4769fc' : bgColor;
+	// const backgroundColor = secondary ? '#4769fc' : bgColor;
 
 	function getHoverColor() {
 		if (isInRedState) return '#de2348';
@@ -28,7 +28,7 @@
 		return '#00b16c';
 	}
 
-	$: isDisabled = $loading || disabled;
+	// $: isDisabled = $loading || disabled;
 </script>
 
 <button
@@ -37,10 +37,8 @@
 	on:mouseenter={() => (hover = true)}
 	on:mouseleave={() => (hover = false)}
 	class="custom-button"
-	style={`background-color: ${
-		hover ? getHoverColor() : backgroundColor
-	}; color: ${color}; padding: ${padding}; margin: ${margin}; width: ${width};`}
-	disabled={isDisabled}
+	style={`background-color: ${bgColor}; color: ${color}; padding: ${padding}; margin: ${margin}; width: ${width};`}
+	{disabled}
 >
 	{#if $loading}
 		<Spinner />
