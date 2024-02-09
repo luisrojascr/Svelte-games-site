@@ -70,16 +70,26 @@ export const profitOnWin = writable('0');
 export const inputStopOnProfit = writable(0);
 export const inputStopOnLoss = writable(0);
 
+// export const stopOnProfit = derived(
+//     [inputStopOnProfit, currentWalletState],
+//     ([$inputStopOnProfit, $currentWalletState]) => decimalCryptoDisplay($inputStopOnProfit, $currentWalletState.type)
+// )
+
+// export const stopOnLoss = derived(
+//     [inputStopOnLoss, currentWalletState],
+//     ([$inputStopOnLoss, $currentWalletState]) => decimalCryptoDisplay($inputStopOnLoss, $currentWalletState.type)
+// );
+
 export const stopOnProfit = derived(
     [inputStopOnProfit, currentWalletState],
-    ([inputStopOnProfit, currentWalletState]: [number, { type: CurrencyEnum; available: number }]) =>
-        decimalCryptoDisplay(inputStopOnProfit, currentWalletState.type)
+    ([$inputStopOnProfit, $currentWalletState]: [number, { type: CurrencyEnum; available: number }]) =>
+        decimalCryptoDisplay($inputStopOnProfit, $currentWalletState.type)
 );
 
 export const stopOnLoss = derived(
     [inputStopOnLoss, currentWalletState],
-    ([inputStopOnLoss, currentWalletState]: [number, { type: CurrencyEnum; available: number }]) =>
-        decimalCryptoDisplay(inputStopOnLoss, currentWalletState.type)
+    ([$inputStopOnLoss, $currentWalletState]: [number, { type: CurrencyEnum; available: number }]) =>
+        decimalCryptoDisplay($inputStopOnLoss, $currentWalletState.type)
 );
 
 export const numOfBets = writable('0');

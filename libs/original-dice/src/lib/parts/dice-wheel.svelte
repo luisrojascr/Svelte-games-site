@@ -3,10 +3,23 @@
 	import DiceWheelArrow from '$lib/assets/images/DiceWheelArrow.svelte';
 	import DiceWheelBorder from '$lib/assets/images/DiceWheelBorder.svelte';
 	import DiceWheelCircleV2 from '$lib/assets/images/DiceWheelCircleV2.svelte';
-	import { cashout, isRollOverOrUnder } from '$lib/parts/store/store.js';
+
 	import { DiceRollConditionEnum } from '$lib/utils/cc.js';
 	import { onMount } from 'svelte';
+	import { cubicInOut, cubicOut } from 'svelte/easing';
+	import { tweened } from 'svelte/motion';
 	import { round } from '../utils/helper.js';
+
+	import diceSelectorSound from '$lib/assets/sounds/selector-move.mp3';
+	import { spring } from 'svelte/motion';
+
+	import {
+		cashout,
+		isRollOverOrUnder,
+		isSound,
+		numberRolled,
+		rollOverUnder
+	} from '$lib/parts/store/store.js';
 
 	let parentWidth: number;
 	let resize = false;
@@ -20,15 +33,103 @@
 	let angle = 0;
 	let boxCenterPoint = { x: 0, y: 0 };
 	let gameInProgress = false;
-	let isSound = true;
 	let thumbButtonWrapper: HTMLElement | null = null;
-	let numberRolled: number;
+
 	let winChance = '0.00';
 	let underOver = '0.00';
 
-	function playSelectorSound() {
-		// Sound play logic here later
+	let rotateArrowTo = 0;
+
+	let rotation = spring(rotateArrowTo, {
+		stiffness: 0.1,
+		damping: 0.2
+	});
+
+	const scale = tweened(0, {
+		duration: 100,
+		easing: cubicInOut
+	});
+
+	const opacity = tweened(0, {
+		duration: 100,
+		easing: cubicInOut
+	});
+
+	const diceTween = tweened(0, {
+		duration: 100,
+		easing: cubicOut
+	});
+
+	type Func = (...args: any[]) => void;
+
+	function debounce(func: Func, wait: number): Func {
+		let timeout: number | null = null;
+
+		return function (...args: any[]): void {
+			const later = () => {
+				timeout = null;
+				func(...args);
+			};
+
+			if (timeout !== null) {
+				clearTimeout(timeout);
+			}
+			timeout = window.setTimeout(later, wait);
+		};
 	}
+
+	const playSelectorSound = (): void => {
+		const sound = new Audio(diceSelectorSound);
+		sound.play();
+	};
+
+	const debouncedPlaySelectorSound = debounce(playSelectorSound, 0.5);
+
+	// Reactively update the tweened value when numberRolled changes
+	$: diceTween.set($numberRolled - 5);
+
+	// Start the animation when numberRolled changes
+	$: {
+		if ($numberRolled) {
+			scale.set(1);
+			// opacity.set(0.5);
+
+			setTimeout(() => {
+				opacity.set(0);
+			}, 200);
+
+			setTimeout(() => {
+				scale.set(1.2);
+				opacity.set(1);
+			}, 50);
+
+			setTimeout(() => {
+				scale.set(1.2);
+				setTimeout(() => {
+					scale.set(1);
+				}, 100);
+			}, 100);
+
+			setTimeout(() => {
+				opacity.set(0);
+			}, 3000);
+		}
+	}
+
+	$: fillColor =
+		($isRollOverOrUnder === DiceRollConditionEnum.Over &&
+			$numberRolled > Number(round(parseFloat($rollOverUnder), 2))) ||
+		($isRollOverOrUnder === DiceRollConditionEnum.Under &&
+			$numberRolled < Number(round(parseFloat($rollOverUnder), 2)))
+			? '#01d180'
+			: '#ff2c55';
+
+	// Reactive statement to calculate new rotation based on numberRolled
+	$: rotateArrowTo = 3.6 * $numberRolled;
+
+	$: rotation.set(rotateArrowTo);
+
+	const tweenedNumberRolled = tweened(0, { duration: 2800, easing: cubicOut });
 
 	function getNewProgress(newAngle: number): number {
 		if (newAngle < 0) {
@@ -46,6 +147,9 @@
 	}
 
 	function getPositionFromCenter(event: MouseEvent) {
+		if ($isSound) {
+			debouncedPlaySelectorSound();
+		}
 		return {
 			x: event.clientX - boxCenterPoint.x,
 			y: -(event.clientY - boxCenterPoint.y)
@@ -163,6 +267,8 @@
 		window.addEventListener('touchend', touchEndHandler);
 		window.addEventListener('touchmove', touchMoveHandler);
 
+		tweenedNumberRolled.set(parseFloat($isRollOverOrUnder));
+
 		thumbButtonWrapper = document.querySelector('.thumb-button-wrapper') as HTMLElement;
 		updateBoxCenterPoint();
 
@@ -216,11 +322,11 @@
 		backColor={$isRollOverOrUnder === DiceRollConditionEnum.Under ? '#ff2c55' : '#01d180'}
 	/>
 	<DiceWheelBorder />
-	<DiceWheelArrow />
+	<DiceWheelArrow style={`transform: rotate(${rotateArrowTo}deg);`} />
 	<div class="dice-holder">
-		<div class="dice-shape-wrapper">
-			<span class="dice-result">{numberRolled}</span>
-			<DiceShape width="100%" height="100%" stroke="currentColor" />
+		<div class="dice-shape-wrapper" style="transform: scale({$scale}); opacity: {$opacity};">
+			<span class="dice-result">{$numberRolled}</span>
+			<DiceShape width="100%" height="100%" stroke={fillColor} />
 		</div>
 	</div>
 	<div class="position-handler"></div>
