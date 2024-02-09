@@ -72,12 +72,14 @@ export const inputStopOnLoss = writable(0);
 
 export const stopOnProfit = derived(
     [inputStopOnProfit, currentWalletState],
-    ([$inputStopOnProfit, $currentWalletState]) => decimalCryptoDisplay($inputStopOnProfit, $currentWalletState.type)
+    ([inputStopOnProfit, currentWalletState]: [number, { type: CurrencyEnum; available: number }]) =>
+        decimalCryptoDisplay(inputStopOnProfit, currentWalletState.type)
 );
 
 export const stopOnLoss = derived(
     [inputStopOnLoss, currentWalletState],
-    ([$inputStopOnLoss, $currentWalletState]) => decimalCryptoDisplay($inputStopOnLoss, $currentWalletState.type)
+    ([inputStopOnLoss, currentWalletState]: [number, { type: CurrencyEnum; available: number }]) =>
+        decimalCryptoDisplay(inputStopOnLoss, currentWalletState.type)
 );
 
 export const numOfBets = writable('0');
@@ -203,7 +205,7 @@ export const handleOnePlay = async (isAutoBet: boolean) => {
         console.log((parseFloat(get(betAmount))))
         currentProfit.set(newProfit)
 
-        if (checkStopOnLossOrProfit(newProfit, parseFloat(get(stopOnLoss)), parseFloat(get(stopOnProfit)))) {
+        if (checkStopOnLossOrProfit(newProfit, parseFloat(get(stopOnLoss) as string), parseFloat(get(stopOnProfit) as string))) {
             needToStopNextTime.set(true);
             resetBoard(true);
         } else {

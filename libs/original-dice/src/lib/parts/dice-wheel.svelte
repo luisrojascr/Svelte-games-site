@@ -3,11 +3,10 @@
 	import DiceWheelArrow from '$lib/assets/images/DiceWheelArrow.svelte';
 	import DiceWheelBorder from '$lib/assets/images/DiceWheelBorder.svelte';
 	import DiceWheelCircleV2 from '$lib/assets/images/DiceWheelCircleV2.svelte';
+	import { cashout, isRollOverOrUnder } from '$lib/parts/store/store.js';
 	import { DiceRollConditionEnum } from '$lib/utils/cc.js';
-	import { onMount, tick } from 'svelte';
+	import { onMount } from 'svelte';
 	import { round } from '../utils/helper.js';
-
-	let isRollOverOrUnder: DiceRollConditionEnum = DiceRollConditionEnum.Over;
 
 	let parentWidth: number;
 	let resize = false;
@@ -15,9 +14,9 @@
 	let small = false;
 
 	let isActive: boolean = false;
-	let currentAngle: number = 0;
+	let currentAngle: number = 180;
 	let startAngle: number;
-	let rotateBoxTo = 0;
+	let rotateBoxTo = 180;
 	let angle = 0;
 	let boxCenterPoint = { x: 0, y: 0 };
 	let gameInProgress = false;
@@ -25,7 +24,6 @@
 	let thumbButtonWrapper: HTMLElement | null = null;
 	let numberRolled: number;
 	let winChance = '0.00';
-	let cashout = '0.00';
 	let underOver = '0.00';
 
 	function playSelectorSound() {
@@ -76,14 +74,14 @@
 			rotateBoxTo = currentAngle + (newAngle - (startAngle || 0));
 			angle = newAngle;
 			const newUnderOverValue = round(getNewProgress(newAngle), 2);
-			if (isRollOverOrUnder === DiceRollConditionEnum.Over) {
+			if ($isRollOverOrUnder === DiceRollConditionEnum.Over) {
 				winChance = round(100 - getNewProgress(newAngle), 2).toFixed(2);
-				cashout = round(99 / (100 - getNewProgress(newAngle)), 4).toFixed(4);
+				$cashout = round(99 / (100 - getNewProgress(newAngle)), 4).toFixed(4);
 				underOver = newUnderOverValue.toFixed(2);
 			} else {
 				underOver = newUnderOverValue.toFixed(2);
 				winChance = getNewProgress(newAngle).toFixed(2);
-				cashout = round(99 / getNewProgress(newAngle), 4).toFixed(4);
+				$cashout = round(99 / getNewProgress(newAngle), 4).toFixed(4);
 			}
 		}
 	}
@@ -98,14 +96,14 @@
 			rotateBoxTo = currentAngle + (newAngle - startAngle);
 			angle = newAngle;
 			const newUnderOverValue = round(getNewProgress(newAngle), 2).toFixed(2);
-			if (isRollOverOrUnder === DiceRollConditionEnum.Over) {
+			if ($isRollOverOrUnder === DiceRollConditionEnum.Over) {
 				winChance = round(100 - getNewProgress(newAngle), 2).toFixed(2);
-				cashout = round(99 / (100 - getNewProgress(newAngle)), 4).toFixed(4);
+				$cashout = round(99 / (100 - getNewProgress(newAngle)), 4).toFixed(4);
 				underOver = newUnderOverValue;
 			} else {
 				underOver = newUnderOverValue;
 				winChance = getNewProgress(newAngle).toFixed(2);
-				cashout = round(99 / getNewProgress(newAngle), 4).toFixed(4);
+				$cashout = round(99 / getNewProgress(newAngle), 4).toFixed(4);
 			}
 		}
 	}
@@ -214,8 +212,8 @@
 	<DiceWheelCircleV2
 		stroke={10}
 		progress={getNewProgress(rotateBoxTo)}
-		frontColor={isRollOverOrUnder === DiceRollConditionEnum.Under ? '#01d180' : '#ff2c55'}
-		backColor={isRollOverOrUnder === DiceRollConditionEnum.Under ? '#ff2c55' : '#01d180'}
+		frontColor={$isRollOverOrUnder === DiceRollConditionEnum.Under ? '#01d180' : '#ff2c55'}
+		backColor={$isRollOverOrUnder === DiceRollConditionEnum.Under ? '#ff2c55' : '#01d180'}
 	/>
 	<DiceWheelBorder />
 	<DiceWheelArrow />
@@ -245,13 +243,13 @@
 	<div class="filler"></div>
 	<div
 		class="leftFiller"
-		style:background-color={isRollOverOrUnder === DiceRollConditionEnum.Under
+		style:background-color={$isRollOverOrUnder === DiceRollConditionEnum.Under
 			? '#01d180'
 			: '#ff2c55'}
 	></div>
 	<div
 		class="rightFiller"
-		style:background-color={isRollOverOrUnder === DiceRollConditionEnum.Under
+		style:background-color={$isRollOverOrUnder === DiceRollConditionEnum.Under
 			? '#ff2c55'
 			: '#01d180'}
 	></div>

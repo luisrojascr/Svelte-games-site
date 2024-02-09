@@ -51,34 +51,15 @@
 
 <style lang="postcss">
 	.custom-button {
-		position: relative;
-		display: inline-flex;
-		justify-content: center;
-		align-items: center;
-		border: none;
-		min-width: max-content;
-		outline: none;
-		border-radius: 4px;
-		font-size: 12px;
-		font-weight: 900;
-		line-height: normal;
-		letter-spacing: 1px;
-		text-align: center;
-		cursor: pointer;
-		transition: all 0.2s linear;
+		@apply relative inline-flex justify-center items-center border-none min-w-max outline-none rounded-md font-bold text-xs tracking-wide text-center cursor-pointer transition-all duration-200 ease-linear;
 	}
 	.custom-button:active span {
-		transform: scale(0.95);
-		transition:
-			background 300ms ease 0s,
-			opacity 300ms ease 0s,
-			transform 100ms ease 0s;
+		@apply focus:outline-none active:scale-95 transition duration-300 ease-in-out transform;
 	}
 	.custom-button:hover {
-		background-color: var(--hover-color);
+		@apply bg-opacity-90;
 	}
 	.custom-button:disabled {
-		cursor: not-allowed;
-		background-color: var(--disabled-bg-color);
+		@apply cursor-not-allowed bg-disabled;
 	}
 </style>

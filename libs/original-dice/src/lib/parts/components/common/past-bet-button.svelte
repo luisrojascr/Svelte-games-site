@@ -31,36 +31,14 @@
 		}
 	}
 	.past-bet-button {
-		font-family: 'Open Sans', serif;
-		font-size: 11px;
-		font-weight: bold;
-		text-align: center;
-		border-radius: 4px;
-		padding: 4px;
-		min-width: 9ch;
-		max-width: 9ch;
-		white-space: nowrap;
-		touch-action: manipulation;
-		position: relative;
-		display: inline-flex;
-		justify-content: center;
-		align-items: center;
-		transition:
-			background 300ms ease,
-			opacity 1000ms ease,
-			transform 400ms ease;
-		font-variant-numeric: tabular-nums;
-
-		animation: slideIn 0.4s ease;
+		@apply font-sans text-center rounded px-1 min-w-[9ch] max-w-[9ch] whitespace-nowrap touch-manipulation relative inline-flex justify-center items-center duration-300 transition-opacity ease-in-out transition-transform ease-in-out tabular-nums animate-slide-in;
 	}
 
 	.past-bet-button.win {
-		background-color: #01d180;
-		color: #101940;
+		@apply bg-green-500 text-gray-900;
 	}
 
 	.past-bet-button:not(.win) {
-		background-color: #3f4b79;
-		color: #ffffff;
+		@apply bg-blue-800 text-white;
 	}
 </style>
