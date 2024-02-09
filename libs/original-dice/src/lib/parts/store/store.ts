@@ -1,10 +1,9 @@
-import { BettingVariants, CurrencyEnum, DiceRollConditionEnum, LanguageEnum, OnLoss, OnWin } from '$lib/utils/cc.js';
-import { decimalCryptoDisplay, decimalDisplayLength, generateRandomHex } from '$lib/utils/helper.js';
-import { derived, get, writable } from 'svelte/store';
-
 import diceBetSound from '$lib/assets/sounds/bet-button-press.mp3';
 import diceRollSound from '$lib/assets/sounds/dice-roll-sound.mp3';
 import diceWinSound from '$lib/assets/sounds/dice-win.mp3';
+import { CurrencyEnum, DiceRollConditionEnum, LanguageEnum, OnLoss, OnWin } from '$lib/utils/cc.js';
+import { decimalCryptoDisplay, decimalDisplayLength, generateRandomHex } from '$lib/utils/helper.js';
+import { derived, get, writable } from 'svelte/store';
 
 export interface Bet {
     id: string;
@@ -16,7 +15,6 @@ export interface BalanceItem {
     sessionId: number | string;
     balance: number;
 }
-
 
 export const FiatArr = ['usd', 'jpy', 'eur'];
 export const CryptoArr = [
@@ -56,11 +54,9 @@ export const betAmount = writable('0');
 export const cashout = writable('2.00');
 export const winChance = writable('49.50');
 
-
 export const initialBetAmount = derived(currentWalletState, ($currentWalletState: { type: CurrencyEnum; available: number }) =>
     decimalCryptoDisplay(0, $currentWalletState.type)
 );
-
 
 export const onWin = writable('3');
 export const onLoss = writable('0');
@@ -96,7 +92,6 @@ export const numOfBets = writable('0');
 export const betsFinished = writable(0);
 export const selectedOnWin = writable(OnWin.AUTO);
 export const selectedOnLoss = writable(OnLoss.AUTO);
-
 
 // This is for the sound
 export const playBetSound = () => {
@@ -174,8 +169,6 @@ export const handleOnePlay = async (isAutoBet: boolean) => {
     const result = await handleGetResult(); // Replace this later with actual API call 
     numberRolled.set(result);
 
-    // console.log(result)
-
     if (isSound) {
         playDiceRollSound();
     }
@@ -185,8 +178,6 @@ export const handleOnePlay = async (isAutoBet: boolean) => {
 
     const isWin = checkWinOrLose(result, parsedRollOverUnder, currentIsRollOverOrUnder);
     updatePastBets(generateRandomHex(10), result, isWin);
-
-    // console.log(isWin)
 
     // AUTOBET
     if (isAutoBet) {
@@ -255,10 +246,8 @@ export const handleOnePlay = async (isAutoBet: boolean) => {
         updateBalance(parseFloat(get(betAmount)), 0);
     }
 
-
     loading.set(false);
     gameInProgress.set(false)
-
 };
 
 export function handleAutoBettingContinuation() {
@@ -340,7 +329,6 @@ export function updateBalance(bet: number, profit: number = 0): void {
         return newBalance;
     });
 }
-
 
 export function updateStorageBalance(sessionIdToUpdate: string, newBalance: number) {
     balanceList.update(list => {

@@ -40,16 +40,10 @@
 		}
 	}
 	.spinner {
-		/* position: relative; */
-		width: 70px;
-		text-align: center;
+		@apply w-[70px] text-center;
 	}
 	.bounce {
-		width: 14px;
-		height: 14px;
-		background-color: #ffffff;
-		border-radius: 100%;
-		display: inline-block;
+		@apply bg-white rounded-full w-[14px] h-[14px] inline-block;
 		animation: bounceDelay 1.2s infinite ease-in-out both;
 	}
 	.bounce:first-child {

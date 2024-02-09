@@ -1,6 +1,5 @@
 import { CurrencyEnum } from '$lib/utils/cc.js';
 import Big from 'big.js';
-import { writable } from 'svelte/store';
 
 interface CryptoCurrency {
     currency: CurrencyEnum;

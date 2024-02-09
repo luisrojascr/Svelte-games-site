@@ -1,21 +1,16 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { writable } from 'svelte/store';
-
 	import PastBetButton from './components/common/past-bet-button.svelte';
-
 	import { DiceRollConditionEnum } from '../utils/cc.js';
-
 	import DiceIcon from '$lib/assets/images/diceIcon.png';
 	import DiceWheelIcon from '$lib/assets/images/diceWheelIcon.png';
-
 	import CloseIconX from '$lib/assets/images/CloseIconX.svelte';
 	import PercentIcon from '$lib/assets/images/PercentIcon.svelte';
 	import RefreshIcon from '$lib/assets/images/RefreshIcon.svelte';
 	import { Tooltip } from '@svelte-plugins/tooltips';
 	import DiceSlider from './dice-slider.svelte';
 	import DiceWheel from './dice-wheel.svelte';
-
 	import { round } from '../utils/helper.js';
 
 	import {
@@ -253,7 +248,7 @@
 	}
 
 	.game-input {
-		@apply font-normal text-base overflow-scroll bg-deepBlue text-white rounded border border-gray-700 py-2 px-3 pr-7 transition-all duration-200 ease-out outline-none;
+		@apply font-normal text-[0.8rem] overflow-scroll bg-deepBlue text-white rounded border border-gray-700 py-2 px-3 pr-7 transition-all duration-200 ease-out outline-none;
 	}
 
 	.game-input:hover {
@@ -272,7 +267,7 @@
 		@apply cursor-not-allowed;
 	}
 	.label-text {
-		@apply inline-flex items-center font-bold text-xs leading-6 tracking-widest text-lightGray mb-1 transition-all duration-200 ease-out;
+		@apply inline-flex items-center font-bold text-[0.6rem] leading-6 tracking-widest text-lightGray mb-1 transition-all duration-200 ease-out;
 	}
 
 	@media (max-width: 1030px) {
