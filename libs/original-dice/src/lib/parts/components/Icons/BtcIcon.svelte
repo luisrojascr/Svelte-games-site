@@ -1,7 +1,7 @@
 <script lang="ts">
 	export let width: string;
 	export let height: string;
-	export let outerColor: '#FF9421';
+	let outerColor: '#FF9421';
 </script>
 
 <svg xmlns="http://www.w3.org/2000/svg" {width} {height} viewBox="0 0 16 16">

@@ -23,8 +23,6 @@
 
 	let parentWidth: number;
 	let resize = false;
-	let isMobile = false;
-	let small = false;
 
 	let isActive: boolean = false;
 	let currentAngle: number = 180;
@@ -157,10 +155,18 @@
 	}
 
 	function mouseDownHandler(event: MouseEvent) {
+		//@ts-ignore
+		if (!thumbButtonWrapper.contains(event.target)) {
+			return;
+		}
+
 		event.stopPropagation();
 		const fromBoxCenter = getPositionFromCenter(event);
 		startAngle = 90 - Math.atan2(fromBoxCenter.y, fromBoxCenter.x) * (180 / Math.PI);
 		isActive = true;
+
+		document.addEventListener('mousemove', mouseMoveHandler);
+		document.addEventListener('mouseup', mouseUpHandler);
 	}
 
 	function mouseUpHandler(event: MouseEvent) {
@@ -259,9 +265,10 @@
 
 	onMount(() => {
 		parentWidth = document.body.clientWidth;
+		updateBoxCenterPoint();
 
-		window.addEventListener('mouseup', mouseUpHandler);
-		window.addEventListener('mousedown', mouseDownHandler);
+		// window.addEventListener('mouseup', mouseUpHandler);
+		// window.addEventListener('mousedown', mouseDownHandler);
 		window.addEventListener('mousemove', mouseMoveHandler);
 		window.addEventListener('touchstart', touchStartHandler);
 		window.addEventListener('touchend', touchEndHandler);
@@ -270,7 +277,6 @@
 		tweenedNumberRolled.set(parseFloat($isRollOverOrUnder));
 
 		thumbButtonWrapper = document.querySelector('.thumb-button-wrapper') as HTMLElement;
-		updateBoxCenterPoint();
 
 		return () => {
 			// Cleanup when the component is unmounted

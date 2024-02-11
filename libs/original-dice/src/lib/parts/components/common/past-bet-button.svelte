@@ -19,7 +19,7 @@
 	{pastBet}
 </button>
 
-<style>
+<style lang="postcss">
 	@keyframes slideIn {
 		from {
 			transform: translateX(100%);

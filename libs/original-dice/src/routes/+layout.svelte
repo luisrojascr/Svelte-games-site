@@ -23,6 +23,6 @@
 	<link href="https://fonts.googleapis.com/css?family=Poppins:400,600,700" rel="stylesheet" />
 </svelte:head>
 
-<div class="bg-primary-950 h-screen">
+<div class="bg-primary-950">
 	<slot />
 </div>

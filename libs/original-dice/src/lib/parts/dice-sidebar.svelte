@@ -2,9 +2,12 @@
 	import InfinityIcon from '$lib/assets/images/InfinityIcon.svelte';
 	import PercentIcon from '$lib/assets/images/PercentIcon.svelte';
 
+	import CoinIcon from '$lib/parts/components/common/crypto-icon-getter.svelte';
 	import CustomButton from '$lib/parts/components/common/custom-button.svelte';
+	import FiatCoinIcon from '$lib/parts/components/common/icon-getter.svelte';
 	import LabelInput from '$lib/parts/components/common/label-input.svelte';
-	import { BettingVariants, OnLoss, OnWin } from '$lib/utils/cc.js';
+
+	import { BettingVariants, CurrencyEnum, OnLoss, OnWin } from '$lib/utils/cc.js';
 	import { Tooltip } from '@svelte-plugins/tooltips';
 	import { derived, get, writable } from 'svelte/store';
 	import {
@@ -17,35 +20,32 @@
 
 	import {
 		autoBetInProgress,
-		balanceList,
 		betAmount,
 		cashout,
 		coinPriceData,
 		curBalance,
-		currentProfit,
 		currentWalletState,
 		gameInProgress,
 		handleAutoBet,
-		handleAutoBettingContinuation,
 		handleManualBet,
+		initialBetAmount,
 		inputStopOnLoss,
 		inputStopOnProfit,
 		loading,
 		maxBet,
-		maxPayoutData,
-		minBet,
 		numOfBets,
 		onLoss,
 		profitOnWin,
 		resetBoard,
 		selectedFiatCurrency,
-		selectedOnLoss,
-		stopOnLoss,
-		stopOnProfit
+		selectedOnLoss
 	} from '$lib/parts/store/store.js';
 
 	let tooltip = false;
 	let active = true;
+
+	let coinType = $currentWalletState?.type; // e.g., 'btc', 'eth', etc.
+	let fiatType = $coinPriceData?.Fiat; // e.g., 'usd', 'eur', etc.
 
 	const bettingVariant = writable(BettingVariants.MANUAL);
 
@@ -75,6 +75,47 @@
 		selectedOnLoss.set(OnLoss.INCREASE);
 	}
 
+	function handleBetAmountChange(mode: string) {
+		let newAmount = $betAmount;
+
+		if (mode === 'half') {
+			newAmount =
+				$selectedFiatCurrency && $coinPriceData
+					? (parseFloat($betAmount) / 2).toFixed(2)
+					: (parseFloat($betAmount) / 2).toFixed(decimalDisplayLength($currentWalletState.type));
+		} else if (mode === 'double') {
+			const doubleAmount = parseFloat($betAmount) * 2;
+			if (
+				doubleAmount <=
+				Math.min(parseFloat($currentWalletState.available.toString()), parseFloat($maxBet))
+			) {
+				newAmount =
+					$selectedFiatCurrency && $coinPriceData
+						? doubleAmount.toFixed(2)
+						: doubleAmount.toFixed(decimalDisplayLength($currentWalletState.type));
+			}
+		} else if (mode === 'maxBet') {
+			newAmount =
+				$selectedFiatCurrency && $coinPriceData
+					? //@ts-ignore
+						roundOff2(Number($maxBet) * Number($coinPriceData[$currentWalletState.type] || '0'))
+					: $maxBet;
+		}
+
+		if ($betAmount === '0.00000000') {
+			newAmount = '0.00000001';
+		} else if ($betAmount === '0.00') {
+			newAmount = '0.01';
+		}
+
+		console.log($betAmount);
+		console.log('Bet amount change mode:', mode);
+
+		betAmount.set(newAmount);
+
+		initialBetAmount.set(parseFloat(newAmount));
+	}
+
 	$: inputDisabled = $selectedOnLoss === OnLoss.AUTO;
 
 	$: if (Number($betAmount) === 0) {
@@ -101,13 +142,6 @@
 	} else {
 		tooltip = false;
 	}
-
-	// let displayValueStore;
-	// $: if ($autoBetInProgress) {
-	// 	displayValueStore = $betAmount; // Pass the store itself when the game is in progress
-	// } else if (!$autoBetInProgress) {
-	// 	displayValueStore = betAmount; // Pass the store's value when the game is not in progress
-	// }
 </script>
 
 <div class="game-sidebar-wrapper">
@@ -167,12 +201,20 @@
 					valueStore={betAmount}
 					dataTestId="bet-amount"
 					integerOnly={true}
+					disabled={$loading || $gameInProgress || $autoBetInProgress}
 				>
+					<div slot="inputIcon">
+						{#if $selectedFiatCurrency}
+							<FiatCoinIcon coin={$coinPriceData.Fiat} biggerIcon={true} />
+						{:else}
+							<CoinIcon pxSize={16} coin={$currentWalletState?.type} />
+						{/if}
+					</div>
 					<div class="btn-parent-v1" slot="buttons">
-						<button class="buttons-v1">
+						<button class="buttons-v1" on:click={() => handleBetAmountChange('half')}>
 							<span>½</span>
 						</button>
-						<button class="buttons-v1">
+						<button class="buttons-v1" on:click={() => handleBetAmountChange('double')}>
 							<span>2x</span>
 						</button>
 					</div>
@@ -214,7 +256,15 @@
 					dataTestId="bet-amount"
 					integerOnly={true}
 					labelContent="Profit on Win"
-				/>
+				>
+					<div slot="inputIcon">
+						{#if $selectedFiatCurrency}
+							<FiatCoinIcon coin={$coinPriceData.Fiat} biggerIcon={true} />
+						{:else}
+							<CoinIcon pxSize={16} coin={$currentWalletState?.type} />
+						{/if}
+					</div>
+				</LabelInput>
 			</div>
 
 			<div>
@@ -253,12 +303,20 @@
 					valueStore={betAmount}
 					dataTestId="bet-amount"
 					integerOnly={true}
+					disabled={$loading || $gameInProgress || $autoBetInProgress}
 				>
+					<div slot="inputIcon">
+						{#if $selectedFiatCurrency}
+							<FiatCoinIcon coin={$coinPriceData.Fiat} biggerIcon={true} />
+						{:else}
+							<CoinIcon pxSize={16} coin={$currentWalletState?.type} />
+						{/if}
+					</div>
 					<div class="btn-parent-v1" slot="buttons">
-						<button class="buttons-v1">
+						<button class="buttons-v1" on:click={() => handleBetAmountChange('half')}>
 							<span>½</span>
 						</button>
-						<button class="buttons-v1">
+						<button class="buttons-v1" on:click={() => handleBetAmountChange('double')}>
 							<span>2x</span>
 						</button>
 					</div>
@@ -300,6 +358,7 @@
 					integerOnly={true}
 					labelContent="Number Of Bets"
 					allowUpdate={false}
+					disabled={$loading || $gameInProgress || $autoBetInProgress}
 				>
 					<div slot="count">
 						{#if parseFloat($numOfBets) === 0 || $numOfBets === '0'}
@@ -325,7 +384,7 @@
 					integerOnly={true}
 					labelContent="On Loss"
 					buttonsPosition={'start'}
-					disabled={inputDisabled}
+					disabled={$loading || $gameInProgress || $autoBetInProgress || inputDisabled}
 				>
 					<PercentIcon width="11px" height="13px" fill="#848aa0" slot="inputIcon" />
 
@@ -358,8 +417,17 @@
 					valueStore={inputStopOnProfit}
 					dataTestId="bet-amount"
 					integerOnly={true}
+					disabled={$loading || $gameInProgress || $autoBetInProgress}
 					labelContent="Stop On Profit"
-				></LabelInput>
+				>
+					<div slot="inputIcon">
+						{#if $selectedFiatCurrency}
+							<FiatCoinIcon coin={$coinPriceData.Fiat} biggerIcon={true} />
+						{:else}
+							<CoinIcon pxSize={16} coin={$currentWalletState?.type} />
+						{/if}
+					</div>
+				</LabelInput>
 			</div>
 			<div>
 				<LabelInput
@@ -371,8 +439,17 @@
 					valueStore={inputStopOnLoss}
 					dataTestId="bet-amount"
 					integerOnly={true}
+					disabled={$loading || $gameInProgress || $autoBetInProgress}
 					labelContent="Stop On Loss"
-				></LabelInput>
+				>
+					<div slot="inputIcon">
+						{#if $selectedFiatCurrency}
+							<FiatCoinIcon coin={$coinPriceData.Fiat} biggerIcon={true} />
+						{:else}
+							<CoinIcon pxSize={16} coin={$currentWalletState?.type} />
+						{/if}
+					</div>
+				</LabelInput>
 			</div>
 
 			<div>

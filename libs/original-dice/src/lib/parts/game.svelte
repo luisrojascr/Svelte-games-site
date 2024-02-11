@@ -2,24 +2,55 @@
 	import DiceBoard from './dice-board.svelte';
 	import DiceSidebar from './dice-sidebar.svelte';
 
-	// let mobile = false;
-	// let dimensions = { width: 0, height: 0 };
+	import { onDestroy, onMount } from 'svelte';
 
-	// // You can create reactive statements for handling dimension changes
-	// $: mobile = dimensions.width <= 750;
+	let windowWidth = window.innerWidth;
+
+	function updateWindowWidth() {
+		windowWidth = window.innerWidth;
+	}
+
+	onMount(() => {
+		window.addEventListener('resize', updateWindowWidth);
+	});
+
+	onDestroy(() => {
+		window.removeEventListener('resize', updateWindowWidth);
+	});
+
+	$: isMobile = windowWidth <= 750;
+
+	$: getHeight = () => {
+		if (windowWidth > 810) return '575px';
+		if (windowWidth <= 750) return 'auto';
+		return '575px';
+	};
 </script>
 
-<div class="wrapper">
-	<div class="main-game-board-wrapper">
-		<DiceBoard />
-	</div>
+<div class={isMobile ? 'mobile' : ''}>
+	<div class="wrapper" style="min-height: {getHeight()};">
+		<div class="main-game-board-wrapper">
+			<DiceBoard />
+		</div>
 
-	<DiceSidebar />
+		<DiceSidebar />
+	</div>
 </div>
 
 <style lang="postcss">
+	:global(body) {
+		--dynamic-flex-direction: row;
+		--dynamic-align-items: initial;
+	}
 	.wrapper {
 		@apply flex gap-3.5 grow bg-primary-900 w-full min-w-[300px];
+		flex-direction: var(--dynamic-flex-direction);
+		align-items: var(--dynamic-align-items);
+	}
+
+	.mobile .wrapper {
+		--dynamic-flex-direction: column;
+		--dynamic-align-items: center;
 	}
 
 	.main-game-board-wrapper {

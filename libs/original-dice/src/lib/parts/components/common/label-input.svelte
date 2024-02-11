@@ -87,9 +87,7 @@
 				class="buttons-wrapper"
 				style={`margin-${buttonsPosition === 'start' ? 'left' : 'right'}: 4px;`}
 			>
-				<button>
-					<slot name="buttons" />
-				</button>
+				<slot name="buttons" />
 			</div>
 		{/if}
 		{#if $$slots.count}
@@ -119,7 +117,7 @@
 	.input-inner-label {
 		@apply w-full inline-flex flex-row-reverse items-center;
 	}
-	
+
 	.input-inner-wrapper {
 		@apply w-full flex flex-shrink-0;
 	}

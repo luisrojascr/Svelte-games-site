@@ -1,5 +1,5 @@
 <script lang="ts">
-	export let width: number;
+	export let width: string;
 </script>
 
 <svg xmlns="http://www.w3.org/2000/svg" version="1.1" {width} viewBox="0 0 444.44 444.44">

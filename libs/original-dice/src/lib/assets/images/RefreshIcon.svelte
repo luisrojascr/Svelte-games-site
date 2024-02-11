@@ -2,6 +2,7 @@
 	export let width: string;
 	export let height: string;
 	export let fill: string;
+	export let style: any;
 </script>
 
 <svg class="refresh-svg" xmlns="http://www.w3.org/2000/svg" {width} {height} viewBox="0 0 15 15">

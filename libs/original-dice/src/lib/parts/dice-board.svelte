@@ -1,17 +1,17 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import { writable } from 'svelte/store';
-	import PastBetButton from './components/common/past-bet-button.svelte';
-	import { DiceRollConditionEnum } from '../utils/cc.js';
-	import DiceIcon from '$lib/assets/images/diceIcon.png';
-	import DiceWheelIcon from '$lib/assets/images/diceWheelIcon.png';
 	import CloseIconX from '$lib/assets/images/CloseIconX.svelte';
 	import PercentIcon from '$lib/assets/images/PercentIcon.svelte';
 	import RefreshIcon from '$lib/assets/images/RefreshIcon.svelte';
+	import DiceIcon from '$lib/assets/images/diceIcon.png';
+	import DiceWheelIcon from '$lib/assets/images/diceWheelIcon.png';
 	import { Tooltip } from '@svelte-plugins/tooltips';
+	import { onDestroy, onMount } from 'svelte';
+	import { writable } from 'svelte/store';
+	import { DiceRollConditionEnum } from '../utils/cc.js';
+	import { round } from '../utils/helper.js';
+	import PastBetButton from './components/common/past-bet-button.svelte';
 	import DiceSlider from './dice-slider.svelte';
 	import DiceWheel from './dice-wheel.svelte';
-	import { round } from '../utils/helper.js';
 
 	import {
 		autoBetInProgress,
@@ -24,8 +24,8 @@
 		winChance
 	} from '$lib/parts/store/store.js';
 
-	let gameContainer: HTMLElement | undefined;
-	let mobile: false;
+	let gameContainer: any;
+	let resizeSecond: boolean = false;
 
 	let disabled: boolean = false;
 	let value: number = 50;
@@ -33,13 +33,17 @@
 	let isDiceWheelIconDisplayed = true;
 	let isDiceIconDisplayed = true;
 
-	let localWinChance: string = $winChance;
-	let localCashout: string = $cashout;
 	let rollOver = 50.5;
 
-	let displayedBets: any = [];
+	let windowWidth = window.innerWidth;
 
-	const loading = writable(false);
+	const dimensions = writable({ width: 0, height: 0 });
+
+	const mainBoardBreakpoints = {
+		first: 780,
+		second: 510,
+		third: 395
+	};
 
 	const MIN_PAYOUT = 1;
 	const MAX_PAYOUT = 49.5;
@@ -49,6 +53,24 @@
 	function toggleDiceIcon() {
 		isDiceWheelIconDisplayed = !isDiceWheelIconDisplayed;
 		isDiceIconDisplayed = !isDiceIconDisplayed;
+	}
+
+	function handleWinChanceChange(event: Event) {
+		const inputElement = event.target as HTMLInputElement;
+		winChance.set(inputElement.value); // Directly setting the string value
+	}
+
+	function handleRollOverUnderClick() {
+		$isRollOverOrUnder =
+			$isRollOverOrUnder === DiceRollConditionEnum.Over
+				? DiceRollConditionEnum.Under
+				: DiceRollConditionEnum.Over;
+		rollOverUnder.update((value) => {
+			//@ts-ignore
+			const newValue = (100 - Math.round(value, 2)).toFixed(2);
+			rotateBoxTo.set((100 - parseFloat(newValue)) * 3.6);
+			return newValue;
+		});
 	}
 
 	$: if ($cashout && parseFloat($cashout) >= MIN_PAYOUT) {
@@ -64,22 +86,36 @@
 		}
 	}
 
-	function handleWinChanceChange(event: Event) {
-		const inputElement = event.target as HTMLInputElement;
-		winChance.set(inputElement.value); // Directly setting the string value
+	function updateDimensions() {
+		dimensions.set({ width: gameContainer.clientWidth, height: gameContainer.clientHeight });
 	}
 
-	onMount(() => {
-		const maxBetsToShow = window.innerWidth > 480 ? 5 : 4;
+	function updateWindowWidth() {
+		windowWidth = window.innerWidth;
+	}
 
-		$pastBets.slice(0, maxBetsToShow).forEach((bet, index) => {
-			if (bet.id) {
-				displayedBets.push({
-					...bet,
-					index: index
-				});
-			}
-		});
+	$: dimensions.subscribe(($dimensions) => {
+		if ($dimensions.width <= mainBoardBreakpoints.second) {
+			resizeSecond = true;
+		} else {
+			resizeSecond = false;
+		}
+	});
+
+	$: imageSizeClass = resizeSecond ? 'small' : 'large';
+
+	$: itemsToShow = windowWidth > 480 ? 5 : 4;
+
+	onMount(() => {
+		window.addEventListener('resize', updateWindowWidth);
+		window.addEventListener('resize', updateDimensions);
+		updateDimensions();
+	});
+
+	// Cleanup
+	onDestroy(() => {
+		window.removeEventListener('resize', updateDimensions);
+		window.removeEventListener('resize', updateWindowWidth);
 	});
 </script>
 
@@ -87,19 +123,19 @@
 	<div class="dice-game-wrapper">
 		<button
 			class={`change-dice-variant-button ${
-				mobile ? 'top-2 left-2 w-7 h-7' : 'top-6 left-6 w-12 h-12'
+				resizeSecond ? 'top-2 left-2 w-7 h-7' : 'top-6 left-6 w-12 h-12'
 			}`}
 			on:click={toggleDiceIcon}
 		>
 			{#if isDiceWheelIconDisplayed}
-				<img src={DiceWheelIcon} alt="Dice Wheel Icon" class="dice-icon-image" />
+				<img src={DiceWheelIcon} alt="Dice Wheel Icon" class="dice-icon-image {imageSizeClass}" />
 			{:else}
-				<img src={DiceIcon} alt="Dice Icon" class="dice-icon-image" />
+				<img src={DiceIcon} alt="Dice Icon" class="dice-icon-image {imageSizeClass}" />
 			{/if}
 		</button>
 
 		<div class="past-bets-wrapper">
-			{#each $pastBets as pastBet (pastBet.id)}
+			{#each $pastBets.slice(0, itemsToShow) as pastBet (pastBet.id)}
 				<PastBetButton pastBet={pastBet.numberRolled} win={pastBet.win} id={pastBet.id} />
 			{/each}
 		</div>
@@ -134,17 +170,31 @@
 				<span class="label-text">PAYOUT</span>
 			</label>
 
-			<label class="input-label" for="">
+			<label class="input-label">
 				<Tooltip />
 				<span class="input-wrapper">
 					<span class="input-content">
-						<input class="game-input" type="button" value={rollOver} style="overflow: hidden;" />
+						<input
+							class="game-input"
+							style="overflow: hidden;"
+							type="button"
+							{disabled}
+							on:click={handleRollOverUnderClick}
+							bind:value={$rollOverUnder}
+						/>
 						<div class="input-content-img">
-							<RefreshIcon width="12px" height="12px" fill="#7b89c5" />
+							<RefreshIcon
+								width="12px"
+								height="12px"
+								fill="#7b89c5"
+								style="transform: translate(0, -50%) rotate({$rotateBoxTo}deg);"
+							/>
 						</div>
 					</span>
 				</span>
-				<span class="label-text">ROLL OVER</span>
+				<span class="label-text">
+					ROLL {$isRollOverOrUnder === DiceRollConditionEnum.Over ? 'OVER' : 'UNDER'}
+				</span>
 			</label>
 
 			<label class="input-label">
@@ -170,8 +220,11 @@
 
 <style lang="postcss">
 	.dice-game-wrapper {
-		@apply relative flex justify-between items-center flex-col flex-grow w-full p-6;
-		/* Add responsive padding here later */
+		@apply relative flex justify-between items-center flex-col flex-grow w-full p-2;
+	}
+
+	.dice-game-wrapper-mobile {
+		@apply p-6;
 	}
 
 	.change-dice-variant-button {
@@ -190,14 +243,19 @@
 		@apply flex justify-center items-center flex-grow w-full pb-4 pt-5 min-h-[390px];
 	}
 
+	.small {
+		@apply w-[16px] h-[16px];
+	}
+	.large {
+		@apply w-[32px] h-[32px];
+	}
+
 	.dice-footer {
 		@apply relative grid w-full grid-cols-3 gap-2 text-deepBlue;
-		/* Add responsive padding here later */
 	}
 
 	.change-dice-variant-button {
 		@apply absolute flex justify-center items-center rounded border border-gray-800 bg-deepBlue text-lightBlue transition-colors ease-in z-10;
-		/* Add conditional top, left, width, and height */
 	}
 
 	.input-label {
@@ -214,13 +272,10 @@
 
 	.input-content {
 		@apply relative flex-grow w-full flex;
-		/* Styles for SVG inside */
 	}
 
 	.game-input {
 		@apply font-normal text-lg overflow-scroll bg-deepBlue text-white rounded border border-gray-700 py-2 px-3 pr-7 transition-all duration-200 ease-out outline-none w-80;
-		/* Add hover, focus, active, and disabled states later */
-		/* Add responsive font size later */
 	}
 
 	/* Footer inputs */

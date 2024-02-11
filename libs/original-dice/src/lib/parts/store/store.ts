@@ -28,7 +28,7 @@ function getURLParameter(param: string, defaultValue: string) {
 }
 
 export const currentWalletState = writable<{ type: CurrencyEnum; available: number }>({
-    type: CurrencyEnum.btc,
+    type: CurrencyEnum.usdt,
     available: 100,
 });
 
@@ -54,9 +54,11 @@ export const betAmount = writable('0');
 export const cashout = writable('2.00');
 export const winChance = writable('49.50');
 
-export const initialBetAmount = derived(currentWalletState, ($currentWalletState: { type: CurrencyEnum; available: number }) =>
-    decimalCryptoDisplay(0, $currentWalletState.type)
-);
+export const initialBetAmount = writable(0);
+
+// export const initialBetAmount = derived(currentWalletState, ($currentWalletState: { type: CurrencyEnum; available: number }) =>
+//     decimalCryptoDisplay(0, $currentWalletState.type)
+// );
 
 export const onWin = writable('3');
 export const onLoss = writable('0');
