@@ -14,7 +14,6 @@
 		decimalCryptoDisplay,
 		decimalDisplayLength,
 		getNextDecimal,
-		roundOff,
 		roundOff2
 	} from '../utils/helper.js';
 
@@ -42,10 +41,6 @@
 	} from '$lib/parts/store/store.js';
 
 	let tooltip = false;
-	let active = true;
-
-	let coinType = $currentWalletState?.type; // e.g., 'btc', 'eth', etc.
-	let fiatType = $coinPriceData?.Fiat; // e.g., 'usd', 'eur', etc.
 
 	const bettingVariant = writable(BettingVariants.MANUAL);
 
@@ -145,16 +140,6 @@
 </script>
 
 <div class="game-sidebar-wrapper">
-	<!-- MOBILE -->
-	<!-- <div class="sidebar-main">
-		<div class="first-line-bet">
-			<Tooltip />
-			<LabelInput type={'number'} />
-		</div>
-	</div> -->
-	<!-- MOBILE -->
-
-	<!-- DESKTOP -->
 	<div class="sidebar-main">
 		<div class="betting-variant-line">
 			<button
@@ -276,7 +261,7 @@
 					color={'#fff'}
 					padding={'16px'}
 					margin={'10px 0px'}
-					disabled={$loading}
+					disabled={$loading || $gameInProgress || parseFloat($betAmount) <= 0 || $betAmount <= '0'}
 					hoverColor={'#00b16c'}
 					dataTestId={'bet-button'}
 					buttonText={'Bet'}
@@ -391,6 +376,7 @@
 					<div class="btn-parent-v2" slot="buttons">
 						<button
 							class="buttons-v2"
+							disabled={$loading || $gameInProgress || $autoBetInProgress}
 							class:selected={$selectedOnLoss === OnLoss.AUTO}
 							on:click={handleReset}
 						>
@@ -398,6 +384,7 @@
 						</button>
 						<button
 							class="buttons-v2"
+							disabled={$loading || $gameInProgress || $autoBetInProgress}
 							class:selected={$selectedOnLoss === OnLoss.INCREASE}
 							on:click={handleIncrease}
 						>
@@ -520,10 +507,10 @@
 
 	.betting-variant-button span {
 		@apply transition-[background_300ms_ease_0s,_opacity_300ms_ease_0s,_transform_100ms_ease_0s];
-		transition:
+		/* transition:
 			background 300ms ease 0s,
 			opacity 300ms ease 0s,
-			transform 100ms ease 0s;
+			transform 100ms ease 0s; */
 	}
 
 	.betting-variant-button:active span {
@@ -547,31 +534,16 @@
 	}
 
 	.buttons-v1 {
-		justify-content: center;
-		align-items: center;
-		flex-shrink: 0;
-		border-radius: 2px;
+		@apply flex justify-center items-center flex-shrink-0 rounded-sm py-[5px] px-[9px] text-sm font-medium leading-[1.71] text-center text-white my-1;
 		background-color: #3f4b79;
-		padding: 5px 9px;
-		font-size: 14px;
-		font-weight: 500;
-		font-stretch: normal;
-		font-style: normal;
-		line-height: 1.71;
-		letter-spacing: normal;
-		text-align: center;
-		color: #ffffff;
 		transition:
 			background-color 300ms ease 0s,
 			opacity 300ms ease 0s,
 			transform 100ms ease 0s;
-
-		margin-top: 4px;
-		margin-bottom: 4px;
 	}
 
 	.buttons-v1:last-child {
-		font-size: 12px;
+		@apply text-xs;
 	}
 
 	.buttons-v1:hover {
@@ -591,29 +563,13 @@
 	}
 
 	.buttons-v2 {
-		position: relative;
-		display: inline-flex;
-		justify-content: center;
-		align-items: center;
-		flex-shrink: 0;
-		border-radius: 2px;
+		@apply relative text-[9px] font-bold leading-[1.6] tracking-[0.91px] text-center inline-flex justify-center items-center flex-shrink-0 rounded-sm py-[2px] px-2 my-1;
 		background-color: #3f4b79;
-		padding: 2px 8px;
-		font-size: 9px;
-		font-weight: bold;
-		font-stretch: normal;
-		font-style: normal;
-		line-height: 1.6;
-		letter-spacing: 0.91px;
-		text-align: center;
 		color: #848aa0;
 		transition:
 			background 300ms ease 0s,
 			opacity 300ms ease 0s,
 			transform 100ms ease 0s;
-
-		margin-top: 4px;
-		margin-bottom: 4px;
 	}
 
 	.buttons-v2.selected {
@@ -628,6 +584,10 @@
 			transform 100ms ease 0s;
 	}
 
+	.buttons-v2:disabled {
+		@apply cursor-not-allowed;
+	}
+
 	.buttons-v2.active span {
 		transform: scale(0.95);
 		transition:
@@ -637,27 +597,22 @@
 	}
 
 	.tooltip-parent {
-		position: relative;
-		top: 0;
+		@apply relative top-0;
 	}
+
 	.tooltip {
-		position: absolute;
-		top: 50%;
-		left: 50%;
-		transform: translate(-50%, -50%);
-		z-index: 100;
+		@apply absolute top-1/2 left-1/2 transform -translate-x-1 -translate-y-1/2 z-[100];
 	}
 
 	.is-greater-than-three {
-		/* Your specific styles when the count is greater than three */
-		right: 1em;
+		@apply right-[1em];
 	}
 
 	.bet-countdown {
-		position: relative;
+		@apply relative;
 	}
 
 	.bet-countdown span {
-		@apply inline-flex flex-shrink-0 justify-center items-center font-bold text-blue-500 w-[18px] whitespace-nowrap absolute top-1/2 -translate-x-1 -translate-y-1/2 pointer-events-none cursor-text right-[0.75em];
+		@apply inline-flex flex-shrink-0 justify-center items-center font-bold text-blue-500 w-[18px] whitespace-nowrap absolute top-1/2 transform -translate-x-1 -translate-y-1/2 pointer-events-none cursor-text right-[0.75em];
 	}
 </style>

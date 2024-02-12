@@ -330,4 +330,10 @@
 			@apply text-base;
 		}
 	}
+
+	@media (max-width: 750px) {
+		.dice-content {
+			@apply min-h-[0];
+		}
+	}
 </style>

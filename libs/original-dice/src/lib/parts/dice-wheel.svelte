@@ -373,22 +373,19 @@
 	}
 
 	.dice-wheel-wrapper:after {
-		content: '';
-		display: block;
-		padding-bottom: 100%;
+		@apply content-[''] block pb-[100%];
 	}
 
 	.dice-holder {
-		@apply absolute top-1/2 left-1/2 w-1/5 h-1/5;
-		transform: translate(-50%, -50%);
+		@apply absolute top-1/2 left-1/2 w-1/5 h-1/5 transform -translate-x-1/2 -translate-y-1/2;
 	}
 
 	.dice-shape-wrapper {
 		@apply w-full h-full;
 	}
 
-	.result {
-		@apply absolute w-full text-center text-white font-bold;
+	/* .result {
+		@apply absolute w-full text-center text-white font-bold top-1/2 left-1/2 translate-x-1/2 translate-y-1/2 transition-transform duration-300;
 		font-family: 'Open Sans', serif;
 		font-size: 19.2px;
 		top: 50%;
@@ -396,34 +393,16 @@
 		transform: translate(-50%, -50%);
 		transition-property: transform, opacity;
 		transition-duration: 300ms;
-	}
+	} */
 	.dice-holder {
-		transform: 'translate(-50%, -50%)';
-		position: absolute;
-		top: 50%;
-		left: 50%;
-		width: 20%;
-		height: 20%;
+		@apply absolute top-1/2 left-1/2 w-1/5 h-1/5 transform -translate-x-1/2 -translate-y-1/2;
 	}
 
 	.dice-result {
+		@apply w-[10ch] font-black text-[19.2px] text-white absolute text-center top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2;
 		font-family: 'Open Sans', serif;
-		font-size: 19.2px;
-		font-weight: 900;
-		font-stretch: normal;
-		font-style: normal;
-		line-height: normal;
-		letter-spacing: normal;
-		color: #ffffff;
-		position: absolute;
-		width: 10ch;
-		top: 50%;
-		left: 50%;
-		text-align: center;
-		font-weight: 600;
 		transition-property: transform, opacity;
 		transition-duration: 300ms;
-		transform: translate(-50%, -50%);
 	}
 
 	.position-handler {
@@ -435,42 +414,18 @@
 	}
 
 	.thumb-button-wrapper {
-		z-index: 15;
-		position: absolute;
-		top: 10%;
-		left: 10%;
-		width: 80%;
-		height: 80%;
+		@apply absolute z-20 top-[10%] left-[10%] w-4/5 h-4/5;
 	}
 
 	.thumb-button {
-		position: absolute;
-		top: -5%;
-		left: 50%;
-		transform: translate(-50%, 0px);
-		width: 12%;
-		height: 9%;
-		cursor: pointer;
-
-		font-weight: 600;
+		@apply absolute top-[-5%] font-semibold left-1/2 w-[12%] h-[9%] cursor-pointer touch-manipulation inline-flex justify-center items-center rounded-[0.25em] bg-cover bg-center bg-no-repeat transform -translate-x-1/2 -translate-y-0;
 		font-size: inherit;
-		touch-action: manipulation;
-		position: relative;
-		display: inline-flex;
 		-webkit-box-pack: center;
-		justify-content: center;
 		-webkit-box-align: center;
-		align-items: center;
 		box-shadow:
 			rgba(0, 0, 0, 0.2) 0px 1px 3px 0px,
 			rgba(0, 0, 0, 0.12) 0px 1px 2px 0px;
-		border-radius: 0.25rem;
-
 		background-image: url('../assets/images/ThumbArrows.svg');
-
-		background-size: cover;
-		background-position: center center;
-		background-repeat: no-repeat;
 	}
 
 	.thumb-button:disabled {
@@ -482,65 +437,37 @@
 	}
 
 	.filler {
+		@apply absolute w-[5%] h-[5%] left-[47.48%] top-[7%];
 		background-color: #334284;
-		position: absolute;
-		width: 5%;
-		height: 5%;
-		left: 47.48%;
-		top: 7%;
 		z-index: 9;
 	}
 
 	.leftFiller {
-		position: absolute;
-		width: 2.329%;
-		height: 2.329%;
-		left: 51.3%;
-		top: 8.197%;
+		@apply absolute w-[2.329%] h-[2.329%] left-[51.3%] top-[8.197%] rounded-[50%];
 		z-index: 9;
-		border-radius: 50%;
 	}
 
 	.rightFiller {
-		position: absolute;
-		width: 2.329%;
-		height: 2.329%;
-		left: 46.3%;
-		top: 8.19%;
+		@apply absolute w-[2.329%] h-[2.329%] left-[46.3%] top-[8.19%] rounded-[50%];
 		z-index: 9;
-		border-radius: 50%;
 	}
 
 	.number-limit {
-		position: absolute;
-		display: inline-flex;
-		justify-content: center;
-		align-items: center;
+		@apply absolute font-bold text-white bg-[#111a41] leading-[1.33] inline-flex justify-center items-center text-center rounded-[4.8px] py-[1px] px-[5px] w-[4ch] flex-shrink-0;
 		font-family: 'Open Sans', serif;
-		font-weight: 700;
 		font-stretch: normal;
-		font-style: normal;
-		line-height: 1.33;
-		letter-spacing: normal;
-		text-align: center;
-		color: #ffffff;
-		border-radius: 4.8px;
 		border: solid 1.2px #2a335b;
-		background-color: #111a41;
-		padding: 1px 5px;
-		width: 4ch;
-		flex-shrink: 0;
 	}
 
 	.number-limit-small {
-		font-size: 10px;
+		@apply text-[10px];
 	}
 
 	.number-limit-large {
-		font-size: 14.4px;
+		@apply text-[14.4px];
 	}
 
 	.number-limit span {
-		white-space: nowrap;
+		@apply whitespace-nowrap;
 	}
 </style>

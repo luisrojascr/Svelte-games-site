@@ -11,12 +11,10 @@
 
 	import {
 		autoBetInProgress,
-		betAmount,
 		cashout,
 		gameInProgress,
 		isRollOverOrUnder,
 		numberRolled,
-		profitOnWin,
 		rollOverUnder,
 		winChance
 	} from '$lib/parts/store/store.js';
@@ -115,10 +113,6 @@
 
 		winChance.set($winChance);
 		cashout.set($cashout);
-		// console.log('slide-value:', newValue);
-		// console.log('winChance:', $winChance, 'cashout:', $cashout);
-		// console.log('profit:', $profitOnWin);
-		// console.log($betAmount);
 	}
 
 	$: fillColor =
@@ -213,97 +207,62 @@
 
 <style lang="postcss">
 	.slider-content {
-		position: relative;
-		height: 24px;
+		@apply relative h-6;
 	}
 
 	/* Webkit browsers */
 	.slider-content input[type='range']::-webkit-slider-thumb {
-		appearance: none;
-		position: relative;
+		@apply appearance-none relative w-[40px] h-[40px] rounded-[5.6px] bg-[#ffffff] bg-no-repeat cursor-grab;
 		pointer-events: all;
-		width: 40px;
-		height: 40px;
-		border-radius: 5.6px;
 		box-shadow:
 			-6px 0 0 0 rgba(0, 0, 0, 0.16),
 			6px 0 0 0 rgba(0, 0, 0, 0.16);
-		background-color: #ffffff;
 		background-image: url('../assets/images/ThumbArrows.svg');
 		background-position: 50% 50%;
-		background-repeat: no-repeat;
 		background-size: 100%;
-		cursor: grab;
 	}
 
 	.slider-content input[type='range']:active::-webkit-slider-thumb {
-		cursor: grabbing;
+		@apply cursor-grabbing;
 	}
 
 	/* Mozilla Firefox */
 	.slider-content input[type='range']::-moz-range-thumb {
-		appearance: none;
-		position: relative;
+		@apply appearance-none relative w-[40px] h-[40px] rounded-[5.6px] bg-[#ffffff] bg-no-repeat cursor-grab;
 		pointer-events: all;
-		width: 40px;
-		height: 40px;
-		border-radius: 5.6px;
 		box-shadow:
 			-6px 0 0 0 rgba(0, 0, 0, 0.16),
 			6px 0 0 0 rgba(0, 0, 0, 0.16);
-		background-color: #ffffff;
 		background-image: url('../assets/images/ThumbArrows.svg');
 		background-position: 50% 50%;
-		background-repeat: no-repeat;
-		background-size: cover;
-		cursor: grab;
+		background-size: 100%;
 	}
 
 	.slider-content input[type='range']:active::-moz-range-thumb {
-		cursor: grabbing;
+		@apply cursor-grabbing;
 	}
 
 	/* Microsoft browsers */
 	.slider-content input[type='range']::-ms-thumb {
-		appearance: none;
-		position: relative;
+		@apply appearance-none relative w-[40px] h-[40px] rounded-[5.6px] bg-[#ffffff] bg-no-repeat cursor-grab;
 		pointer-events: all;
-		width: 40px;
-		height: 40px;
-		border-radius: 5.6px;
 		box-shadow:
 			-6px 0 0 0 rgba(0, 0, 0, 0.16),
 			6px 0 0 0 rgba(0, 0, 0, 0.16);
-		background-color: #ffffff;
 		background-image: url('../assets/images/ThumbArrows.svg');
 		background-position: 50% 50%;
-		background-repeat: no-repeat;
-		background-size: cover;
-		cursor: grab;
+		background-size: 100%;
 	}
 
 	.slider-content input[type='range']:active::-ms-thumb {
-		cursor: grabbing;
+		@apply cursor-grabbing;
 	}
 
 	.input-slider {
+		@apply w-full text-sm absolute z-10 top-0 h-[24px] outline-none pointer-events-none cursor-pointer touch-manipulation;
 		-webkit-overflow-scrolling: touch;
-		font-size: 14px;
 		-webkit-appearance: none;
-		touch-action: manipulation;
-		width: 100%;
-		position: absolute;
-		z-index: 10;
-		top: 0;
-		height: 24px;
-		outline: none;
-		pointer-events: none;
-		cursor: pointer;
 		background: rgba(0, 0, 0, 0);
-
-		/* &:disabled {
-			cursor: not-allowed !important;
-		} */
 	}
 
 	/* @media (max-width: 1030px) {
@@ -319,7 +278,6 @@
 		/* Conditional margin */
 	}
 
-	/* Applying conditional margin based on $resize */
 	.dice-slider-wrapper:resize {
 		@apply my-20 mx-0;
 	}
@@ -333,106 +291,53 @@
 	}
 
 	.breakpoint-wrapper {
-		@apply absolute text-center;
-		transform: translate(-50%, 0);
+		@apply absolute text-center transform -translate-x-1/2 -translate-y-1/2;
 	}
 
 	.breakpoint-value {
-		@apply absolute flex left-1/2 bottom-0 text-white;
-		font-family: 'Open Sans', serif;
-		font-size: 12px;
-		font-weight: 900;
-		line-height: 2;
-		letter-spacing: 1px;
-		text-align: center;
-		/* Custom transform for the parent element */
-		transform: translate(-50%, 0);
+		@apply absolute flex left-1/2 bottom-0 text-white text-center text-xs font-black leading-[2] tracking-[1px] transform -translate-x-1/2 -translate-y-0;
 	}
 
 	.breakpoint-value::after {
-		content: '';
-		position: absolute;
-		bottom: 0;
-		left: 50%;
-		transform: translate(-50%, 0);
+		@apply absolute bottom-0 left-1/2 border-solid content-[''] transform -translate-x-1/2 -translate-y-0;
 		border-color: transparent transparent #111a41;
-		border-style: solid;
 		border-width: 0 8px 6px;
 	}
 
 	.breakpoint-value span {
-		width: 4ch;
-		position: absolute;
-		left: 50%;
-		bottom: 100%;
+		@apply w-[4ch] absolute left-1/2 bottom-full;
 		transform: translate(-45%, -20%);
 	}
 
 	/* Range Slider */
 	.range-slider-wrapper {
-		pointer-events: none;
-		height: 24px;
-		position: absolute;
-		top: 0;
-		left: 0;
-		bottom: 0;
-		right: 0;
-		border-radius: 100px;
+		@apply pointer-events-none h-6 absolute top-0 left-0 bottom-0 right-0 rounded-[100px] overflow-hidden;
 		transition: opacity 300ms ease;
-		overflow: hidden;
 	}
 
 	.range-slider-lower,
 	.range-slider-higher {
-		position: absolute;
-		height: 24px;
-		top: 0;
-		border-radius: 100px;
+		@apply absolute h-6 top-0 rounded-[100px];
 	}
 
 	.range-slider-lower {
-		width: 100%;
-		right: 0;
+		@apply w-full right-0;
 	}
-
-	/* .range-slider-higher {
-		left: 0;
-	} */
 
 	/* FOR DICE SHAPE */
 	.dice-shape-wrapper {
-		position: absolute;
-		display: flex;
-		bottom: 50%;
-		left: 0px;
-		right: 0px;
-		z-index: 5;
-		pointer-events: none;
-		will-change: transform;
+		@apply absolute flex bottom-1/2 left-0 right-0 z-10 pointer-events-none will-change-transform select-none;
 		transition: transform 400ms ease 0s;
-		user-select: none;
 	}
 
 	.dice-wrapper {
-		position: relative;
+		@apply relative;
 		transform-origin: center bottom;
 		transition: all 0.3s ease;
 	}
 
 	.result {
-		font-family: 'Open Sans', serif;
-		font-size: 14px;
-		font-weight: 900;
-		font-stretch: normal;
-		font-style: normal;
-		line-height: normal;
-		letter-spacing: normal;
-		color: #ffffff;
-		position: absolute;
-		width: max-content;
-		top: 50%;
-		left: 50%;
-		transform: translate(-50%, -50%);
+		@apply absolute text-sm font-black text-white w-max top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2;
 		transition: all 100ms ease;
 	}
 </style>
