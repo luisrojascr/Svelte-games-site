@@ -1,0 +1,9 @@
+query CashierMinLimits {
+	cashierMinLimits {
+		limits {
+			token
+			minDeposit
+			minWithdrawal
+		}
+	}
+}

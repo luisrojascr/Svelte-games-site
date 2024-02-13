@@ -1,0 +1,7 @@
+query AuthCheck {
+	authcheck {
+		id
+		username
+		role
+	}
+}

@@ -1,0 +1,14 @@
+query ServerState {
+	health {
+		appName
+		appVersion
+		envAccount
+		gitMessage
+		instanceId
+		libVersion
+		mongoConnected
+		now
+		postgresConnected
+		startedAt
+	}
+}

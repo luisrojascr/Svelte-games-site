@@ -19,58 +19,66 @@ const languages: KeyValues = {
   zh: "Chinese",
 };
 
-const projects: KeyValues = {
-  auth: "../libs/auth/src/lib/locale",
-};
-
-const translation_source = (lang: string, project: string) => {
+const translation_source = (lang: string, path: string): string | undefined => {
   try {
-    return fs.readFileSync(`${project}/prompt/${lang}.json`, "utf8");
+    return fs.readFileSync(
+      `../${path}/src/lib/locale/prompt/${lang}.json`,
+      "utf8"
+    );
   } catch {}
   try {
-    return fs.readFileSync(`${project}/prompt/en.json`, "utf8");
+    return fs.readFileSync(`../${path}/src/lib/locale/prompt/en.json`, "utf8");
   } catch (e) {
     console.log(e);
   }
+  return undefined;
 };
 
 async function main() {
-  console.log(process.argv);
-  if (process.argv.length < 3)
-    throw new Error("expected 2 arguments, project and language");
-  const lang = process.argv[3];
-  const language = languages[lang];
-  if (!language) throw new Error(`Language ${lang} not found`);
-  const project = projects[process.argv[2]];
-  if (!project) throw new Error(`Project ${process.argv[2]} not found`);
-  const data = translation_source(lang, project);
+  if (process.argv.length < 2)
+    throw new Error("expected two arguments: path and language");
+  const langs =
+    process.argv.length >= 4 ? [process.argv[3]] : Object.keys(languages);
 
-  console.log(`generating project: ${project}, language: ${language}`);
+  for (const lang of langs) {
+    const language = languages[lang];
+    if (!language) throw new Error(`Language ${lang} not found`);
+    const path = process.argv[2];
+    const data = translation_source(lang, path);
+    if (!data) throw new Error(`Translation source not found`);
 
-  const prompt: OpenAI.ChatCompletionCreateParams = {
-    messages: [
-      {
-        role: "system",
-        content:
-          "You are a helpful assistant designed to output JSON and you are experienced with casino, betting and cryptocurrency terminology and concepts.",
-      },
-      {
-        role: "user",
-        content: `Translate this from English to ${language} preserving the key values:\n${JSON.stringify(
-          data
-        )}`,
-      },
-    ],
-    model: "gpt-3.5-turbo-1106",
-    response_format: { type: "json_object" },
-  };
+    console.log(`generating [${path}], language: ${language}`);
 
-  const completion = await openai.chat.completions.create(prompt);
-  fs.writeFileSync(
-    `${project}/latest/${lang}.json`,
-    completion.choices[0].message.content!,
-    "utf8"
-  );
+    const prompt: OpenAI.ChatCompletionCreateParams = {
+      messages: [
+        {
+          role: "system",
+          content:
+            "You are a helpful assistant designed to output JSON and you are experienced with casino, betting and cryptocurrency terminology and concepts.",
+        },
+        {
+          role: "user",
+          content: `Translate this from English to ${language} preserving the key values:\n${JSON.stringify(
+            data
+          )}`,
+        },
+      ],
+      model: "gpt-3.5-turbo-1106",
+      response_format: { type: "json_object" },
+    };
+
+    const completion = await openai.chat.completions.create(prompt);
+    fs.writeFileSync(
+      `../${path}/src/lib/locale/generated/${lang}.json`,
+      completion.choices[0].message.content!,
+      "utf8"
+    );
+    fs.writeFileSync(
+      `../${path}/src/lib/locale/edited/${lang}.json`,
+      completion.choices[0].message.content!,
+      "utf8"
+    );
+  }
 }
 
 main();

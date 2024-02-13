@@ -1,0 +1,7 @@
+query Wallets {
+	wallets {
+		id
+		available
+		type
+	}
+}

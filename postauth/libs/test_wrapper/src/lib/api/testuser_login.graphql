@@ -1,0 +1,6 @@
+mutation TestuserLogin($userNumber: Int!) {
+	testuserLogin(userNumber: $userNumber) {
+		success
+		token
+	}
+}

@@ -1,0 +1,55 @@
+<script lang="ts">
+	import { locale } from '@infinitro/global-postauth';
+
+	let element: HTMLSelectElement;
+	let value = '';
+
+	const onChange = () => {
+		locale.set(element.value);
+	};
+
+	locale.subscribe((_value) => {
+		value = _value;
+		if (element) element.value = _value;
+	});
+</script>
+
+<span class="section">
+	<span class="input">
+		<select
+			name="language"
+			id="language"
+			bind:this={element}
+			on:change={onChange}
+			on:input={onChange}
+			{value}
+		>
+			<option value="cs">Čeština</option>
+			<option value="en">English</option>
+			<option value="de">Deutsch</option>
+			<option value="es">Español</option>
+			<option value="fr">Français</option>
+			<option value="it">Italiano</option>
+			<option value="pt">Português</option>
+			<option value="ru">Русский</option>
+			<option value="zh">中文</option>
+			<option value="ja">日本語</option>
+		</select>
+	</span>
+</span>
+
+<style lang="postcss">
+	.section {
+		@apply flex z-50;
+	}
+	span.input {
+		@apply relative;
+	}
+	select,
+	select:disabled {
+		@apply border bg-background-900 border-100 text-white text-sm rounded-lg block w-full p-2.5;
+	}
+	select:focus {
+		@apply border bg-background-900  text-white text-sm rounded-lg ring-blue-500 border-blue-500 block w-full p-2.5;
+	}
+</style>
