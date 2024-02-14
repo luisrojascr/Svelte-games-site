@@ -21,7 +21,6 @@
 		initialBetAmount,
 		loading,
 		maxBet,
-		profitOnWin,
 		selectedFiatCurrency
 	} from '$lib/parts/store/store';
 

@@ -1,6 +1,11 @@
+import type { TileState } from '$lib/parts/store/mines-types';
+import { TileStateEnum } from '$lib/parts/store/mines-types';
 import { CurrencyEnum, DiceRollConditionEnum, LanguageEnum, OnLoss, OnWin } from '$lib/utils/cc';
-import { decimalCryptoDisplay, decimalDisplayLength, generateRandomHex } from '$lib/utils/helper.js';
+import { decimalCryptoDisplay, decimalDisplayLength, generateRandomHex, randomIntFromInterval, timeout } from '$lib/utils/helper.js';
 import { derived, get, writable } from 'svelte/store';
+
+// Initial array of numbers
+const nums: number[] = Array.from({ length: 25 }, (_, index) => index);
 
 export interface Bet {
     id: string;
@@ -38,14 +43,16 @@ export const minBet = writable(getURLParameter('minBet', '0'))
 export const maxBet = writable(getURLParameter('maxBet', '100'))
 
 export const gameInProgress = writable(false);
+export const numOfMines = writable(3);
+export const minePositions = writable<number[]>([]);
 export const autoBetInProgress = writable(false);
-export const pastBets = writable<Bet[]>([]);
-export const rotateBoxTo = writable(0);
-export const angle = writable(0);
+export const cardStatus = writable<Array<TileState>>(initMineField());
 
-export const numberRolled = writable(0);
-export const rollOverUnder = writable('50.50');
-export const isRollOverOrUnder = writable<DiceRollConditionEnum>(DiceRollConditionEnum.Over);
+export const nextMultiplier = writable(0);
+export const totalMultiplier = writable(0);
+export const leftGems = writable(0);
+
+export const mineSubsData = writable('');
 
 export const betAmount = writable('0');
 export const cashout = writable('2.00');
@@ -53,44 +60,9 @@ export const winChance = writable('49.50');
 
 export const initialBetAmount = writable(0);
 
-// export const initialBetAmount = derived(currentWalletState, ($currentWalletState: { type: CurrencyEnum; available: number }) =>
-//     decimalCryptoDisplay(0, $currentWalletState.type)
-// );
-
 export const onWin = writable('3');
 export const onLoss = writable('0');
 export const currentProfit = writable(0);
-export const profitOnWin = writable('0');
-
-export const inputStopOnProfit = writable(0);
-export const inputStopOnLoss = writable(0);
-
-// export const stopOnProfit = derived(
-//     [inputStopOnProfit, currentWalletState],
-//     ([$inputStopOnProfit, $currentWalletState]) => decimalCryptoDisplay($inputStopOnProfit, $currentWalletState.type)
-// )
-
-// export const stopOnLoss = derived(
-//     [inputStopOnLoss, currentWalletState],
-//     ([$inputStopOnLoss, $currentWalletState]) => decimalCryptoDisplay($inputStopOnLoss, $currentWalletState.type)
-// );
-
-export const stopOnProfit = derived(
-    [inputStopOnProfit, currentWalletState],
-    ([$inputStopOnProfit, $currentWalletState]: [number, { type: CurrencyEnum; available: number }]) =>
-        decimalCryptoDisplay($inputStopOnProfit, $currentWalletState.type)
-);
-
-export const stopOnLoss = derived(
-    [inputStopOnLoss, currentWalletState],
-    ([$inputStopOnLoss, $currentWalletState]: [number, { type: CurrencyEnum; available: number }]) =>
-        decimalCryptoDisplay($inputStopOnLoss, $currentWalletState.type)
-);
-
-export const numOfBets = writable('0');
-export const betsFinished = writable(0);
-export const selectedOnWin = writable(OnWin.AUTO);
-export const selectedOnLoss = writable(OnLoss.AUTO);
 
 // This is for the sound
 // export const playBetSound = () => {
@@ -141,3 +113,153 @@ export const balanceList = writable<BalanceItem[]>(JSON.parse(localStorage.getIt
 balanceList.subscribe(($balanceList) => {
     localStorage.setItem('balance', JSON.stringify($balanceList));
 });
+
+
+// Function to generate an array of unique random numbers
+const generateRandomArr = (): number[] => {
+    const minesCount: number = get(numOfMines); // Accessing the value of numOfMines store
+    if (minesCount > 0) {
+        const newList: number[] = [];
+        for (let i = 0; i < minesCount; i++) {
+            let randomIndex: number;
+            let randomElement: number;
+            do {
+                randomIndex = Math.floor(Math.random() * nums.length);
+                randomElement = nums[randomIndex];
+            } while (newList.includes(randomElement));
+            newList.push(randomElement);
+        }
+        return newList;
+    }
+    return [];
+};
+
+const handleRandomClick = (): void => {
+    const allTiles: TileState[] = get(cardStatus);
+    const hiddenTiles: TileState[] = allTiles.filter(
+        (tile: TileState) => tile.state === TileStateEnum.Hidden
+    );
+
+    if (hiddenTiles.length > 0) {
+        const randomTileIndex: number = randomIntFromInterval(0, hiddenTiles.length - 1);
+        const randomTileID: number = hiddenTiles[randomTileIndex].id;
+        handleTileClick(randomTileID);
+    }
+};
+
+
+
+const handleTileClick = async (index: number): Promise<void> => {
+    const currentCardStatus: TileState[] = get(cardStatus);
+    const currentLeftGems: number = get(leftGems);
+
+    if (currentCardStatus[index].state === TileStateEnum.Hidden) {
+        const isMine = checkIfMine(index);
+
+        if (isMine) {
+            const newCardStatus = currentCardStatus.map((tile) =>
+                tile.id === index
+                    ? { ...tile, state: TileStateEnum.UserRevealed, isMine: true }
+                    : checkIfMine(tile.id)
+                        ? { ...tile, state: TileStateEnum.Revealed, isMine: true }
+                        : tile
+            );
+
+            cardStatus.set(newCardStatus);
+            gameInProgress.set(false);
+            nextMultiplier.set(0);
+            totalMultiplier.set(0);
+            leftGems.set(0);
+            await timeout(300);
+
+            const nextCardStatus = newCardStatus.map((tile) =>
+                tile.state === TileStateEnum.Hidden
+                    ? { ...tile, state: TileStateEnum.Revealed }
+                    : tile
+            );
+
+            cardStatus.set(nextCardStatus);
+        } else {
+            const newCardStatus = currentCardStatus.map((tile) =>
+                tile.id === index
+                    ? { ...tile, state: TileStateEnum.UserRevealed }
+                    : tile
+            );
+
+            cardStatus.set(newCardStatus);
+            calculateNextMultiplier();
+            leftGems.set(currentLeftGems - 1);
+        }
+    }
+};
+
+const checkIfMine = (index: number): boolean => {
+    const currentMinePositions: number[] = get(minePositions);
+    return currentMinePositions.includes(index);
+};
+
+const calculateNextMultiplier = (): void => {
+    const currentNumOfMines: number = get(numOfMines);
+    const currentLeftGems: number = get(leftGems);
+    let total = Number(
+        (
+            1 + Math.pow(1 - currentNumOfMines / 25, 25 - currentLeftGems - currentNumOfMines + 1)
+        ).toFixed(2)
+    );
+    console.log(total);
+    totalMultiplier.set(total);
+};
+
+const handleBet = (): void => {
+    const currentNumOfMines: number = get(numOfMines);
+    const currentCurBalance: number = get(curBalance);
+    const currentBetAmount: number = parseFloat(get(betAmount));
+
+    gameInProgress.set(true);
+    cardStatus.set(initMineField());
+    minePositions.set(generateRandomArr());
+    leftGems.set(25 - currentNumOfMines);
+    curBalance.set(currentCurBalance - currentBetAmount);
+    totalMultiplier.set(1);
+
+    const currentSessionId: string = get(sessionId);
+
+    if (sessionId) {
+        const newBalance = currentCurBalance - currentBetAmount;
+        updateStorageBalance(currentSessionId, newBalance);
+    }
+};
+
+const updateStorageBalance = (
+    sessionIdToUpdate: number | string,
+    newBalance: number
+): void => {
+    const currentBalanceList: BalanceItem[] = get(balanceList);
+    const indexToUpdate = currentBalanceList.findIndex(
+        (item) => item.sessionId === sessionIdToUpdate
+    );
+
+    // Update the balance if the session ID exists, otherwise add a new item
+    if (indexToUpdate !== -1) {
+        currentBalanceList[indexToUpdate].balance = newBalance;
+        balanceList.set(currentBalanceList);
+    } else {
+        balanceList.update((list) => [
+            ...list,
+            { sessionId: sessionIdToUpdate, balance: newBalance }
+        ]);
+    }
+};
+
+
+
+
+
+export function initMineField(): TileState[] {
+    return Array.from({ length: 25 }, (_, index) => ({
+        id: index,
+        index: index,
+        isMine: undefined,
+        state: TileStateEnum.Hidden
+    }));
+}

@@ -72,3 +72,13 @@ export const generateRandomHex = (length: number): string => {
 
     return result
 }
+
+export const timeout = (delay: number) => {
+    return new Promise((res) => setTimeout(res, delay))
+}
+
+export function randomIntFromInterval(start: number, end: number): number {
+    const rand = Math.random();
+
+    return start + Math.round((end - start) * rand);
+}
