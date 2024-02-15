@@ -2,9 +2,12 @@
 	import CoinIcon from '$lib/parts/components/common/crypto-icon-getter.svelte';
 	import FiatCoinIcon from '$lib/parts/components/common/icon-getter.svelte';
 	import CustomButton from './components/common/custom-button.svelte';
+	import CustomDropdown from './components/common/custom-dropdown.svelte';
 	import LabelInput from './components/common/label-input.svelte';
 
 	import { Tooltip } from '@svelte-plugins/tooltips';
+
+	import type { Option } from './store/mines-types';
 
 	import {
 		decimalCryptoDisplay,
@@ -21,6 +24,7 @@
 		initialBetAmount,
 		loading,
 		maxBet,
+		numOfMines,
 		selectedFiatCurrency
 	} from '$lib/parts/store/store';
 
@@ -70,6 +74,27 @@
 	function buttonClickHandler() {
 		console.log('button test');
 	}
+
+	const options = Array(24)
+		.fill(null)
+		.map((_, i) => ({
+			value: i + 1,
+			label: (i + 1).toString()
+		}));
+
+	function handleNumOfMinesChange(option: Option) {
+		if (typeof option.value === 'number') {
+			numOfMines.set(option.value);
+		}
+	}
+
+	$: wrapperStyle = { backgroundColor: '#222c56' };
+	$: buttonStyle = { backgroundColor: '#222c56', color: '#fff' };
+
+	$: currentOption = {
+		value: $numOfMines,
+		label: $numOfMines.toString()
+	};
 </script>
 
 <div class="game-sidebar-wrapper">
@@ -136,27 +161,18 @@
 			</div>
 		</div>
 
-		<!-- SECOND INPUT -->
+		<!-- DROPDOWN -->
 		<div>
-			<!-- <LabelInput
-				min={0}
-				step={$selectedFiatCurrency && $coinPriceData
-					? '0.01'
-					: getNextDecimal(decimalCryptoDisplay(0, $currentWalletState.type))}
-				type={'number'}
-				valueStore={betAmount}
-				dataTestId="mines"
-				integerOnly={true}
-				labelContent="Mines"
-			>
-				<div slot="inputIcon">
-					{#if $selectedFiatCurrency}
-						<FiatCoinIcon coin={$coinPriceData.Fiat} biggerIcon={true} />
-					{:else}
-						<CoinIcon pxSize={16} coin={$currentWalletState?.type} />
-					{/if}
-				</div>
-			</LabelInput> -->
+			<CustomDropdown
+				bgBlue={true}
+				v3={true}
+				labelV2={true}
+				{wrapperStyle}
+				{buttonStyle}
+				{options}
+				{currentOption}
+				handleOptionClick={handleNumOfMinesChange}
+			/>
 		</div>
 
 		<div>

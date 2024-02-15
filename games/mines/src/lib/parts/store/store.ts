@@ -1,4 +1,9 @@
-import type { TileState } from '$lib/parts/store/mines-types';
+import type {
+    Action,
+    MinesBoardStatesEnum, MinesState,
+    MinesStateActionsEnum,
+    TileState,
+} from '$lib/parts/store/mines-types';
 import { TileStateEnum } from '$lib/parts/store/mines-types';
 import { CurrencyEnum, DiceRollConditionEnum, LanguageEnum, OnLoss, OnWin } from '$lib/utils/cc';
 import { decimalCryptoDisplay, decimalDisplayLength, generateRandomHex, randomIntFromInterval, timeout } from '$lib/utils/helper.js';
@@ -16,6 +21,16 @@ export interface Bet {
 export interface BalanceItem {
     sessionId: number | string;
     balance: number;
+}
+
+
+export function initMineField(): TileState[] {
+    return Array.from({ length: 25 }, (_, index) => ({
+        id: index,
+        index: index,
+        isMine: undefined,
+        state: TileStateEnum.Hidden
+    }));
 }
 
 export const FiatArr = ['usd', 'jpy', 'eur'];
@@ -66,15 +81,15 @@ export const currentProfit = writable(0);
 
 // This is for the sound
 // export const playBetSound = () => {
-//     const betSound = new Audio(diceBetSound);
+//     const betSound = new Audio();
 //     betSound.play();
 // };
-// export const playDiceRollSound = () => {
-//     const rollSound = new Audio(diceRollSound);
+// export const playMinesSound = () => {
+//     const rollSound = new Audio();
 //     rollSound.play();
 // };
-// export const playDiceWinSound = () => {
-//     const winSound = new Audio(diceWinSound);
+// export const playMinesWinSound = () => {
+//     const winSound = new Audio();
 //     winSound.play();
 // };
 
@@ -137,7 +152,7 @@ const generateRandomArr = (): number[] => {
 const handleRandomClick = (): void => {
     const allTiles: TileState[] = get(cardStatus);
     const hiddenTiles: TileState[] = allTiles.filter(
-        (tile: TileState) => tile.state === TileStateEnum.Hidden
+        (tile: TileState) => tile.state === TileStateEnum.Revealed
     );
 
     if (hiddenTiles.length > 0) {
@@ -149,7 +164,7 @@ const handleRandomClick = (): void => {
 
 
 
-const handleTileClick = async (index: number): Promise<void> => {
+export const handleTileClick = async (index: number): Promise<void> => {
     const currentCardStatus: TileState[] = get(cardStatus);
     const currentLeftGems: number = get(leftGems);
 
@@ -230,36 +245,36 @@ const handleBet = (): void => {
     }
 };
 
-const updateStorageBalance = (
-    sessionIdToUpdate: number | string,
-    newBalance: number
-): void => {
-    const currentBalanceList: BalanceItem[] = get(balanceList);
-    const indexToUpdate = currentBalanceList.findIndex(
-        (item) => item.sessionId === sessionIdToUpdate
-    );
-
-    // Update the balance if the session ID exists, otherwise add a new item
-    if (indexToUpdate !== -1) {
-        currentBalanceList[indexToUpdate].balance = newBalance;
-        balanceList.set(currentBalanceList);
-    } else {
-        balanceList.update((list) => [
-            ...list,
-            { sessionId: sessionIdToUpdate, balance: newBalance }
-        ]);
-    }
-};
-
-
-
-
-
-export function initMineField(): TileState[] {
-    return Array.from({ length: 25 }, (_, index) => ({
-        id: index,
-        index: index,
-        isMine: undefined,
-        state: TileStateEnum.Hidden
-    }));
+export function updateStorageBalance(sessionIdToUpdate: string, newBalance: number) {
+    balanceList.update(list => {
+        const indexToUpdate = list.findIndex(item => item.sessionId === sessionIdToUpdate);
+        if (indexToUpdate !== -1) {
+            list[indexToUpdate].balance = newBalance;
+        } else {
+            list.push({ sessionId: sessionIdToUpdate, balance: newBalance });
+        }
+        localStorage.setItem('balance', JSON.stringify(list));
+        return list;
+    });
 }
+// @ts-ignore
+derived(balanceList, ($balanceList: Array<{ sessionId: string, balance: number }>) => {
+    localStorage.setItem('balance', JSON.stringify($balanceList));
+});
+
+$: {
+    const session = get(sessionId);
+    if (session) {
+        const storedBalance = get(balanceList).find(item => item.sessionId === session);
+        if (storedBalance) {
+            curBalance.set(storedBalance.balance);
+            currentWalletState.set({ ...get(currentWalletState), available: storedBalance.balance });
+        } else {
+            const initialBalance = Number(get(startBalance));
+            updateStorageBalance(session, initialBalance);
+            curBalance.set(initialBalance);
+            currentWalletState.set({ ...get(currentWalletState), available: initialBalance || 100 });
+        }
+    }
+}
+

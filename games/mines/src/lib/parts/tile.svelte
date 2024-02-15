@@ -1,15 +1,68 @@
 <script lang="ts">
+	import DiamondRevealedNobg from '$lib/assets/images/Mines/diamond-revealed-nobg.svg';
+	import DiamondUserRevealedNobg from '$lib/assets/images/Mines/diamond-user-revealed-nobg.svg';
+	import MineRevealedNobg from '$lib/assets/images/Mines/mine-revealed-nobg.svg';
+	import MineUserRevealedNobg from '$lib/assets/images/Mines/mine-user-revealed-nobg.svg';
+
+	import type {
+		MinesBoardStatesEnum,
+		MinesState,
+		MinesStateActionsEnum
+	} from '$lib/parts/store/mines-types';
+	import { TileStateEnum } from '$lib/parts/store/mines-types';
+	import { gameInProgress, handleTileClick } from '$lib/parts/store/store';
+
 	import { spring } from 'svelte/motion';
-	import { fly, scale } from 'svelte/transition';
+	import { fade, fly, scale } from 'svelte/transition';
+
+	export let id: number;
+	export let isMine: boolean | undefined;
+	export let tileState: TileStateEnum;
+
+	function generateBackgroundImage(tileState: TileStateEnum, isMine?: boolean): string {
+		switch (tileState) {
+			case TileStateEnum.UserRevealed:
+				return `url(${isMine ? MineUserRevealedNobg : DiamondUserRevealedNobg})`;
+			case TileStateEnum.Revealed:
+				return `url(${isMine ? MineRevealedNobg : DiamondRevealedNobg})`;
+			default:
+				return '';
+		}
+	}
+
+	function getBorderStyle(isMine?: boolean, tileState?: TileStateEnum): string {
+		if (isMine && tileState === TileStateEnum.UserRevealed) {
+			return 'solid 2px #fe330d';
+		} else if (!isMine && tileState === TileStateEnum.UserRevealed) {
+			return 'solid 2px #00ee67';
+		} else if (tileState === TileStateEnum.Revealed) {
+			return 'solid 1px #47558a';
+		}
+		return '2px solid transparent';
+	}
+
+	function handleClick() {
+		if (clickable) {
+			handleTileClick(id);
+		}
+	}
+
+	$: clickable = $gameInProgress && tileState === TileStateEnum.Hidden;
+	$: borderStyle = getBorderStyle(isMine, tileState);
+	$: backgroundImage = generateBackgroundImage(tileState, isMine);
 </script>
 
-<button class="tile-button">
-	<div transition:fly={{ y: 20, duration: 300 }}>
-		<div transition:scale={{ duration: 300 }}>
-			<div class="tile-content"></div>
+<button
+	class="tile-button"
+	on:click={handleClick}
+	style="border: {borderStyle}; background-image: {backgroundImage}"
+>
+	{#if tileState === TileStateEnum.Revealed || tileState === TileStateEnum.UserRevealed}
+		<div class="tile-content" in:fade out:fade>
+			{isMine ? '💣' : '💎'}
 		</div>
-	</div>
-	<div class="tile-cover"></div>
+	{/if}
+	<div class="tile-cover" in:scale={{ start: 0.3, duration: 200 }} out:fade />
 </button>
 
 <style lang="postcss">
@@ -29,11 +82,11 @@
 		padding-bottom: 100%;
 	}
 
-	.tile-button:active {
+	/* .tile-button:active {
 		content: '';
 		display: block;
 		padding-bottom: 100%;
-	}
+	} */
 
 	.tile-button:disabled {
 		cursor: not-allowed;

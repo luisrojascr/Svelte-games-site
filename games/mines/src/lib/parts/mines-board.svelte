@@ -1,12 +1,16 @@
 <script lang="ts">
 	import Spinner from './components/common/spinner.svelte';
 	import Tile from './tile.svelte';
+
+	import { cardStatus } from '$lib/parts/store/store';
 </script>
 
 <div class="mines-game-wrapper">
-	<div class="mines-result-card-wrapper"></div>
+	<!-- <div class="mines-result-card-wrapper"></div> -->
 	<div class="mines-grid">
-		<Tile />
+		{#each $cardStatus as tile (tile.id)}
+			<Tile id={tile.id} isMine={tile.isMine ?? true} tileState={tile.state} />
+		{/each}
 	</div>
 </div>
 

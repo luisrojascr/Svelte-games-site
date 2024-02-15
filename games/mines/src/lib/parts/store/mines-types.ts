@@ -1,3 +1,13 @@
+export interface Option {
+  label: string;
+  value: number | string;
+  icon?: any;
+  id?: any;
+  inputChildren?: any;
+  code?: any;
+  available?: number;
+}
+
 export enum MinesStateActionsEnum {
   SET_GAME_STATE = 'SET_GAME_STATE',
   SET_RANDOM_TILE = 'SET_RANDOM_TILE',
@@ -131,3 +141,4 @@ export interface MineTileProps {
   tileState: TileStateEnum
   handleTileClick?: (i: number) => void
 }
+
