@@ -21,10 +21,16 @@
 		coinPriceData,
 		curBalance,
 		currentWalletState,
+		gameInProgress,
+		handleBet,
+		handleCashout,
+		handleRandomClick,
 		initialBetAmount,
+		leftGems,
 		loading,
 		maxBet,
 		numOfMines,
+		profitOnWin,
 		selectedFiatCurrency
 	} from '$lib/parts/store/store';
 
@@ -95,6 +101,12 @@
 		value: $numOfMines,
 		label: $numOfMines.toString()
 	};
+
+	$: if (parseFloat($betAmount) <= 0 || $betAmount <= '0') {
+		tooltip = true;
+	} else {
+		tooltip = false;
+	}
 </script>
 
 <div class="game-sidebar-wrapper">
@@ -161,33 +173,98 @@
 			</div>
 		</div>
 
-		<!-- DROPDOWN -->
 		<div>
-			<CustomDropdown
-				bgBlue={true}
-				v3={true}
-				labelV2={true}
-				{wrapperStyle}
-				{buttonStyle}
-				{options}
-				{currentOption}
-				handleOptionClick={handleNumOfMinesChange}
-			/>
+			<LabelInput
+				min={0}
+				step={$selectedFiatCurrency && $coinPriceData
+					? '0.01'
+					: getNextDecimal(decimalCryptoDisplay(0, $currentWalletState.type))}
+				type={'number'}
+				valueStore={profitOnWin}
+				dataTestId="profit"
+				integerOnly={true}
+				labelContent="TOTAL PROFIT ({$profitOnWin})"
+			>
+				<div slot="inputIcon">
+					{#if $selectedFiatCurrency}
+						<FiatCoinIcon coin={$coinPriceData.Fiat} biggerIcon={true} />
+					{:else}
+						<CoinIcon pxSize={16} coin={$currentWalletState?.type} />
+					{/if}
+				</div>
+			</LabelInput>
 		</div>
+
+		{#if $gameInProgress}
+			<div class="first-line">
+				<LabelInput
+					readOnly
+					type={'number'}
+					valueStore={numOfMines}
+					dataTestId="num-of-mines"
+					integerOnly={true}
+					disabled={$loading}
+					labelContent="MINES"
+				/>
+				<LabelInput
+					readOnly
+					type={'number'}
+					valueStore={leftGems}
+					dataTestId="left-gems"
+					integerOnly={true}
+					disabled={$loading}
+					labelContent="GEMS"
+				/>
+			</div>
+		{/if}
+
+		<!-- DROPDOWN -->
+		{#if !$gameInProgress}
+			<div>
+				<CustomDropdown
+					bgBlue={true}
+					v3={true}
+					labelV2={true}
+					{wrapperStyle}
+					buttonStyle={{ backgroundColor: '#222c56', color: '#fff' }}
+					{options}
+					{currentOption}
+					handleOptionClick={handleNumOfMinesChange}
+				/>
+			</div>
+		{/if}
+
+		{#if $gameInProgress}
+			<div>
+				<CustomButton
+					type="submit"
+					onClick={handleRandomClick}
+					width={'100%'}
+					bgColor={'#01d180'}
+					color={'#fff'}
+					padding={'16px'}
+					margin={'10px 0px'}
+					disabled={$loading}
+					hoverColor={'#00b16c'}
+					dataTestId={'random-button'}
+					buttonText={'PICK RANDOM TILE'}
+				></CustomButton>
+			</div>
+		{/if}
 
 		<div>
 			<CustomButton
 				type="submit"
-				onClick={buttonClickHandler}
+				onClick={$gameInProgress ? handleCashout : handleBet}
 				width={'100%'}
 				bgColor={'#01d180'}
 				color={'#fff'}
 				padding={'16px'}
 				margin={'10px 0px'}
-				disabled={$loading}
+				disabled={(gameInProgress && 25 - $numOfMines - $leftGems == 0) || !gameInProgress}
 				hoverColor={'#00b16c'}
 				dataTestId={'bet-button'}
-				buttonText={'Bet'}
+				buttonText={$gameInProgress ? `${'Cashout'}` : `${'Bet'}`}
 			></CustomButton>
 		</div>
 	</div>
@@ -275,7 +352,13 @@
 		@apply absolute top-1/2 left-1/2 transform -translate-x-1 -translate-y-1/2 z-[100];
 	}
 
-	.is-greater-than-three {
-		@apply right-[1em];
+	.first-line {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+	}
+
+	.first-line:first-child {
+		margin-right: 15px;
 	}
 </style>

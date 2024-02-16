@@ -9,7 +9,7 @@
 	<!-- <div class="mines-result-card-wrapper"></div> -->
 	<div class="mines-grid">
 		{#each $cardStatus as tile (tile.id)}
-			<Tile id={tile.id} isMine={tile.isMine ?? true} tileState={tile.state} />
+			<Tile id={tile.id} isMine={tile.isMine ?? false} tileState={tile.state} />
 		{/each}
 	</div>
 </div>

@@ -69,6 +69,7 @@ export const leftGems = writable(0);
 
 export const mineSubsData = writable('');
 
+export const profitOnWin = writable('0'); //change later
 export const betAmount = writable('0');
 export const cashout = writable('2.00');
 export const winChance = writable('49.50');
@@ -149,7 +150,7 @@ const generateRandomArr = (): number[] => {
     return [];
 };
 
-const handleRandomClick = (): void => {
+export const handleRandomClick = (): void => {
     const allTiles: TileState[] = get(cardStatus);
     const hiddenTiles: TileState[] = allTiles.filter(
         (tile: TileState) => tile.state === TileStateEnum.Revealed
@@ -225,7 +226,7 @@ const calculateNextMultiplier = (): void => {
     totalMultiplier.set(total);
 };
 
-const handleBet = (): void => {
+export const handleBet = (): void => {
     const currentNumOfMines: number = get(numOfMines);
     const currentCurBalance: number = get(curBalance);
     const currentBetAmount: number = parseFloat(get(betAmount));
@@ -244,6 +245,35 @@ const handleBet = (): void => {
         updateStorageBalance(currentSessionId, newBalance);
     }
 };
+
+export function handleCashout() {
+    gameInProgress.set(true);
+
+    const updatedCardStatus = get(cardStatus).map((tile) => {
+        if (tile.state === TileStateEnum.Hidden) {
+            return {
+                ...tile,
+                state: TileStateEnum.Revealed,
+                isMine: checkIfMine(tile.id),
+            };
+        }
+        return tile;
+    });
+    cardStatus.set(updatedCardStatus);
+
+    const currentBalance = get(curBalance);
+    const multiplier = get(totalMultiplier);
+    let betAmountNumber = parseFloat(get(betAmount));
+    const newBalance = currentBalance + betAmountNumber * multiplier;
+    const sessionIdValue = get(sessionId);
+
+    updateStorageBalance(sessionIdValue, newBalance);
+    curBalance.set(newBalance);
+
+    currentWalletState.update((wallet) => {
+        return { ...wallet, available: newBalance };
+    });
+}
 
 export function updateStorageBalance(sessionIdToUpdate: string, newBalance: number) {
     balanceList.update(list => {
