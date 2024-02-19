@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { createEventDispatcher, onMount } from 'svelte';
+
 	import DropdownArrowIcon from '$lib/assets/images/DropdownArrowIcon.svelte';
 	import type { Option } from '$lib/parts/store/mines-types';
 	import { clickOutside } from '$lib/utils/click-outside-action';
@@ -16,16 +18,31 @@
 	export let bgBlue: boolean = false;
 	export let section: string = '';
 	export let disabled: boolean = false;
-	// export let isMobile: boolean | undefined;
+	export let isMobile: boolean | undefined;
+	export let bgColor = '#222C55';
+
+	const dispatch = createEventDispatcher();
 
 	let showMenu: boolean = false;
 
-	function handleChange(filteredOption: Option): void {
-		handleOptionClick(filteredOption);
-		showMenu = false;
+	function toggleDropdown() {
+		showMenu = !showMenu;
 	}
 
-	const bgColor = v2 ? '#222C55' : '#ffffff';
+	const handleChange = (filteredOption: Option): void => {
+		handleOptionClick(filteredOption);
+		showMenu = false;
+	};
+
+	$: displayStyle = v3 ? 'grid' : 'flex';
+	$: gridColumns = v3 ? 'repeat(auto-fill, minmax(50px, 1fr))' : '';
+	$: borderColor = v3 ? '#d6d7df' : '';
+	$: backgroundColor = bgBlue ? '#222c56' : '#ffffff';
+
+	$: borderBottomLeftRadius = showMenu ? '0' : '4px';
+	$: borderBottomRightRadius = showMenu ? '0' : '4px';
+	$: borderStyle = `1px solid ${showMenu ? '' : '#8b90a5'}`;
+	$: computedButtonStyle = `${buttonStyle}; border-bottom-left-radius: ${borderBottomLeftRadius}; border-bottom-right-radius: ${borderBottomRightRadius}; background-color: ${bgColor}; border: ${borderStyle};`;
 </script>
 
 <div class="wrapper" style={wrapperStyle} use:clickOutside={() => (showMenu = false)}>
@@ -40,12 +57,7 @@
 		</div>
 	{/if}
 
-	<button
-		class="dropdown-button"
-		on:click={() => (showMenu = !showMenu)}
-		style={buttonStyle}
-		{disabled}
-	>
+	<button class="dropdown-button" on:click={toggleDropdown} style={computedButtonStyle} {disabled}>
 		<span class="button-content">
 			{#if currentOption?.inputChildren}
 				<svelte:component this={currentOption.inputChildren} />
@@ -65,15 +77,28 @@
 	</button>
 
 	{#if showMenu}
-		<div class="menu-content" style={`background-color: ${bgColor};`}>
+		<div
+			class="menu-content"
+			style={`
+				display: ${displayStyle};
+				grid-template-columns: ${gridColumns};
+				border: 1px solid ${borderColor};
+				background-color: ${backgroundColor};
+			`}
+		>
 			{#each options as filteredOption (filteredOption.value)}
 				{#if filteredOption.value !== currentOption?.value}
 					<button
 						class="menu-button"
 						on:click={() => handleChange(filteredOption)}
-						style={buttonStyle}
+						style={`${buttonStyle}; ${v3 ? '' : `border: 1px solid #d6d7df;`}; background-color: ${
+							bgColor ? bgColor : '#ffffff'
+						};`}
+						class:bg-blue={bgColor === '#222c56'}
+						class:v3
+						class:is-mobile={isMobile}
 					>
-						<span class="button-content">
+						<span class="button-content" class:v3>
 							{#if filteredOption.inputChildren}
 								<svelte:component this={filteredOption.inputChildren} />
 							{:else}
@@ -104,9 +129,6 @@
 		width: 100%;
 		color: rgb(255, 255, 255);
 		position: absolute;
-		display: flex;
-		grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
-		border: 1px solid #d6d7df;
 		flex-direction: column;
 		top: calc(100% - 1px);
 		pointer-events: all;
@@ -114,14 +136,13 @@
 		z-index: 1400;
 		border-bottom-left-radius: 4px;
 		border-bottom-right-radius: 4px;
-		background: #ffffff;
-		background-color: #222c56;
 	}
+
 	.menu-content button:last-child {
 		border-bottom-left-radius: 4px;
 		border-bottom-right-radius: 4px;
 		border-bottom: 1px solid #d6d7df;
-		border: 'none';
+		border: none;
 	}
 
 	.dropdown-button {
@@ -133,13 +154,11 @@
 		font-style: normal;
 		line-height: 2;
 		letter-spacing: normal;
-		color: #273262;
+		color: #ffffff;
 		touch-action: manipulation;
 		position: relative;
 		display: inline-flex;
-		-webkit-box-pack: center;
 		justify-content: space-between;
-		-webkit-box-align: center;
 		align-items: center;
 		transition:
 			background 300ms ease 0s,
@@ -147,17 +166,11 @@
 			transform 100ms ease 0s,
 			border-color 150ms ease;
 		border-radius: 4px;
-
-		border-bottom-left-radius: 4px;
-		border-bottom-right-radius: 4px;
-		border: 1px solid #d6d7df;
-		border-bottom: 1px solid #d6d7df;
-		background-color: #ffffff;
 		padding: 6px 12px;
 	}
 
 	.dropdown-button:hover {
-		border: 1px solid #8b90a5;
+		/* border: 1px solid #8b90a5; */
 		transition: border 150ms ease;
 	}
 
@@ -165,46 +178,47 @@
 		font-family: 'Open Sans', serif;
 		font-size: 12px;
 		font-weight: bold;
-		font-stretch: normal;
-		font-style: normal;
 		line-height: 2;
 		letter-spacing: normal;
-		color: #848aa0;
-		touch-action: manipulation;
+		color: #ffffff;
 		position: relative;
 		display: inline-flex;
-		-webkit-box-pack: center;
 		justify-content: flex-start;
-		-webkit-box-align: center;
 		align-items: center;
 		transition:
-			background 300ms ease 0s,
-			opacity 300ms ease 0s,
-			transform 100ms ease 0s;
-		border-top: solid 1px #d6d7df;
-
+			background 300ms ease,
+			opacity 300ms ease,
+			transform 100ms ease;
 		padding: 6px 12px;
-		border-left: 1px solid #d6d7df;
-		border-right: 1px solid #d6d7df;
-		border: none;
 	}
 
 	.menu-button:hover {
-		background-color: #4b4b87;
-		color: #273262;
+		background-color: #fafafb;
+		color: #fafafb;
+	}
+
+	.bg-blue {
+		background-color: #222c56;
+	}
+
+	.v3 {
+		justify-content: center;
+		border: none;
 	}
 
 	.button-content {
 		display: inline-flex;
-		position: relative;
-		-webkit-box-align: center;
 		align-items: center;
 		width: 100%;
-		justify-content: center;
+		justify-content: space-between;
 		transition:
-			background 300ms ease 0s,
-			opacity 300ms ease 0s,
-			transform 100ms ease 0s;
+			background 300ms ease,
+			opacity 300ms ease,
+			transform 100ms ease;
+	}
+
+	.button-content.v3 {
+		justify-content: center;
 	}
 
 	.label-wrapper {

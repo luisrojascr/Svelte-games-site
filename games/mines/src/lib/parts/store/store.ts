@@ -153,7 +153,7 @@ const generateRandomArr = (): number[] => {
 export const handleRandomClick = (): void => {
     const allTiles: TileState[] = get(cardStatus);
     const hiddenTiles: TileState[] = allTiles.filter(
-        (tile: TileState) => tile.state === TileStateEnum.Revealed
+        (tile: TileState) => tile.state === TileStateEnum.Hidden
     );
 
     if (hiddenTiles.length > 0) {

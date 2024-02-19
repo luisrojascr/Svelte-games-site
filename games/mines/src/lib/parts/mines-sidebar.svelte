@@ -77,10 +77,6 @@
 		initialBetAmount.set(parseFloat(newAmount));
 	}
 
-	function buttonClickHandler() {
-		console.log('button test');
-	}
-
 	const options = Array(24)
 		.fill(null)
 		.map((_, i) => ({
@@ -93,9 +89,6 @@
 			numOfMines.set(option.value);
 		}
 	}
-
-	$: wrapperStyle = { backgroundColor: '#222c56' };
-	$: buttonStyle = { backgroundColor: '#222c56', color: '#fff' };
 
 	$: currentOption = {
 		value: $numOfMines,
@@ -121,6 +114,7 @@
 				<button>(Min 0 to 100.00 Max)</button>
 				<span>(Balance - {$curBalance})</span>
 			</div>
+
 			<LabelInput
 				min={0}
 				step={$selectedFiatCurrency && $coinPriceData
@@ -148,7 +142,6 @@
 					</button>
 				</div>
 			</LabelInput>
-
 			<div class="tooltip-parent">
 				<div class="tooltip">
 					{#if tooltip}
@@ -160,13 +153,7 @@
 							align="center"
 							bind:show={tooltip}
 							autoPosition
-							action="prop"
-							style={{
-								backgroundColor: '#fff',
-								fontSize: '10px',
-								color: '#222c55',
-								padding: '8px'
-							}}>&nbsp;</Tooltip
+							action="prop">&nbsp;</Tooltip
 						>
 					{/if}
 				</div>
@@ -225,11 +212,12 @@
 					bgBlue={true}
 					v3={true}
 					labelV2={true}
-					{wrapperStyle}
+					wrapperStyle={{ backgroundColor: '#222c56' }}
 					buttonStyle={{ backgroundColor: '#222c56', color: '#fff' }}
 					{options}
 					{currentOption}
 					handleOptionClick={handleNumOfMinesChange}
+					isMobile={false}
 				/>
 			</div>
 		{/if}
@@ -261,7 +249,10 @@
 				color={'#fff'}
 				padding={'16px'}
 				margin={'10px 0px'}
-				disabled={(gameInProgress && 25 - $numOfMines - $leftGems == 0) || !gameInProgress}
+				disabled={(gameInProgress && 25 - $numOfMines - $leftGems == 0) ||
+					!gameInProgress ||
+					$betAmount === '0' ||
+					parseFloat($betAmount) === 0}
 				hoverColor={'#00b16c'}
 				dataTestId={'bet-button'}
 				buttonText={$gameInProgress ? `${'Cashout'}` : `${'Bet'}`}
@@ -271,6 +262,13 @@
 </div>
 
 <style lang="postcss">
+	:global(.tooltip.tooltip-theme) {
+		--tooltip-background-color: rgb(255, 255, 255);
+		--tooltip-color: #222c55;
+		--tooltip-font-size: 10px;
+		--tooltip-padding: 8px;
+	}
+
 	.game-sidebar-wrapper {
 		@apply flex flex-col items-stretch min-w-[275px];
 	}
@@ -349,7 +347,7 @@
 	}
 
 	.tooltip {
-		@apply absolute top-1/2 left-1/2 transform -translate-x-1 -translate-y-1/2 z-[100];
+		@apply absolute left-1/2 transform -translate-x-1 -translate-y-6 z-[100] min-w-44;
 	}
 
 	.first-line {
