@@ -18,6 +18,11 @@ export function round(value: number, decimalPlaces: number | undefined = 0): num
     )
 }
 
+export function getWinChanceFromCashout(cashout: any) {
+    return round(99 / cashout, 4);
+}
+
+
 // Round off to 2 decimal places
 export function roundOff2(val: number): string {
     if (isNaN(val)) return '0.00';

@@ -14,7 +14,9 @@
 	import { spring } from 'svelte/motion';
 
 	import {
+		autoBetInProgress,
 		cashout,
+		gameInProgress,
 		isRollOverOrUnder,
 		isSound,
 		numberRolled,
@@ -30,7 +32,6 @@
 	let rotateBoxTo = 180;
 	let angle = 0;
 	let boxCenterPoint = { x: 0, y: 0 };
-	let gameInProgress = false;
 	let thumbButtonWrapper: HTMLElement | null = null;
 
 	let winChance = '0.00';
@@ -89,28 +90,21 @@
 	// Start the animation when numberRolled changes
 	$: {
 		if ($numberRolled) {
-			scale.set(1);
-			// opacity.set(0.5);
+			scale.set(0.6);
+			opacity.set(1);
 
 			setTimeout(() => {
-				opacity.set(0);
-			}, 200);
-
-			setTimeout(() => {
-				scale.set(1.2);
-				opacity.set(1);
+				scale.set(1);
+				opacity.set(0.9);
 			}, 50);
 
 			setTimeout(() => {
 				scale.set(1.2);
 				setTimeout(() => {
 					scale.set(1);
-				}, 100);
-			}, 100);
-
-			setTimeout(() => {
-				opacity.set(0);
-			}, 3000);
+					opacity.set(1);
+				}, 200);
+			}, 50);
 		}
 	}
 
@@ -349,7 +343,7 @@
 			on:touchstart={touchStartHandler}
 			on:touchend={touchEndHandler}
 			on:touchmove={touchMoveHandler}
-			disabled={gameInProgress}
+			disabled={$gameInProgress || $autoBetInProgress}
 		></button>
 	</div>
 	<div class="filler"></div>

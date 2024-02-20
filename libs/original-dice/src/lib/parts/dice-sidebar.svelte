@@ -34,13 +34,15 @@
 		maxBet,
 		numOfBets,
 		onLoss,
+		onWin,
 		profitOnWin,
 		resetBoard,
 		selectedFiatCurrency,
-		selectedOnLoss
+		selectedOnLoss,
+		selectedOnWin
 	} from '$lib/parts/store/store.js';
 
-	let tooltip = false;
+	// let tooltip = false;
 
 	const bettingVariant = writable(BettingVariants.MANUAL);
 
@@ -61,12 +63,21 @@
 		bettingVariant.set(variant);
 	}
 
-	function handleReset() {
-		selectedOnLoss.set(OnLoss.AUTO);
-		onLoss.set('0.00'); // Reset the onLoss value
+	function handleOnWinReset() {
+		selectedOnWin.set(OnWin.AUTO);
+		onWin.set('0.00');
 	}
 
-	function handleIncrease() {
+	function handleOnWinIncrease() {
+		selectedOnWin.set(OnWin.INCREASE);
+	}
+
+	function handleOnLossReset() {
+		selectedOnLoss.set(OnLoss.AUTO);
+		onLoss.set('0.00');
+	}
+
+	function handleOnLossIncrease() {
 		selectedOnLoss.set(OnLoss.INCREASE);
 	}
 
@@ -79,16 +90,14 @@
 					? (parseFloat($betAmount) / 2).toFixed(2)
 					: (parseFloat($betAmount) / 2).toFixed(decimalDisplayLength($currentWalletState.type));
 		} else if (mode === 'double') {
-			const doubleAmount = parseFloat($betAmount) * 2;
-			if (
-				doubleAmount <=
-				Math.min(parseFloat($currentWalletState.available.toString()), parseFloat($maxBet))
-			) {
-				newAmount =
-					$selectedFiatCurrency && $coinPriceData
-						? doubleAmount.toFixed(2)
-						: doubleAmount.toFixed(decimalDisplayLength($currentWalletState.type));
-			}
+			const doubleAmount = parseFloat(newAmount) * 2;
+			const maxAllowedBet = Math.min(
+				parseFloat($currentWalletState.available.toString()),
+				parseFloat($maxBet)
+			);
+
+			//@ts-ignore
+			newAmount = Math.min(doubleAmount, maxAllowedBet, 100);
 		} else if (mode === 'maxBet') {
 			newAmount =
 				$selectedFiatCurrency && $coinPriceData
@@ -97,11 +106,11 @@
 					: $maxBet;
 		}
 
-		if ($betAmount === '0.00000000') {
-			newAmount = '0.00000001';
-		} else if ($betAmount === '0.00') {
-			newAmount = '0.01';
-		}
+		// if ($betAmount === '0.00000000') {
+		// 	newAmount = '0.00000001';
+		// } else if ($betAmount === '0.00') {
+		// 	newAmount = '0.01';
+		// }
 
 		console.log($betAmount);
 		console.log('Bet amount change mode:', mode);
@@ -111,7 +120,9 @@
 		initialBetAmount.set(parseFloat(newAmount));
 	}
 
-	$: inputDisabled = $selectedOnLoss === OnLoss.AUTO;
+	$: inputLossDisabled = $selectedOnLoss === OnLoss.AUTO;
+
+	$: inputWinDisabled = $selectedOnWin === OnWin.AUTO;
 
 	$: if (Number($betAmount) === 0) {
 		if ($selectedFiatCurrency && $coinPriceData) {
@@ -132,11 +143,14 @@
 		}
 	}
 
-	$: if (parseFloat($betAmount) <= 0 || $betAmount <= '0') {
-		tooltip = true;
-	} else {
-		tooltip = false;
-	}
+	$: isBetAmountValid =
+		(parseFloat($betAmount) > 0 && parseFloat($betAmount) < 1) || parseFloat($betAmount) >= 1;
+
+	// $: if (parseFloat($betAmount) <= 0 || $betAmount <= '0') {
+	// 	tooltip = true;
+	// } else {
+	// 	tooltip = false;
+	// }
 </script>
 
 <div class="game-sidebar-wrapper">
@@ -169,12 +183,9 @@
 		{#if $bettingVariant === BettingVariants.MANUAL}
 			<!-- FIRST INPUT -->
 			<div>
-				<div
-					style="display: flex; flex-direction: column; justify-content: flex-start; align-items: start;"
-					class="label-content"
-				>
-					<span>Bet Amount</span>
-					<button>(Min 0 to 100.00 Max)</button>
+				<div class="label-content">
+					<span>BET AMOUNT</span>
+					<button on:click={() => handleBetAmountChange('maxBet')}>(Max - 100.00)</button>
 					<span>(Balance - {$curBalance})</span>
 				</div>
 				<LabelInput
@@ -185,7 +196,7 @@
 					type={'number'}
 					valueStore={betAmount}
 					dataTestId="bet-amount"
-					integerOnly={true}
+					integerOnly={false}
 					disabled={$loading || $gameInProgress || $autoBetInProgress}
 				>
 					<div slot="inputIcon">
@@ -205,7 +216,7 @@
 					</div>
 				</LabelInput>
 
-				<div class="tooltip-parent">
+				<!-- <div class="tooltip-parent">
 					<div class="tooltip">
 						{#if tooltip}
 							<Tooltip
@@ -226,7 +237,7 @@
 							>
 						{/if}
 					</div>
-				</div>
+				</div> -->
 			</div>
 
 			<!-- SECOND INPUT -->
@@ -241,6 +252,7 @@
 					dataTestId="bet-amount"
 					integerOnly={true}
 					labelContent="Profit on Win"
+					readOnly
 				>
 					<div slot="inputIcon">
 						{#if $selectedFiatCurrency}
@@ -254,14 +266,14 @@
 
 			<div>
 				<CustomButton
-					type="submit"
+					type="button"
 					onClick={buttonClickHandler}
 					width={'100%'}
 					bgColor={'#01d180'}
 					color={'#fff'}
 					padding={'16px'}
 					margin={'10px 0px'}
-					disabled={$loading || $gameInProgress || parseFloat($betAmount) <= 0 || $betAmount <= '0'}
+					disabled={!isBetAmountValid || $loading || $gameInProgress}
 					hoverColor={'#00b16c'}
 					dataTestId={'bet-button'}
 					buttonText={'Bet'}
@@ -287,7 +299,7 @@
 					type={'number'}
 					valueStore={betAmount}
 					dataTestId="bet-amount"
-					integerOnly={true}
+					integerOnly={false}
 					disabled={$loading || $gameInProgress || $autoBetInProgress}
 				>
 					<div slot="inputIcon">
@@ -307,7 +319,7 @@
 					</div>
 				</LabelInput>
 
-				<div class="tooltip-parent">
+				<!-- <div class="tooltip-parent">
 					<div class="tooltip">
 						{#if tooltip}
 							<Tooltip
@@ -328,7 +340,7 @@
 							>
 						{/if}
 					</div>
-				</div>
+				</div> -->
 			</div>
 
 			<div>
@@ -364,12 +376,49 @@
 						? '0.01'
 						: getNextDecimal(decimalCryptoDisplay(0, $currentWalletState.type))}
 					type={'number'}
+					valueStore={onWin}
+					dataTestId="on-win"
+					integerOnly={true}
+					labelContent="ON WIN"
+					buttonsPosition={'start'}
+					disabled={$loading || $gameInProgress || $autoBetInProgress || inputWinDisabled}
+				>
+					<PercentIcon width="11px" height="13px" fill="#848aa0" slot="inputIcon" />
+
+					<div class="btn-parent-v2" slot="buttons">
+						<button
+							class="buttons-v2"
+							disabled={$loading || $gameInProgress || $autoBetInProgress}
+							class:selected={$selectedOnWin === OnWin.AUTO}
+							on:click={handleOnWinReset}
+						>
+							<span>RESET</span>
+						</button>
+						<button
+							class="buttons-v2"
+							disabled={$loading || $gameInProgress || $autoBetInProgress}
+							class:selected={$selectedOnWin === OnWin.INCREASE}
+							on:click={handleOnWinIncrease}
+						>
+							<span>INCREASE BY</span>
+						</button>
+					</div>
+				</LabelInput>
+			</div>
+
+			<div>
+				<LabelInput
+					min={0}
+					step={selectedFiatCurrency && coinPriceData
+						? '0.01'
+						: getNextDecimal(decimalCryptoDisplay(0, $currentWalletState.type))}
+					type={'number'}
 					valueStore={onLoss}
 					dataTestId="on-loss"
 					integerOnly={true}
-					labelContent="On Loss"
+					labelContent="ON LOSS"
 					buttonsPosition={'start'}
-					disabled={$loading || $gameInProgress || $autoBetInProgress || inputDisabled}
+					disabled={$loading || $gameInProgress || $autoBetInProgress || inputLossDisabled}
 				>
 					<PercentIcon width="11px" height="13px" fill="#848aa0" slot="inputIcon" />
 
@@ -378,7 +427,7 @@
 							class="buttons-v2"
 							disabled={$loading || $gameInProgress || $autoBetInProgress}
 							class:selected={$selectedOnLoss === OnLoss.AUTO}
-							on:click={handleReset}
+							on:click={handleOnLossReset}
 						>
 							<span>RESET</span>
 						</button>
@@ -386,7 +435,7 @@
 							class="buttons-v2"
 							disabled={$loading || $gameInProgress || $autoBetInProgress}
 							class:selected={$selectedOnLoss === OnLoss.INCREASE}
-							on:click={handleIncrease}
+							on:click={handleOnLossIncrease}
 						>
 							<span>INCREASE BY</span>
 						</button>
@@ -452,7 +501,7 @@
 						disabled={$loading ||
 							$gameInProgress ||
 							parseFloat($betAmount) <= 0 ||
-							$betAmount <= '0'}
+							$betAmount.trim() === '0'}
 						hoverColor={$gameInProgress ? undefined : '#00b16c'}
 						dataTestId={'bet-button'}
 						buttonText={$autoBetInProgress ? 'Stop Autobet' : 'Start Autobet'}

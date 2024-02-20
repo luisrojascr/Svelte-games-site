@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { betAmount } from '$lib/parts/store/store.js';
 	import { createEventDispatcher, onDestroy, onMount } from 'svelte';
 
 	export let type: string = 'text';

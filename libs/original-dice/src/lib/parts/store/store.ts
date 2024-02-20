@@ -37,7 +37,7 @@ export const fiat = writable(getURLParameter('fiat', ''));
 export const startBalance = writable(getURLParameter('startBalance', '1000'))
 export const sessionId = writable(getURLParameter('sessionId', '1001'))
 export const maxWin = writable(getURLParameter('maxWin', '1000'))
-export const minBet = writable(getURLParameter('minBet', '0'))
+export const minBet = writable(getURLParameter('minBet', '0.01'))
 export const maxBet = writable(getURLParameter('maxBet', '100'))
 
 export const gameInProgress = writable(false);
@@ -50,7 +50,7 @@ export const numberRolled = writable(0);
 export const rollOverUnder = writable('50.50');
 export const isRollOverOrUnder = writable<DiceRollConditionEnum>(DiceRollConditionEnum.Over);
 
-export const betAmount = writable('0');
+export const betAmount = writable('0.01');
 export const cashout = writable('2.00');
 export const winChance = writable('49.50');
 
@@ -60,7 +60,7 @@ export const initialBetAmount = writable(0);
 //     decimalCryptoDisplay(0, $currentWalletState.type)
 // );
 
-export const onWin = writable('3');
+export const onWin = writable('0');
 export const onLoss = writable('0');
 export const currentProfit = writable(0);
 export const profitOnWin = writable('0');
@@ -196,7 +196,7 @@ export const handleOnePlay = async (isAutoBet: boolean) => {
             setTimeout(() => {
                 playDiceWinSound();
             }, 500);
-            // updateBetAmountOnWin()
+            updateBetAmountOnWin()
             updateBalance(0, parseFloat(get(profitOnWin)));
             // newProfit = currentProfit + parseFloat(profitOnWin)
         } else {
@@ -297,6 +297,25 @@ $: {
 //     betAmount.set(newBetAmount);
 //     console.log("test:", newBetAmount)
 // };
+
+export const updateBetAmountOnWin = () => {
+    const currentBetAmount = parseFloat(get(betAmount));
+    let newBetAmount: string;
+
+    if (get(selectedOnWin) === OnWin.INCREASE) {
+        const amountToAdd = (currentBetAmount / 100) * parseFloat(get(onWin));
+        newBetAmount = (currentBetAmount + amountToAdd).toFixed(decimalDisplayLength(get(currentWalletState).type));
+    } else {
+        newBetAmount = get(betAmount) as string;
+    }
+
+    if (get(selectedFiatCurrency) && get(coinPriceData)) {
+        newBetAmount = Number(newBetAmount).toFixed(2);
+    }
+
+    betAmount.set(newBetAmount);
+    console.log("test:", newBetAmount)
+};
 
 export const updateBetAmountOnLoss = () => {
     const currentBetAmount = parseFloat(get(betAmount));

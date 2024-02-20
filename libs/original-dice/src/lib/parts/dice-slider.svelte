@@ -86,9 +86,9 @@
 				}, 350);
 			}, 350);
 
-			setTimeout(() => {
-				opacity.set(0);
-			}, 3000);
+			// setTimeout(() => {
+			// 	opacity.set(0);
+			// }, 3000);
 		}
 	}
 

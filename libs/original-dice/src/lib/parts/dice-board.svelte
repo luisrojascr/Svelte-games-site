@@ -8,7 +8,7 @@
 	import { onDestroy, onMount } from 'svelte';
 	import { writable } from 'svelte/store';
 	import { DiceRollConditionEnum } from '../utils/cc.js';
-	import { round } from '../utils/helper.js';
+	import { getWinChanceFromCashout, round } from '../utils/helper.js';
 	import PastBetButton from './components/common/past-bet-button.svelte';
 	import DiceSlider from './dice-slider.svelte';
 	import DiceWheel from './dice-wheel.svelte';
@@ -55,10 +55,10 @@
 		isDiceIconDisplayed = !isDiceIconDisplayed;
 	}
 
-	function handleWinChanceChange(event: Event) {
-		const inputElement = event.target as HTMLInputElement;
-		winChance.set(inputElement.value); // Directly setting the string value
-	}
+	// function handleWinChanceChange(event: Event) {
+	// 	const inputElement = event.target as HTMLInputElement;
+	// 	winChance.set(inputElement.value); // Directly setting the string value
+	// }
 
 	function handleRollOverUnderClick() {
 		$isRollOverOrUnder =
@@ -71,6 +71,54 @@
 			rotateBoxTo.set((100 - parseFloat(newValue)) * 3.6);
 			return newValue;
 		});
+	}
+
+	function handleWinChanceChange(event: Event) {
+		const target = event.target as HTMLInputElement;
+		const newValue = target.value;
+
+		if (parseFloat(newValue) >= MIN_WIN_CHANCE && parseFloat(newValue) <= MAX_WIN_CHANCE) {
+			const newCashoutValue = round(99 / parseFloat(newValue), 4).toString();
+			cashout.set(newCashoutValue);
+			winChance.set(parseFloat(newValue).toFixed(2));
+
+			if ($isRollOverOrUnder === DiceRollConditionEnum.Over) {
+				rollOverUnder.set((100 - parseFloat(newValue)).toFixed(2));
+				rotateBoxTo.set((100 - parseFloat(newValue)) * 3.6);
+			} else {
+				rollOverUnder.set(newValue);
+				rotateBoxTo.set(parseFloat(newValue) * 3.6);
+			}
+		} else {
+			winChance.set(newValue);
+		}
+	}
+
+	function handleWinChanceBlur() {
+		if ($winChance === '') {
+			winChance.set(getWinChanceFromCashout(parseFloat($cashout)).toFixed(2));
+		} else {
+			const winChanceValue = parseFloat($winChance);
+			if (winChanceValue < MIN_WIN_CHANCE) {
+				const newCashout = round(99 / MIN_WIN_CHANCE, 4).toString();
+				cashout.set(newCashout);
+				winChance.set(MIN_WIN_CHANCE.toString());
+				rollOverUnder.set(
+					$isRollOverOrUnder === DiceRollConditionEnum.Over
+						? newCashout
+						: (100 - parseFloat(newCashout)).toFixed(2)
+				);
+			} else if (winChanceValue > MAX_WIN_CHANCE) {
+				const newCashout = round(99 / MAX_WIN_CHANCE, 4).toString();
+				cashout.set(newCashout);
+				winChance.set(MAX_WIN_CHANCE.toFixed(2));
+				rollOverUnder.set(
+					$isRollOverOrUnder === DiceRollConditionEnum.Over
+						? newCashout
+						: (100 - parseFloat(newCashout)).toFixed(2)
+				);
+			}
+		}
 	}
 
 	$: if ($cashout && parseFloat($cashout) >= MIN_PAYOUT) {
@@ -177,19 +225,18 @@
 						<input
 							class="game-input"
 							style="overflow: hidden;"
-							type="button"
+							type="number"
 							{disabled}
-							on:click={handleRollOverUnderClick}
 							bind:value={$rollOverUnder}
 						/>
-						<div class="input-content-img">
+						<button class="input-content-img" on:click={handleRollOverUnderClick}>
 							<RefreshIcon
 								width="12px"
 								height="12px"
 								fill="#7b89c5"
 								style="transform: translate(0, -50%) rotate({$rotateBoxTo}deg);"
 							/>
-						</div>
+						</button>
 					</span>
 				</span>
 				<span class="label-text">
@@ -206,6 +253,7 @@
 							type="number"
 							bind:value={$winChance}
 							on:input={handleWinChanceChange}
+							on:blur={handleWinChanceBlur}
 						/>
 						<div class="input-content-img">
 							<PercentIcon width="12px" height="12px" fill="#7b89c5" />
@@ -274,9 +322,9 @@
 		@apply relative flex-grow w-full flex;
 	}
 
-	.game-input {
+	/* .game-input {
 		@apply font-normal text-lg overflow-scroll bg-deepBlue text-white rounded border border-gray-700 py-2 px-3 pr-7 transition-all duration-200 ease-out outline-none w-80;
-	}
+	} */
 
 	/* Footer inputs */
 	.dice-footer {
@@ -299,11 +347,11 @@
 		@apply relative flex-grow w-full flex;
 	}
 	.input-content-img {
-		@apply absolute top-1/2 transform -translate-y-1/2 pointer-events-none text-[#B1BAD3] cursor-text right-[20%] overflow-hidden;
+		@apply absolute top-1/2 transform -translate-y-1/2 text-[#B1BAD3] right-[20%] overflow-hidden cursor-pointer;
 	}
 
 	.game-input {
-		@apply font-normal text-[0.8rem] overflow-scroll bg-deepBlue text-white rounded border border-gray-700 py-2 px-3 pr-7 transition-all duration-200 ease-out outline-none;
+		@apply font-normal text-[0.8rem] overflow-scroll bg-deepBlue text-white rounded border border-[#404C7D] py-2 pl-3 pr-10 transition-all duration-200 ease-out outline-none;
 	}
 
 	.game-input:hover {
