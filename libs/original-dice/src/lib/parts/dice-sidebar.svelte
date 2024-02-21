@@ -498,10 +498,7 @@
 						color={'#fff'}
 						padding={'16px'}
 						margin={'10px 0px'}
-						disabled={$loading ||
-							$gameInProgress ||
-							parseFloat($betAmount) <= 0 ||
-							$betAmount.trim() === '0'}
+						disabled={!isBetAmountValid || $loading || $gameInProgress}
 						hoverColor={$gameInProgress ? undefined : '#00b16c'}
 						dataTestId={'bet-button'}
 						buttonText={$autoBetInProgress ? 'Stop Autobet' : 'Start Autobet'}
