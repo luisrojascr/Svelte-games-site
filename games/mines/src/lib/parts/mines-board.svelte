@@ -1,11 +1,55 @@
 <script lang="ts">
+	import { writable } from 'svelte/store';
+
 	import Spinner from './components/common/spinner.svelte';
 	import Tile from './tile.svelte';
 
 	import { cardStatus } from '$lib/parts/store/store';
+	import { onDestroy, onMount } from 'svelte';
+
+	let gameContainer: any;
+	let resizeSecond: boolean = false;
+
+	let windowWidth = window.innerWidth;
+
+	const dimensions = writable({ width: 0, height: 0 });
+
+	const mainBoardBreakpoints = {
+		first: 780,
+		second: 510,
+		third: 395
+	};
+
+	function updateDimensions() {
+		dimensions.set({ width: gameContainer.clientWidth, height: gameContainer.clientHeight });
+	}
+
+	function updateWindowWidth() {
+		windowWidth = window.innerWidth;
+	}
+
+	$: dimensions.subscribe(($dimensions) => {
+		if ($dimensions.width <= mainBoardBreakpoints.second) {
+			resizeSecond = true;
+		} else {
+			resizeSecond = false;
+		}
+	});
+
+	onMount(() => {
+		window.addEventListener('resize', updateWindowWidth);
+		window.addEventListener('resize', updateDimensions);
+		updateDimensions();
+	});
+
+	// Cleanup
+	onDestroy(() => {
+		window.removeEventListener('resize', updateDimensions);
+		window.removeEventListener('resize', updateWindowWidth);
+	});
 </script>
 
-<div class="mines-game-wrapper">
+<div bind:this={gameContainer} class="mines-game-wrapper">
 	<!-- <div class="mines-result-card-wrapper"></div> -->
 	<div class="mines-grid">
 		{#each $cardStatus as tile (tile.id)}

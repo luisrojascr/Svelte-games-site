@@ -9,6 +9,9 @@ import { CurrencyEnum, DiceRollConditionEnum, LanguageEnum, OnLoss, OnWin } from
 import { decimalCryptoDisplay, decimalDisplayLength, generateRandomHex, randomIntFromInterval, timeout } from '$lib/utils/helper.js';
 import { derived, get, writable } from 'svelte/store';
 
+import diamondOpen from '$lib/assets/sounds/diamondOpen.mp3';
+import mineOpen from '$lib/assets/sounds/mineOpen.mp3';
+
 // Initial array of numbers
 const nums: number[] = Array.from({ length: 25 }, (_, index) => index);
 
@@ -80,20 +83,6 @@ export const onWin = writable('3');
 export const onLoss = writable('0');
 export const currentProfit = writable(0);
 
-// This is for the sound
-// export const playBetSound = () => {
-//     const betSound = new Audio();
-//     betSound.play();
-// };
-// export const playMinesSound = () => {
-//     const rollSound = new Audio();
-//     rollSound.play();
-// };
-// export const playMinesWinSound = () => {
-//     const winSound = new Audio();
-//     winSound.play();
-// };
-
 export const selectedFiatCurrency = derived(fiat, ($fiat: string) =>
     $fiat && FiatArr.includes($fiat.toLowerCase()) ? $fiat : null
 );
@@ -116,6 +105,17 @@ fiat.subscribe($fiat => {
         return { ...data, Fiat: $fiat || 'USD' };
     });
 });
+
+// This is for the sound
+export const playOpenDiamond = () => {
+    const diamondSound = new Audio(diamondOpen);
+    diamondSound.play();
+};
+export const playOpenMine = () => {
+    const mineSound = new Audio(mineOpen);
+    mineSound.play();
+};
+
 
 export const isSound = writable(true);
 export const lang = writable(LanguageEnum.En);
@@ -163,8 +163,6 @@ export const handleRandomClick = (): void => {
     }
 };
 
-
-
 export const handleTileClick = async (index: number): Promise<void> => {
     const currentCardStatus: TileState[] = get(cardStatus);
     const currentLeftGems: number = get(leftGems);
@@ -173,6 +171,7 @@ export const handleTileClick = async (index: number): Promise<void> => {
         const isMine = checkIfMine(index);
 
         if (isMine) {
+            playOpenMine();
             const newCardStatus = currentCardStatus.map((tile) =>
                 tile.id === index
                     ? { ...tile, state: TileStateEnum.UserRevealed, isMine: true }
@@ -196,6 +195,7 @@ export const handleTileClick = async (index: number): Promise<void> => {
 
             cardStatus.set(nextCardStatus);
         } else {
+            playOpenDiamond();
             const newCardStatus = currentCardStatus.map((tile) =>
                 tile.id === index
                     ? { ...tile, state: TileStateEnum.UserRevealed }

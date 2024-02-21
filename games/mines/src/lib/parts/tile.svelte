@@ -10,7 +10,12 @@
 		MinesStateActionsEnum
 	} from '$lib/parts/store/mines-types';
 	import { TileStateEnum } from '$lib/parts/store/mines-types';
-	import { gameInProgress, handleTileClick } from '$lib/parts/store/store';
+	import {
+		gameInProgress,
+		handleTileClick,
+		playOpenDiamond,
+		playOpenMine
+	} from '$lib/parts/store/store';
 
 	import { spring } from 'svelte/motion';
 	import { fade, fly, scale } from 'svelte/transition';
@@ -18,6 +23,9 @@
 	export let id: number;
 	export let isMine: boolean | undefined;
 	export let tileState: TileStateEnum;
+
+	import diamondOpen from '$lib/assets/sounds/diamondOpen.mp3';
+	import mineOpen from '$lib/assets/sounds/mineOpen.mp3';
 
 	function generateBackgroundImage(tileState: TileStateEnum, isMine: boolean): string {
 		if (tileState === TileStateEnum.UserRevealed) {

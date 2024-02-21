@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { derived } from 'svelte/store';
+
 	import CoinIcon from '$lib/parts/components/common/crypto-icon-getter.svelte';
 	import FiatCoinIcon from '$lib/parts/components/common/icon-getter.svelte';
 	import CustomButton from './components/common/custom-button.svelte';
@@ -31,7 +33,8 @@
 		maxBet,
 		numOfMines,
 		profitOnWin,
-		selectedFiatCurrency
+		selectedFiatCurrency,
+		totalMultiplier
 	} from '$lib/parts/store/store';
 
 	let tooltip = false;
@@ -45,28 +48,20 @@
 					? (parseFloat($betAmount) / 2).toFixed(2)
 					: (parseFloat($betAmount) / 2).toFixed(decimalDisplayLength($currentWalletState.type));
 		} else if (mode === 'double') {
-			const doubleAmount = parseFloat($betAmount) * 2;
-			if (
-				doubleAmount <=
-				Math.min(parseFloat($currentWalletState.available.toString()), parseFloat($maxBet))
-			) {
-				newAmount =
-					$selectedFiatCurrency && $coinPriceData
-						? doubleAmount.toFixed(2)
-						: doubleAmount.toFixed(decimalDisplayLength($currentWalletState.type));
-			}
+			const doubleAmount = parseFloat(newAmount) * 2;
+			const maxAllowedBet = Math.min(
+				parseFloat($currentWalletState.available.toString()),
+				parseFloat($maxBet)
+			);
+
+			//@ts-ignore
+			newAmount = Math.min(doubleAmount, maxAllowedBet, 100);
 		} else if (mode === 'maxBet') {
 			newAmount =
 				$selectedFiatCurrency && $coinPriceData
 					? //@ts-ignore
 						roundOff2(Number($maxBet) * Number($coinPriceData[$currentWalletState.type] || '0'))
 					: $maxBet;
-		}
-
-		if ($betAmount === '0.00000000') {
-			newAmount = '0.00000001';
-		} else if ($betAmount === '0.00') {
-			newAmount = '0.01';
 		}
 
 		console.log($betAmount);
@@ -90,16 +85,55 @@
 		}
 	}
 
+	const totalProfit = derived(
+		[totalMultiplier, betAmount, currentWalletState],
+		//@ts-ignore
+		([$totalMultiplier, $betAmount, $currentWalletState]) => {
+			if ($totalMultiplier == 1) {
+				return '0.0';
+			} else {
+				return ($betAmount * $totalMultiplier).toFixed(
+					decimalDisplayLength($currentWalletState.type)
+				);
+			}
+		}
+	);
+
+	const displayProfit = derived(
+		[totalProfit, selectedFiatCurrency, coinPriceData, betAmount],
+		//@ts-ignore
+		([$totalProfit, $selectedFiatCurrency, $coinPriceData, $betAmount]) => {
+			const profit = parseFloat($totalProfit);
+			if (profit) {
+				const deduction = profit - parseFloat($betAmount);
+				if ($selectedFiatCurrency && $coinPriceData) {
+					return deduction.toFixed(2);
+				} else {
+					return deduction.toFixed(decimalDisplayLength($currentWalletState.type));
+				}
+			} else {
+				if ($selectedFiatCurrency && $coinPriceData) {
+					return Number($totalProfit).toFixed(2);
+				} else {
+					return Number($totalProfit).toFixed(decimalDisplayLength($currentWalletState.type));
+				}
+			}
+		}
+	);
+
 	$: currentOption = {
 		value: $numOfMines,
 		label: $numOfMines.toString()
 	};
 
-	$: if (parseFloat($betAmount) <= 0 || $betAmount <= '0') {
-		tooltip = true;
-	} else {
-		tooltip = false;
-	}
+	// $: if (parseFloat($betAmount) <= 0 || $betAmount <= '0') {
+	// 	tooltip = true;
+	// } else {
+	// 	tooltip = false;
+	// }
+
+	$: isBetAmountValid =
+		(parseFloat($betAmount) > 0 && parseFloat($betAmount) < 1) || parseFloat($betAmount) >= 1;
 </script>
 
 <div class="game-sidebar-wrapper">
@@ -110,8 +144,8 @@
 				style="display: flex; flex-direction: column; justify-content: flex-start; align-items: start;"
 				class="label-content"
 			>
-				<span>Bet Amount</span>
-				<button>(Min 0 to 100.00 Max)</button>
+				<span>BET AMOUNT</span>
+				<button on:click={() => handleBetAmountChange('maxBet')}>(Max - 100.00)</button>
 				<span>(Balance - {$curBalance})</span>
 			</div>
 
@@ -123,7 +157,7 @@
 				type={'number'}
 				valueStore={betAmount}
 				dataTestId="bet-amount"
-				integerOnly={true}
+				integerOnly={false}
 				disabled={$loading}
 			>
 				<div slot="inputIcon">
@@ -142,7 +176,7 @@
 					</button>
 				</div>
 			</LabelInput>
-			<div class="tooltip-parent">
+			<!-- <div class="tooltip-parent">
 				<div class="tooltip">
 					{#if tooltip}
 						<Tooltip
@@ -157,32 +191,32 @@
 						>
 					{/if}
 				</div>
-			</div>
-		</div>
-
-		<div>
-			<LabelInput
-				min={0}
-				step={$selectedFiatCurrency && $coinPriceData
-					? '0.01'
-					: getNextDecimal(decimalCryptoDisplay(0, $currentWalletState.type))}
-				type={'number'}
-				valueStore={profitOnWin}
-				dataTestId="profit"
-				integerOnly={true}
-				labelContent="TOTAL PROFIT ({$profitOnWin})"
-			>
-				<div slot="inputIcon">
-					{#if $selectedFiatCurrency}
-						<FiatCoinIcon coin={$coinPriceData.Fiat} biggerIcon={true} />
-					{:else}
-						<CoinIcon pxSize={16} coin={$currentWalletState?.type} />
-					{/if}
-				</div>
-			</LabelInput>
+			</div> -->
 		</div>
 
 		{#if $gameInProgress}
+			<div>
+				<LabelInput
+					min={0}
+					step={$selectedFiatCurrency && $coinPriceData
+						? '0.01'
+						: getNextDecimal(decimalCryptoDisplay(0, $currentWalletState.type))}
+					type={'number'}
+					valueStore={displayProfit}
+					dataTestId="profit"
+					integerOnly={true}
+					labelContent="TOTAL PROFIT ({$totalMultiplier}X)"
+				>
+					<div slot="inputIcon">
+						{#if $selectedFiatCurrency}
+							<FiatCoinIcon coin={$coinPriceData.Fiat} biggerIcon={true} />
+						{:else}
+							<CoinIcon pxSize={16} coin={$currentWalletState?.type} />
+						{/if}
+					</div>
+				</LabelInput>
+			</div>
+
 			<div class="first-line">
 				<LabelInput
 					readOnly
@@ -238,26 +272,41 @@
 					buttonText={'PICK RANDOM TILE'}
 				></CustomButton>
 			</div>
-		{/if}
 
-		<div>
-			<CustomButton
-				type="submit"
-				onClick={$gameInProgress ? handleCashout : handleBet}
-				width={'100%'}
-				bgColor={'#01d180'}
-				color={'#fff'}
-				padding={'16px'}
-				margin={'10px 0px'}
-				disabled={(gameInProgress && 25 - $numOfMines - $leftGems == 0) ||
-					!gameInProgress ||
-					$betAmount === '0' ||
-					parseFloat($betAmount) === 0}
-				hoverColor={'#00b16c'}
-				dataTestId={'bet-button'}
-				buttonText={$gameInProgress ? `${'Cashout'}` : `${'Bet'}`}
-			></CustomButton>
-		</div>
+			<div>
+				<CustomButton
+					type="submit"
+					onClick={handleCashout}
+					width={'100%'}
+					bgColor={'#01d180'}
+					color={'#fff'}
+					padding={'16px'}
+					margin={'10px 0px'}
+					disabled={(gameInProgress && 25 - $numOfMines - $leftGems == 0) || !gameInProgress}
+					hoverColor={'#00b16c'}
+					dataTestId={'bet-button'}
+					buttonText={'Cashout'}
+				></CustomButton>
+			</div>
+		{:else}
+			<div>
+				<CustomButton
+					type="submit"
+					onClick={handleBet}
+					width={'100%'}
+					bgColor={'#01d180'}
+					color={'#fff'}
+					padding={'16px'}
+					margin={'10px 0px'}
+					disabled={(gameInProgress && 25 - $numOfMines - $leftGems == 0) ||
+						!gameInProgress ||
+						!isBetAmountValid}
+					hoverColor={'#00b16c'}
+					dataTestId={'bet-button'}
+					buttonText={'Bet'}
+				></CustomButton>
+			</div>
+		{/if}
 	</div>
 </div>
 
