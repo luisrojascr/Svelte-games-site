@@ -65,16 +65,16 @@
 	<span class={`coin-name ${fontSizeClass}`}>{coinLabel}</span>
 {/if}
 
-<style>
+<style lang="postcss">
 	.mobile {
-		font-size: 8.5px;
+		@apply text-[8.5px];
 	}
 	.desktop {
-		font-size: 10px;
+		@apply text-[10px];
 	}
 	@media (max-width: 300px) {
 		.mobile {
-			font-size: 7px;
+			@apply text-[7px];
 		}
 	}
 </style>

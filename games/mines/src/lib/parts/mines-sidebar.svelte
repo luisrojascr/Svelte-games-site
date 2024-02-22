@@ -400,12 +400,10 @@
 	}
 
 	.first-line {
-		display: flex;
-		justify-content: center;
-		align-items: center;
+		@apply flex justify-center items-center;
 	}
 
 	.first-line:first-child {
-		margin-right: 15px;
+		@apply mr-[15px];
 	}
 </style>

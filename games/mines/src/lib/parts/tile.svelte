@@ -72,19 +72,13 @@
 
 <style lang="postcss">
 	.tile-button {
-		position: relative;
-		font-size: 1.5em;
-		border-radius: 4px;
+		@apply relative text-base rounded p-0 m-0;
 		transition-duration: 300ms;
 		transition-property: background-color, box-shadow;
-		padding: 0;
-		margin: 0;
 	}
 
 	.tile-button::after {
-		content: '';
-		display: block;
-		padding-bottom: 100%;
+		@apply content-[''] block pb-[100%];
 	}
 
 	/* .tile-button:active {
@@ -94,46 +88,28 @@
 	} */
 
 	.tile-button:disabled {
-		cursor: not-allowed;
-		pointer-events: none;
-		opacity: 1;
+		@apply cursor-not-allowed pointer-events-none opacity-100;
 	}
 
 	.tile-cover {
-		position: absolute;
-		top: 0;
-		left: 0;
-		right: 0;
-		bottom: 0;
+		@apply absolute top-0 left-0 right-0 bottom-0 rounded-[0.3em] opacity-0 bg-[#47527C];
+		box-shadow: 0 3px 0 0 rgb(17, 26, 65);
 		transition-duration: 300ms;
 		transition-property: background-color;
-		box-shadow: 0 3px 0 0 rgb(17, 26, 65);
-		border-radius: 0.3em;
-		background-color: rgb(71, 82, 124);
-		opacity: 0;
 	}
 
 	.tile-cover.visible {
-		opacity: 1;
+		@apply opacity-100;
 	}
 
 	.tile-cover:hover {
-		background-color: rgb(104, 117, 167);
+		@apply bg-[#6875A7];
 		transition-duration: 300ms;
 		transition-property: background-color, box-shadow;
 	}
 
 	.tile-content {
-		position: absolute;
-		top: 0px;
-		left: 0px;
-		bottom: 0px;
-		right: 0px;
-
-		background-size: contain;
-		background-position: center center;
-		background-repeat: no-repeat;
-		background-color: rgb(17, 26, 65);
+		@apply absolute top-0 left-0 bottom-0 right-0 bg-contain bg-no-repeat bg-[#111A41];
 	}
 
 	/* .tile-content svg {

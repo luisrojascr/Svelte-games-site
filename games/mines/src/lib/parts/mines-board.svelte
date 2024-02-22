@@ -60,87 +60,26 @@
 
 <style lang="postcss">
 	.mines-game-wrapper {
-		position: relative;
-		display: flex;
+		@apply relative flex justify-between items-center flex-col grow w-full h-full overflow-hidden select-none;
 		-webkit-box-pack: justify;
-		justify-content: space-between;
 		-webkit-box-align: center;
-		align-items: center;
-		flex-direction: column;
 		-webkit-box-flex: 1;
-		flex-grow: 1;
-		width: 100%;
-		height: 100%;
-		overflow: hidden;
-		user-select: none;
-		/* padding: 25px; */
 	}
 
 	.mines-grid {
-		position: relative;
-		display: grid;
-		width: 100%;
-		max-width: 560px;
-		grid-template-columns: repeat(5, auto);
-		gap: 1em;
-		padding: 1em;
-		font-size: 1em;
+		@apply relative grid w-full max-w-[560px] grid-cols-5 gap-4 p-4 text-base;
+		/* grid-template-columns: repeat(5, auto); */
 	}
 
 	.mines-result-card-wrapper {
-		position: absolute;
-		display: flex;
-		flex-direction: column;
-		width: 100%;
-		max-width: 166px;
-		min-width: 166px;
-		z-index: 10;
-
-		top: 50%;
-		left: 50%;
-		transform: translate(-50%, -50%);
+		@apply absolute flex flex-col w-full max-w-[166px] min-w-[166px] z-10 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2;
 	}
 
 	.mines-result-card-wrapper:first-child {
-		border-radius: 4px;
-		border: solid 2px #01d180;
-		padding: 40px 15px;
-		font-family: 'Open Sans', serif;
-		font-size: 32px;
-		font-weight: 900;
-		font-stretch: normal;
-		font-style: normal;
-		line-height: normal;
-		letter-spacing: 2.67px;
-		text-align: center;
-		color: #ffffff;
-
-		border-bottom: none;
-		border-bottom-left-radius: 0px;
-		border-bottom-right-radius: 0px;
-		background-color: #111a41;
-
-		white-space: nowrap;
+		@apply rounded border-[solid_2px_#01d180] p-[40px_15px] text-[32px] font-black tracking-[2.67px] text-center text-white border-b-0 bg-[#111a41] whitespace-nowrap rounded-bl-none rounded-br-none;
 	}
 
 	.mines-result-card-wrapper:last-child {
-		border-radius: 4px;
-		background-color: #01d180;
-		font-family: 'Open Sans', serif;
-		font-size: 12px;
-		font-weight: bold;
-		font-stretch: normal;
-		font-style: normal;
-		line-height: 2;
-		letter-spacing: 1px;
-		text-align: center;
-		color: #111a41;
-
-		padding: 10px;
-
-		border-top-left-radius: 0px;
-		border-top-right-radius: 0px;
-
-		white-space: nowrap;
+		@apply rounded bg-[#01d180] text-xs font-bold leading-[2] tracking-[1px] text-center text-[#111a41] p-[10px] whitespace-nowrap rounded-tl-none rounded-tr-none;
 	}
 </style>

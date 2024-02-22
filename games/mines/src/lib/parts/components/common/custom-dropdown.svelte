@@ -21,8 +21,6 @@
 	export let isMobile: boolean | undefined;
 	export let bgColor = '#222C55';
 
-	const dispatch = createEventDispatcher();
-
 	let showMenu: boolean = false;
 
 	function toggleDropdown() {
@@ -114,165 +112,76 @@
 
 <style lang="postcss">
 	.wrapper {
-		position: relative;
-		width: 100%;
-		position: relative;
+		@apply relative w-full justify-center inline-flex flex-col items-start;
 		-webkit-box-pack: center;
-		justify-content: center;
 		-webkit-box-align: center;
-		display: inline-flex;
-		flex-direction: column;
-		align-items: flex-start;
 	}
 
 	.menu-content {
-		width: 100%;
-		color: rgb(255, 255, 255);
-		position: absolute;
-		flex-direction: column;
-		top: calc(100% - 1px);
-		pointer-events: all;
-		min-width: 21px;
-		z-index: 1400;
-		border-bottom-left-radius: 4px;
-		border-bottom-right-radius: 4px;
+		@apply w-full text-white absolute flex-col top-[calc(100%_-_1px)] pointer-events-auto min-w-[21px] z-[1400] rounded-bl rounded-br;
 	}
 
 	.menu-content button:last-child {
-		border-bottom-left-radius: 4px;
-		border-bottom-right-radius: 4px;
-		border-bottom: 1px solid #d6d7df;
-		border: none;
+		@apply rounded-bl rounded-br border-b-[1px_solid_#d6d7df];
 	}
 
 	.dropdown-button {
-		width: 100%;
-		font-family: 'Open Sans', serif;
-		font-size: 12px;
-		font-weight: bold;
-		font-stretch: normal;
-		font-style: normal;
-		line-height: 2;
-		letter-spacing: normal;
-		color: #ffffff;
-		touch-action: manipulation;
-		position: relative;
-		display: inline-flex;
-		justify-content: space-between;
-		align-items: center;
-		transition:
-			background 300ms ease 0s,
-			opacity 300ms ease 0s,
-			transform 100ms ease 0s,
-			border-color 150ms ease;
-		border-radius: 4px;
-		padding: 6px 12px;
+		@apply w-full text-xs font-bold leading-[2] text-white touch-manipulation relative inline-flex justify-between items-center rounded p-[16px_12px] transition-[background_300ms_ease_0s,opacity_300ms_ease_0s,transform_100ms_ease_0s,border-color_150ms_ease];
 	}
 
 	.dropdown-button:hover {
-		/* border: 1px solid #8b90a5; */
-		transition: border 150ms ease;
+		@apply transition-[border_150ms_ease];
 	}
 
 	.menu-button {
-		font-family: 'Open Sans', serif;
-		font-size: 12px;
-		font-weight: bold;
-		line-height: 2;
-		letter-spacing: normal;
-		color: #ffffff;
-		position: relative;
-		display: inline-flex;
-		justify-content: flex-start;
-		align-items: center;
-		transition:
-			background 300ms ease,
-			opacity 300ms ease,
-			transform 100ms ease;
-		padding: 6px 12px;
+		@apply text-xs font-bold leading-[2] text-white relative inline-flex justify-start items-center p-[16px_12px] transition-[background_300ms_ease,opacity_300ms_ease,transform_100ms_ease];
 	}
 
 	.menu-button:hover {
-		background-color: #fafafb;
-		color: #fafafb;
+		@apply bg-[#fafafb] text-[#fafafb];
 	}
 
 	.bg-blue {
-		background-color: #222c56;
+		@apply bg-[#222c56];
 	}
 
 	.v3 {
-		justify-content: center;
-		border: none;
+		@apply justify-center border-none;
 	}
 
 	.button-content {
-		display: inline-flex;
-		align-items: center;
-		width: 100%;
-		justify-content: space-between;
-		transition:
-			background 300ms ease,
-			opacity 300ms ease,
-			transform 100ms ease;
+		@apply inline-flex items-center w-full justify-between transition-[background_300ms_ease,opacity_300ms_ease,transform_100ms_ease];
 	}
 
 	.button-content.v3 {
-		justify-content: center;
+		@apply justify-center;
 	}
 
 	.label-wrapper {
-		display: flex;
-		justify-content: flex-start;
-		align-items: center;
-		font-family: 'Open Sans', serif;
-		font-size: 12px;
-		font-weight: bold;
-		font-stretch: normal;
-		font-style: normal;
-		line-height: 1.33;
-		letter-spacing: 1px;
-		/* color: #848aa0; */
-		color: #fff;
-		margin-bottom: 8px;
+		@apply flex justify-start items-center text-xs font-bold leading-[1.33] tracking-[1px] text-white mb-2;
 	}
 
 	.label-wrapper span {
-		display: inline-flex;
-		justify-content: center;
-		align-items: center;
+		@apply inline-flex justify-center items-center;
 	}
 
 	.label-wrapper-v2 {
+		@apply inline-flex items-center text-[10px] font-bold leading-[1.6] tracking-[0.6px] text-[#848aa0] m-[0_0_0.25em] transition-[all_200ms_ease-out_0s];
 		display: -webkit-inline-box;
 		display: -webkit-inline-flex;
 		display: -ms-inline-flexbox;
-		display: inline-flex;
 		-webkit-box-align: center;
 		-webkit-align-items: center;
 		-webkit-box-align: center;
 		-ms-flex-align: center;
-		align-items: center;
-		font-family: 'Open Sans', serif;
-		font-size: 10px;
-		font-weight: bold;
-		font-stretch: normal;
-		font-style: normal;
-		line-height: 1.6;
 		-webkit-letter-spacing: 0.6px;
 		-moz-letter-spacing: 0.6px;
 		-ms-letter-spacing: 0.6px;
-		letter-spacing: 0.6px;
-		color: #848aa0;
-		margin: 0px 0px 0.25em;
 		-webkit-transition: all 200ms ease-out 0s;
-		transition: all 200ms ease-out 0s;
 	}
 
 	.label-wrapper-v2 span {
-		display: inline-flex;
-		justify-content: center;
-		align-items: center;
+		@apply inline-flex justify-center items-center;
 	}
 
 	/* @media (max-width: 580px) {
