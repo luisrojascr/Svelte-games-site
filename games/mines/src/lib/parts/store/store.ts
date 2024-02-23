@@ -1,12 +1,9 @@
 import type {
-    Action,
-    MinesBoardStatesEnum, MinesState,
-    MinesStateActionsEnum,
     TileState,
 } from '$lib/parts/store/mines-types';
 import { TileStateEnum } from '$lib/parts/store/mines-types';
-import { CurrencyEnum, DiceRollConditionEnum, LanguageEnum, OnLoss, OnWin } from '$lib/utils/cc';
-import { decimalCryptoDisplay, decimalDisplayLength, generateRandomHex, randomIntFromInterval, timeout } from '$lib/utils/helper.js';
+import { CurrencyEnum, LanguageEnum } from '$lib/utils/cc';
+import { decimalDisplayLength, randomIntFromInterval, timeout } from '$lib/utils/helper.js';
 import { derived, get, writable } from 'svelte/store';
 
 import diamondOpen from '$lib/assets/sounds/diamondOpen.mp3';
@@ -247,7 +244,7 @@ export const handleBet = (): void => {
 };
 
 export function handleCashout() {
-    gameInProgress.set(true);
+    gameInProgress.set(false);
 
     const updatedCardStatus = get(cardStatus).map((tile) => {
         if (tile.state === TileStateEnum.Hidden) {
@@ -287,6 +284,7 @@ export function updateStorageBalance(sessionIdToUpdate: string, newBalance: numb
         return list;
     });
 }
+
 // @ts-ignore
 derived(balanceList, ($balanceList: Array<{ sessionId: string, balance: number }>) => {
     localStorage.setItem('balance', JSON.stringify($balanceList));

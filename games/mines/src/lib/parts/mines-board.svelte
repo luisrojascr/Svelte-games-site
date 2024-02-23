@@ -1,10 +1,9 @@
 <script lang="ts">
 	import { writable } from 'svelte/store';
 
-	import Spinner from './components/common/spinner.svelte';
 	import Tile from './tile.svelte';
 
-	import { cardStatus } from '$lib/parts/store/store';
+	import { cardStatus, gameInProgress, totalMultiplier } from '$lib/parts/store/store';
 	import { onDestroy, onMount } from 'svelte';
 
 	let gameContainer: any;
@@ -50,7 +49,12 @@
 </script>
 
 <div bind:this={gameContainer} class="mines-game-wrapper">
-	<!-- <div class="mines-result-card-wrapper"></div> -->
+	<!-- {#if !gameInProgress && $totalMultiplier > 1}
+		<div class="mines-result-card-wrapper">
+			<div>{$totalMultiplier}X</div>
+			<div>{$totalMultiplier}</div>
+		</div>
+	{/if} -->
 	<div class="mines-grid">
 		{#each $cardStatus as tile (tile.id)}
 			<Tile id={tile.id} isMine={tile.isMine ?? false} tileState={tile.state} />
@@ -72,14 +76,18 @@
 	}
 
 	.mines-result-card-wrapper {
-		@apply absolute flex flex-col w-full max-w-[166px] min-w-[166px] z-10 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2;
+		@apply absolute flex flex-col w-full max-w-[166px] min-w-[166px] z-10 top-1/2 left-1/2;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
 	}
 
-	.mines-result-card-wrapper:first-child {
-		@apply rounded border-[solid_2px_#01d180] p-[40px_15px] text-[32px] font-black tracking-[2.67px] text-center text-white border-b-0 bg-[#111a41] whitespace-nowrap rounded-bl-none rounded-br-none;
+	.mines-result-card-wrapper :first-child {
+		@apply rounded p-[40px_15px] text-[32px] font-black tracking-[2.67px] text-center text-white border-b-0 bg-[#111a41] rounded-bl-none rounded-br-none;
+		border: solid 2px #01d180;
 	}
 
-	.mines-result-card-wrapper:last-child {
-		@apply rounded bg-[#01d180] text-xs font-bold leading-[2] tracking-[1px] text-center text-[#111a41] p-[10px] whitespace-nowrap rounded-tl-none rounded-tr-none;
+	.mines-result-card-wrapper :last-child {
+		@apply rounded text-xs font-bold leading-[2] tracking-[1px] text-center bg-[#01d180] text-[#111a41] p-[10px] whitespace-nowrap rounded-tl-none rounded-tr-none;
 	}
 </style>

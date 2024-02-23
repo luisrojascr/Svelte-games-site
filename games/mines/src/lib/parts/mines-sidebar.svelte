@@ -64,9 +64,6 @@
 					: $maxBet;
 		}
 
-		console.log($betAmount);
-		console.log('Bet amount change mode:', mode);
-
 		betAmount.set(newAmount);
 
 		initialBetAmount.set(parseFloat(newAmount));
@@ -125,12 +122,6 @@
 		value: $numOfMines,
 		label: $numOfMines.toString()
 	};
-
-	// $: if (parseFloat($betAmount) <= 0 || $betAmount <= '0') {
-	// 	tooltip = true;
-	// } else {
-	// 	tooltip = false;
-	// }
 
 	$: isBetAmountValid =
 		(parseFloat($betAmount) > 0 && parseFloat($betAmount) < 1) || parseFloat($betAmount) >= 1;
@@ -267,7 +258,6 @@
 					padding={'16px'}
 					margin={'10px 0px'}
 					disabled={$loading}
-					hoverColor={'#00b16c'}
 					dataTestId={'random-button'}
 					buttonText={'PICK RANDOM TILE'}
 				></CustomButton>
@@ -283,7 +273,6 @@
 					padding={'16px'}
 					margin={'10px 0px'}
 					disabled={(gameInProgress && 25 - $numOfMines - $leftGems == 0) || !gameInProgress}
-					hoverColor={'#00b16c'}
 					dataTestId={'bet-button'}
 					buttonText={'Cashout'}
 				></CustomButton>
@@ -301,7 +290,6 @@
 					disabled={(gameInProgress && 25 - $numOfMines - $leftGems == 0) ||
 						!gameInProgress ||
 						!isBetAmountValid}
-					hoverColor={'#00b16c'}
 					dataTestId={'bet-button'}
 					buttonText={'Bet'}
 				></CustomButton>
@@ -334,7 +322,7 @@
 		@apply flex justify-center items-center;
 	}
 
-	.first-line-bet div:first-child {
+	.first-line-bet :first-child {
 		@apply mr-4;
 	}
 
@@ -342,11 +330,11 @@
 		@apply inline-flex w-full mb-2.5;
 	}
 
-	.betting-variant-line button:first-child {
+	.betting-variant-line button :first-child {
 		@apply rounded-br-none rounded-tr-none;
 	}
 
-	.betting-variant-line button:last-child {
+	.betting-variant-line button :last-child {
 		@apply rounded-bl-none rounded-tl-none;
 	}
 
@@ -363,7 +351,7 @@
 		@apply transition-[background_300ms_ease_0s,_opacity_300ms_ease_0s,_transform_100ms_ease_0s];
 	}
 
-	.betting-variant-button:active span {
+	.betting-variant-button :active span {
 		@apply transform scale-95;
 	}
 
@@ -383,7 +371,7 @@
 		@apply text-xs;
 	}
 
-	.buttons-v1:hover {
+	.buttons-v1 :hover {
 		@apply bg-[#848aa05c] transition-[background-color_300ms_ease_0s,_opacity_300ms_ease_0s,_transform_100ms_ease_0s];
 	}
 
@@ -403,7 +391,7 @@
 		@apply flex justify-center items-center;
 	}
 
-	.first-line:first-child {
+	.first-line :first-child {
 		@apply mr-[15px];
 	}
 </style>

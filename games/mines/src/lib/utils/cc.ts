@@ -63,11 +63,6 @@ export enum FiatCurrencyEnum {
     JPY = 'JPY'
 }
 
-export enum DiceRollConditionEnum {
-    Over = 'over',
-    Under = 'under'
-}
-
 export interface CryptoCurrency {
     currency: CurrencyEnum
     name: string
@@ -230,18 +225,3 @@ export const cryptoCurrencies: CryptoCurrency[] = [
     usdc,
     usdt,
 ]
-
-export enum OnLoss {
-    AUTO = 'AUTO',
-    INCREASE = 'INCREASE'
-}
-
-export enum BettingVariants {
-    MANUAL = 'MANUAL',
-    AUTO = 'AUTO'
-}
-
-export enum OnWin {
-    AUTO = 'AUTO',
-    INCREASE = 'INCREASE'
-}

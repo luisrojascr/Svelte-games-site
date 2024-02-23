@@ -121,25 +121,25 @@
 		@apply w-full text-white absolute flex-col top-[calc(100%_-_1px)] pointer-events-auto min-w-[21px] z-[1400] rounded-bl rounded-br;
 	}
 
-	.menu-content button:last-child {
+	.menu-content button :last-child {
 		@apply rounded-bl rounded-br border-b-[1px_solid_#d6d7df];
 	}
 
 	.dropdown-button {
-		@apply w-full text-xs font-bold leading-[2] text-white touch-manipulation relative inline-flex justify-between items-center rounded p-[16px_12px] transition-[background_300ms_ease_0s,opacity_300ms_ease_0s,transform_100ms_ease_0s,border-color_150ms_ease];
+		@apply w-full text-xs font-bold leading-[2] text-white touch-manipulation relative inline-flex justify-between items-center rounded p-[6px_12px] transition-[background_300ms_ease_0s,opacity_300ms_ease_0s,transform_100ms_ease_0s,border-color_150ms_ease];
 	}
 
-	.dropdown-button:hover {
+	.dropdown-button :hover {
 		@apply transition-[border_150ms_ease];
 	}
 
 	.menu-button {
-		@apply text-xs font-bold leading-[2] text-white relative inline-flex justify-start items-center p-[16px_12px] transition-[background_300ms_ease,opacity_300ms_ease,transform_100ms_ease];
+		@apply text-xs font-bold leading-[2] text-white relative inline-flex justify-start items-center p-[6px_12px] transition-[background_300ms_ease,opacity_300ms_ease,transform_100ms_ease];
 	}
 
-	.menu-button:hover {
-		@apply bg-[#fafafb] text-[#fafafb];
-	}
+	/* .menu-button :hover {
+		@apply bg-[#4b4b87] text-[#273262];
+	} */
 
 	.bg-blue {
 		@apply bg-[#222c56];
@@ -153,7 +153,7 @@
 		@apply inline-flex items-center w-full justify-between transition-[background_300ms_ease,opacity_300ms_ease,transform_100ms_ease];
 	}
 
-	.button-content.v3 {
+	.button-content .v3 {
 		@apply justify-center;
 	}
 
