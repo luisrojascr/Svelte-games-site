@@ -69,7 +69,6 @@ export const leftGems = writable(0);
 
 export const mineSubsData = writable('');
 
-export const profitOnWin = writable('0'); //change later
 export const betAmount = writable('0');
 export const cashout = writable('2.00');
 export const winChance = writable('49.50');
@@ -219,7 +218,6 @@ const calculateNextMultiplier = (): void => {
             1 + Math.pow(1 - currentNumOfMines / 25, 25 - currentLeftGems - currentNumOfMines + 1)
         ).toFixed(2)
     );
-    console.log(total);
     totalMultiplier.set(total);
 };
 

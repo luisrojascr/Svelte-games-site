@@ -32,7 +32,6 @@
 		loading,
 		maxBet,
 		numOfMines,
-		profitOnWin,
 		selectedFiatCurrency,
 		totalMultiplier
 	} from '$lib/parts/store/store';
@@ -307,7 +306,7 @@
 	}
 
 	.game-sidebar-wrapper {
-		@apply flex flex-col items-stretch min-w-[275px];
+		@apply flex flex-col min-w-[275px];
 	}
 
 	.sidebar-main {
@@ -393,5 +392,11 @@
 
 	.first-line :first-child {
 		@apply mr-[15px];
+	}
+
+	@media (min-width: 750px) {
+		.game-sidebar-wrapper {
+			@apply max-w-[292.5px];
+		}
 	}
 </style>

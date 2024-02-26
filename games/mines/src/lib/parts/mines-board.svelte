@@ -76,10 +76,7 @@
 	}
 
 	.mines-result-card-wrapper {
-		@apply absolute flex flex-col w-full max-w-[166px] min-w-[166px] z-10 top-1/2 left-1/2;
-		top: 50%;
-		left: 50%;
-		transform: translate(-50%, -50%);
+		@apply absolute flex flex-col w-full max-w-[166px] min-w-[166px] z-10 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2;
 	}
 
 	.mines-result-card-wrapper :first-child {

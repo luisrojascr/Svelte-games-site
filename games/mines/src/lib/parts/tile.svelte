@@ -72,9 +72,7 @@
 
 <style lang="postcss">
 	.tile-button {
-		@apply relative text-base rounded p-0 m-0;
-		transition-duration: 300ms;
-		transition-property: background-color, box-shadow;
+		@apply relative text-base rounded p-0 m-0 duration-300 transition-shadow;
 	}
 
 	.tile-button::after {
@@ -92,10 +90,7 @@
 	}
 
 	.tile-cover {
-		@apply absolute top-0 left-0 right-0 bottom-0 rounded-[0.3em] opacity-0 bg-[#47527C];
-		box-shadow: 0 3px 0 0 rgb(17, 26, 65);
-		transition-duration: 300ms;
-		transition-property: background-color;
+		@apply absolute top-0 left-0 right-0 bottom-0 rounded-[0.3em] opacity-0 bg-[#47527C] duration-300 transition-shadow shadow-[0_3px_0_0_rgb(17_26_65)];
 	}
 
 	.tile-cover.visible {
@@ -103,9 +98,7 @@
 	}
 
 	.tile-cover:hover {
-		@apply bg-[#6875A7];
-		transition-duration: 300ms;
-		transition-property: background-color, box-shadow;
+		@apply bg-[#6875A7] duration-300 transition-shadow;
 	}
 
 	.tile-content {
