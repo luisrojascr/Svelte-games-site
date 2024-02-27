@@ -68,6 +68,7 @@ export const totalMultiplier = writable(0);
 export const leftGems = writable(0);
 
 export const mineSubsData = writable('');
+export const numOfBets = writable('0');
 
 export const betAmount = writable('0');
 export const cashout = writable('2.00');

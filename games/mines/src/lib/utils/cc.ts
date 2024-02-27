@@ -225,3 +225,8 @@ export const cryptoCurrencies: CryptoCurrency[] = [
     usdc,
     usdt,
 ]
+
+export enum BettingVariants {
+    MANUAL = 'MANUAL',
+    AUTO = 'AUTO'
+}
