@@ -2,8 +2,8 @@ import type {
     TileState,
 } from '$lib/parts/store/mines-types';
 import { TileStateEnum } from '$lib/parts/store/mines-types';
-import { CurrencyEnum, LanguageEnum } from '$lib/utils/cc';
-import { decimalDisplayLength, randomIntFromInterval, timeout } from '$lib/utils/helper.js';
+import { CurrencyEnum, LanguageEnum, OnLoss, OnWin } from '$lib/utils/cc';
+import { decimalCryptoDisplay, decimalDisplayLength, randomIntFromInterval, timeout } from '$lib/utils/helper.js';
 import { derived, get, writable } from 'svelte/store';
 
 import diamondOpen from '$lib/assets/sounds/diamondOpen.mp3';
@@ -48,6 +48,25 @@ export const currentWalletState = writable<{ type: CurrencyEnum; available: numb
     type: CurrencyEnum.usdt,
     available: 100,
 });
+
+export const selectedOnWin = writable(OnWin.AUTO);
+export const selectedOnLoss = writable(OnLoss.AUTO);
+
+export const inputStopOnProfit = writable(0);
+export const inputStopOnLoss = writable(0);
+
+
+export const stopOnProfit = derived(
+    [inputStopOnProfit, currentWalletState],
+    ([$inputStopOnProfit, $currentWalletState]: [number, { type: CurrencyEnum; available: number }]) =>
+        decimalCryptoDisplay($inputStopOnProfit, $currentWalletState.type)
+);
+
+export const stopOnLoss = derived(
+    [inputStopOnLoss, currentWalletState],
+    ([$inputStopOnLoss, $currentWalletState]: [number, { type: CurrencyEnum; available: number }]) =>
+        decimalCryptoDisplay($inputStopOnLoss, $currentWalletState.type)
+);
 
 export const currency = writable(getURLParameter('currency', 'usdt'));
 export const fiat = writable(getURLParameter('fiat', ''));
@@ -146,6 +165,8 @@ const generateRandomArr = (): number[] => {
     }
     return [];
 };
+
+
 
 export const handleRandomClick = (): void => {
     const allTiles: TileState[] = get(cardStatus);
@@ -271,6 +292,44 @@ export function handleCashout() {
     });
 }
 
+export const updateBetAmountOnWin = () => {
+    const currentBetAmount = parseFloat(get(betAmount));
+    let newBetAmount: string;
+
+    if (get(selectedOnWin) === OnWin.INCREASE) {
+        const amountToAdd = (currentBetAmount / 100) * parseFloat(get(onWin));
+        newBetAmount = (currentBetAmount + amountToAdd).toFixed(decimalDisplayLength(get(currentWalletState).type));
+    } else {
+        newBetAmount = get(betAmount) as string;
+    }
+
+    if (get(selectedFiatCurrency) && get(coinPriceData)) {
+        newBetAmount = Number(newBetAmount).toFixed(2);
+    }
+
+    betAmount.set(newBetAmount);
+    console.log("test:", newBetAmount)
+};
+
+export const updateBetAmountOnLoss = () => {
+    const currentBetAmount = parseFloat(get(betAmount));
+    let newBetAmount: string;
+
+    if (get(selectedOnLoss) === OnLoss.INCREASE) {
+        const amountToAdd = (currentBetAmount / 100) * parseFloat(get(onLoss));
+        newBetAmount = (currentBetAmount + amountToAdd).toFixed(decimalDisplayLength(get(currentWalletState).type));
+    } else {
+        newBetAmount = get(betAmount) as string;
+    }
+
+    if (get(selectedFiatCurrency) && get(coinPriceData)) {
+        newBetAmount = Number(newBetAmount).toFixed(2);
+    }
+
+    betAmount.set(newBetAmount);
+    console.log("test:", newBetAmount)
+};
+
 export function updateStorageBalance(sessionIdToUpdate: string, newBalance: number) {
     balanceList.update(list => {
         const indexToUpdate = list.findIndex(item => item.sessionId === sessionIdToUpdate);
@@ -305,3 +364,26 @@ $: {
     }
 }
 
+
+export function checkStopOnLossOrProfit(
+    curProfit: number,
+    stopOnLoss: number,
+    stopOnProfit: number
+): boolean {
+    if (stopOnProfit > 0 && curProfit >= stopOnProfit) {
+        return true;
+    }
+    if (stopOnLoss > 0 && Math.abs(curProfit) >= stopOnLoss) {
+        return true;
+    }
+    console.log("current:", curProfit, "stoploss:", stopOnLoss, "stopwin:", stopOnProfit)
+    return false;
+}
+
+
+export function resetBoard() {
+    autoBetInProgress.set(false);
+    gameInProgress.set(false);
+    needToStopNextTime.set(false);
+    currentProfit.set(0);
+}
