@@ -87,7 +87,7 @@ export const totalMultiplier = writable(0);
 export const leftGems = writable(0);
 
 export const mineSubsData = writable('');
-export const numOfBets = writable('0');
+export const numOfBets = writable(0);
 
 export const betAmount = writable('0');
 export const cashout = writable('2.00');
@@ -132,7 +132,6 @@ export const playOpenMine = () => {
     mineSound.play();
 };
 
-
 export const isSound = writable(true);
 export const lang = writable(LanguageEnum.En);
 export const maxPayoutData = writable(maxWin);
@@ -145,7 +144,6 @@ export const balanceList = writable<BalanceItem[]>(JSON.parse(localStorage.getIt
 balanceList.subscribe(($balanceList) => {
     localStorage.setItem('balance', JSON.stringify($balanceList));
 });
-
 
 // Function to generate an array of unique random numbers
 const generateRandomArr = (): number[] => {
@@ -165,8 +163,6 @@ const generateRandomArr = (): number[] => {
     }
     return [];
 };
-
-
 
 export const handleRandomClick = (): void => {
     const allTiles: TileState[] = get(cardStatus);
@@ -237,12 +233,13 @@ const calculateNextMultiplier = (): void => {
     const currentLeftGems: number = get(leftGems);
     let total = Number(
         (
-            1 + Math.pow(1 - currentNumOfMines / 25, 25 - currentLeftGems - currentNumOfMines + 1)
+            1 + Math.pow(1 + currentNumOfMines / 25, 25 - currentLeftGems - currentNumOfMines + 1)
         ).toFixed(2)
     );
     totalMultiplier.set(total);
 };
 
+//MANUAL BET
 export const handleBet = (): void => {
     const currentNumOfMines: number = get(numOfMines);
     const currentCurBalance: number = get(curBalance);
@@ -258,9 +255,43 @@ export const handleBet = (): void => {
     const currentSessionId: string = get(sessionId);
 
     if (sessionId) {
-        const newBalance = currentCurBalance - currentBetAmount;
+        const newBalance = currentCurBalance + currentBetAmount;
         updateStorageBalance(currentSessionId, newBalance);
     }
+    gameInProgress.set(true)
+};
+
+//AUTO BET
+export const handleAutoBet = (): void => {
+    autoBetInProgress.set(true);
+    handleBet(); // Start a new game
+
+    const executeBet = () => {
+        const currentGameInProgress = get(gameInProgress);
+        const hiddenTiles = get(cardStatus).filter(tile => tile.state === TileStateEnum.Hidden);
+        const currentNumOfBets = get(numOfBets);
+
+        if (!currentGameInProgress || hiddenTiles.length === 0 || get(needToStopNextTime)) {
+            clearInterval(autoBet);
+            autoBetInProgress.set(false);
+            resetBoard();
+            console.log("Auto-bet stopped.");
+            return;
+        }
+
+        handleRandomClick();
+
+        // If numOfBets is greater than 0, decrement and check if it reaches zero
+        if (currentNumOfBets > 0) {
+            numOfBets.update(n => n - 1);
+            if (get(numOfBets) === 0) {
+                // If numOfBets reaches 0, prepare to stop after this bet
+                needToStopNextTime.set(true);
+            }
+        }
+    };
+
+    const autoBet = setInterval(executeBet, 700);
 };
 
 export function handleCashout() {

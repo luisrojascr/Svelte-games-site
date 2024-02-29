@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { derived, writable } from 'svelte/store';
+	import { derived, get, writable } from 'svelte/store';
 
 	import CoinIcon from '$lib/parts/components/common/crypto-icon-getter.svelte';
 	import FiatCoinIcon from '$lib/parts/components/common/icon-getter.svelte';
@@ -30,6 +30,7 @@
 		curBalance,
 		currentWalletState,
 		gameInProgress,
+		handleAutoBet,
 		handleBet,
 		handleCashout,
 		handleRandomClick,
@@ -48,7 +49,9 @@
 	const bettingVariant = writable(BettingVariants.MANUAL);
 
 	function setActiveVariant(variant: BettingVariants) {
-		bettingVariant.set(variant);
+		if (!get(gameInProgress) && !get(autoBetInProgress)) {
+			bettingVariant.set(variant);
+		}
 	}
 
 	function handleBetAmountChange(mode: string) {
@@ -130,6 +133,8 @@
 		}
 	);
 
+	$: isDisabled = get(gameInProgress) || get(autoBetInProgress);
+
 	$: currentOption = {
 		value: $numOfMines,
 		label: $numOfMines.toString()
@@ -149,6 +154,7 @@
 					: '#3F4B79'}; opacity: {$bettingVariant === BettingVariants.MANUAL ? 1 : 0.7};"
 				on:click={() => setActiveVariant(BettingVariants.MANUAL)}
 				data-testid="manual-bet"
+				disabled={isDisabled}
 			>
 				<span class="button-text">Manual</span>
 			</button>
@@ -159,6 +165,7 @@
 					: '#3F4B79'}; opacity: {$bettingVariant === BettingVariants.AUTO ? 1 : 0.7};"
 				on:click={() => setActiveVariant(BettingVariants.AUTO)}
 				data-testid="auto-bet"
+				disabled={isDisabled}
 			>
 				<span class="button-text">Auto</span>
 			</button>
@@ -466,7 +473,7 @@
 						disabled={$loading || $gameInProgress || $autoBetInProgress}
 					>
 						<div slot="count">
-							{#if parseFloat($numOfBets) === 0 || $numOfBets === '0'}
+							{#if $numOfBets === 0}
 								<InfinityIcon />
 							{:else}
 								<div class="bet-countdown">
@@ -590,7 +597,7 @@
 			{/if}
 
 			{#if $gameInProgress}
-				<div>
+				<!-- <div>
 					<CustomButton
 						type="submit"
 						onClick={handleRandomClick}
@@ -603,7 +610,7 @@
 						dataTestId={'random-button'}
 						buttonText={'PICK RANDOM TILE'}
 					></CustomButton>
-				</div>
+				</div> -->
 
 				<div>
 					<CustomButton
@@ -623,7 +630,7 @@
 				<div>
 					<CustomButton
 						type="submit"
-						onClick={handleBet}
+						onClick={handleAutoBet}
 						width={'100%'}
 						bgColor={'#01d180'}
 						color={'#fff'}
@@ -633,7 +640,7 @@
 							!gameInProgress ||
 							!isBetAmountValid}
 						dataTestId={'bet-button'}
-						buttonText={'Bet'}
+						buttonText={'Auto Bet'}
 					></CustomButton>
 				</div>
 			{/if}
