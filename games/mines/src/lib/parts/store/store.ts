@@ -90,12 +90,12 @@ export const mineSubsData = writable('');
 export const numOfBets = writable(0);
 
 export const betAmount = writable('0');
-export const cashout = writable('2.00');
-export const winChance = writable('49.50');
+// export const cashout = writable('2.00');
+// export const winChance = writable('49.50');
 
 export const initialBetAmount = writable(0);
 
-export const onWin = writable('3');
+export const onWin = writable('0');
 export const onLoss = writable('0');
 export const currentProfit = writable(0);
 
@@ -280,6 +280,7 @@ export const handleAutoBet = (): void => {
         }
 
         handleRandomClick();
+        updateBetAmountOnWin();
 
         // If numOfBets is greater than 0, decrement and check if it reaches zero
         if (currentNumOfBets > 0) {

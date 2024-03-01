@@ -14,7 +14,7 @@
 
 	import type { Option } from './store/mines-types';
 
-	import { BettingVariants, CurrencyEnum } from '$lib/utils/cc.js';
+	import { BettingVariants, CurrencyEnum, OnLoss, OnWin } from '$lib/utils/cc.js';
 
 	import {
 		decimalCryptoDisplay,
@@ -35,12 +35,18 @@
 		handleCashout,
 		handleRandomClick,
 		initialBetAmount,
+		inputStopOnLoss,
+		inputStopOnProfit,
 		leftGems,
 		loading,
 		maxBet,
 		numOfBets,
 		numOfMines,
+		onLoss,
+		onWin,
 		selectedFiatCurrency,
+		selectedOnLoss,
+		selectedOnWin,
 		totalMultiplier
 	} from '$lib/parts/store/store';
 
@@ -52,6 +58,24 @@
 		if (!get(gameInProgress) && !get(autoBetInProgress)) {
 			bettingVariant.set(variant);
 		}
+	}
+
+	function handleOnWinReset() {
+		selectedOnWin.set(OnWin.AUTO);
+		onWin.set('0.00');
+	}
+
+	function handleOnWinIncrease() {
+		selectedOnWin.set(OnWin.INCREASE);
+	}
+
+	function handleOnLossReset() {
+		selectedOnLoss.set(OnLoss.AUTO);
+		onLoss.set('0.00');
+	}
+
+	function handleOnLossIncrease() {
+		selectedOnLoss.set(OnLoss.INCREASE);
 	}
 
 	function handleBetAmountChange(mode: string) {
@@ -133,7 +157,24 @@
 		}
 	);
 
+	$: inputLossDisabled = $selectedOnLoss === OnLoss.AUTO;
+
+	$: inputWinDisabled = $selectedOnWin === OnWin.AUTO;
+
 	$: isDisabled = get(gameInProgress) || get(autoBetInProgress);
+
+	let buttonText: string;
+	let clickAction: any;
+
+	$: {
+		if ($autoBetInProgress) {
+			buttonText = 'Stop Autobet';
+			clickAction = handleCashout;
+		} else {
+			buttonText = 'Start Autobet';
+			clickAction = handleAutoBet;
+		}
+	}
 
 	$: currentOption = {
 		value: $numOfMines,
@@ -210,22 +251,6 @@
 						</button>
 					</div>
 				</LabelInput>
-				<!-- <div class="tooltip-parent">
-				<div class="tooltip">
-					{#if tooltip}
-						<Tooltip
-							content="<p>Please set a valid bet amount</p>"
-							theme="tooltip-theme"
-							position="bottom"
-							animation="slide"
-							align="center"
-							bind:show={tooltip}
-							autoPosition
-							action="prop">&nbsp;</Tooltip
-						>
-					{/if}
-				</div>
-			</div> -->
 			</div>
 
 			{#if $gameInProgress}
@@ -379,22 +404,6 @@
 						</button>
 					</div>
 				</LabelInput>
-				<!-- <div class="tooltip-parent">
-			<div class="tooltip">
-				{#if tooltip}
-					<Tooltip
-						content="<p>Please set a valid bet amount</p>"
-						theme="tooltip-theme"
-						position="bottom"
-						animation="slide"
-						align="center"
-						bind:show={tooltip}
-						autoPosition
-						action="prop">&nbsp;</Tooltip
-					>
-				{/if}
-			</div>
-		</div> -->
 			</div>
 
 			{#if $gameInProgress}
@@ -443,47 +452,47 @@
 			{/if}
 
 			<!-- DROPDOWN -->
-			{#if !$gameInProgress}
-				<div>
-					<CustomDropdown
-						bgBlue={true}
-						v3={true}
-						labelV2={true}
-						wrapperStyle={{ backgroundColor: '#222c56' }}
-						buttonStyle={{ backgroundColor: '#222c56', color: '#fff' }}
-						{options}
-						{currentOption}
-						handleOptionClick={handleNumOfMinesChange}
-						isMobile={false}
-					/>
-				</div>
+			<div>
+				<CustomDropdown
+					bgBlue={true}
+					v3={true}
+					labelV2={true}
+					wrapperStyle={{ backgroundColor: '#222c56' }}
+					buttonStyle={{ backgroundColor: '#222c56', color: '#fff' }}
+					{options}
+					{currentOption}
+					handleOptionClick={handleNumOfMinesChange}
+					isMobile={false}
+				/>
+			</div>
 
-				<div>
-					<LabelInput
-						min={0}
-						step={$selectedFiatCurrency && $coinPriceData
-							? '0.01'
-							: getNextDecimal(decimalCryptoDisplay(0, $currentWalletState.type))}
-						type={'number'}
-						valueStore={numOfBets}
-						dataTestId="bet-amount"
-						integerOnly={true}
-						labelContent="Number Of Bets"
-						allowUpdate={false}
-						disabled={$loading || $gameInProgress || $autoBetInProgress}
-					>
-						<div slot="count">
-							{#if $numOfBets === 0}
-								<InfinityIcon />
-							{:else}
-								<div class="bet-countdown">
-									<span>{$numOfBets}</span>
-								</div>
-							{/if}
-						</div>
-					</LabelInput>
-				</div>
+			<div>
+				<LabelInput
+					min={0}
+					step={$selectedFiatCurrency && $coinPriceData
+						? '0.01'
+						: getNextDecimal(decimalCryptoDisplay(0, $currentWalletState.type))}
+					type={'number'}
+					valueStore={numOfBets}
+					dataTestId="bet-amount"
+					integerOnly={true}
+					labelContent="Number Of Bets"
+					allowUpdate={false}
+					disabled={$loading || $gameInProgress || $autoBetInProgress}
+				>
+					<div slot="count">
+						{#if $numOfBets === 0}
+							<InfinityIcon />
+						{:else}
+							<div class="bet-countdown">
+								<span>{$numOfBets}</span>
+							</div>
+						{/if}
+					</div>
+				</LabelInput>
+			</div>
 
+			{#if !$autoBetInProgress}
 				<div>
 					<LabelInput
 						min={0}
@@ -491,12 +500,12 @@
 							? '0.01'
 							: getNextDecimal(decimalCryptoDisplay(0, $currentWalletState.type))}
 						type={'number'}
-						valueStore={numOfBets}
+						valueStore={onWin}
 						dataTestId="on-win"
 						integerOnly={true}
 						labelContent="ON WIN"
 						buttonsPosition={'start'}
-						disabled={$loading || $gameInProgress || $autoBetInProgress}
+						disabled={$loading || $gameInProgress || $autoBetInProgress || inputWinDisabled}
 					>
 						<PercentIcon width="11px" height="13px" fill="#848aa0" slot="inputIcon" />
 
@@ -504,12 +513,16 @@
 							<button
 								class="buttons-v2"
 								disabled={$loading || $gameInProgress || $autoBetInProgress}
+								class:selected={$selectedOnWin === OnWin.AUTO}
+								on:click={handleOnWinReset}
 							>
 								<span>RESET</span>
 							</button>
 							<button
 								class="buttons-v2"
 								disabled={$loading || $gameInProgress || $autoBetInProgress}
+								class:selected={$selectedOnWin === OnWin.INCREASE}
+								on:click={handleOnWinIncrease}
 							>
 								<span>INCREASE BY</span>
 							</button>
@@ -529,7 +542,7 @@
 						integerOnly={true}
 						labelContent="ON LOSS"
 						buttonsPosition={'start'}
-						disabled={$loading || $gameInProgress || $autoBetInProgress}
+						disabled={$loading || $gameInProgress || $autoBetInProgress || inputLossDisabled}
 					>
 						<PercentIcon width="11px" height="13px" fill="#848aa0" slot="inputIcon" />
 
@@ -537,12 +550,16 @@
 							<button
 								class="buttons-v2"
 								disabled={$loading || $gameInProgress || $autoBetInProgress}
+								class:selected={$selectedOnLoss === OnLoss.AUTO}
+								on:click={handleOnLossReset}
 							>
 								<span>RESET</span>
 							</button>
 							<button
 								class="buttons-v2"
 								disabled={$loading || $gameInProgress || $autoBetInProgress}
+								class:selected={$selectedOnLoss === OnLoss.INCREASE}
+								on:click={handleOnLossIncrease}
 							>
 								<span>INCREASE BY</span>
 							</button>
@@ -557,7 +574,7 @@
 							? '0.01'
 							: getNextDecimal(decimalCryptoDisplay(0, $currentWalletState.type))}
 						type={'number'}
-						valueStore={numOfBets}
+						valueStore={inputStopOnProfit}
 						dataTestId="bet-amount"
 						integerOnly={true}
 						disabled={$loading || $gameInProgress || $autoBetInProgress}
@@ -579,7 +596,7 @@
 							? '0.01'
 							: getNextDecimal(decimalCryptoDisplay(0, $currentWalletState.type))}
 						type={'number'}
-						valueStore={numOfBets}
+						valueStore={inputStopOnLoss}
 						dataTestId="bet-amount"
 						integerOnly={true}
 						disabled={$loading || $gameInProgress || $autoBetInProgress}
@@ -596,8 +613,25 @@
 				</div>
 			{/if}
 
-			{#if $gameInProgress}
-				<!-- <div>
+			<div>
+				<CustomButton
+					type="submit"
+					onClick={clickAction}
+					width={'100%'}
+					bgColor={$autoBetInProgress ? '#ff2c55' : '#00b16c'}
+					color={'#fff'}
+					padding={'16px'}
+					margin={'10px 0px'}
+					disabled={(gameInProgress && 25 - $numOfMines - $leftGems == 0) ||
+						!gameInProgress ||
+						!isBetAmountValid}
+					dataTestId={'bet-button'}
+					{buttonText}
+				></CustomButton>
+			</div>
+		{/if}
+
+		<!-- <div>
 					<CustomButton
 						type="submit"
 						onClick={handleRandomClick}
@@ -612,7 +646,7 @@
 					></CustomButton>
 				</div> -->
 
-				<div>
+		<!-- <div>
 					<CustomButton
 						type="submit"
 						onClick={handleCashout}
@@ -625,26 +659,7 @@
 						dataTestId={'bet-button'}
 						buttonText={'Cashout'}
 					></CustomButton>
-				</div>
-			{:else}
-				<div>
-					<CustomButton
-						type="submit"
-						onClick={handleAutoBet}
-						width={'100%'}
-						bgColor={'#01d180'}
-						color={'#fff'}
-						padding={'16px'}
-						margin={'10px 0px'}
-						disabled={(gameInProgress && 25 - $numOfMines - $leftGems == 0) ||
-							!gameInProgress ||
-							!isBetAmountValid}
-						dataTestId={'bet-button'}
-						buttonText={'Auto Bet'}
-					></CustomButton>
-				</div>
-			{/if}
-		{/if}
+				</div> -->
 	</div>
 </div>
 
