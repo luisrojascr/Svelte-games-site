@@ -180,6 +180,7 @@ export const handleRandomClick = (): void => {
 export const handleTileClick = async (index: number): Promise<void> => {
     const currentCardStatus: TileState[] = get(cardStatus);
     const currentLeftGems: number = get(leftGems);
+    const isAuto = get(autoBetInProgress);
 
     if (currentCardStatus[index].state === TileStateEnum.Hidden) {
         const isMine = checkIfMine(index);
@@ -193,6 +194,10 @@ export const handleTileClick = async (index: number): Promise<void> => {
                         ? { ...tile, state: TileStateEnum.Revealed, isMine: true }
                         : tile
             );
+
+            if (isAuto) {
+                resetGameForNextBet();
+            }
 
             cardStatus.set(newCardStatus);
             gameInProgress.set(false);
@@ -261,20 +266,45 @@ export const handleBet = (): void => {
     gameInProgress.set(true)
 };
 
+function resetGameForNextBet() {
+    autoBetInProgress.set(true)
+    cardStatus.set(initMineField());
+    minePositions.set(generateRandomArr());
+    leftGems.set(25 - get(numOfMines));
+    totalMultiplier.set(1);
+
+    setTimeout(() => handleAutoBet(), 500);
+}
+
+function numberBetsLimit() {
+    handleCashout();
+
+    // Check if we should continue auto-betting
+    const currentNumOfBets = get(numOfBets);
+    if (currentNumOfBets !== 0) {
+        setTimeout(() => {
+            handleBet();
+            autoBetInProgress.set(true);
+            handleAutoBet();
+        }, 500);
+    } else {
+        autoBetInProgress.set(false);
+    }
+}
+
 //AUTO BET
 export const handleAutoBet = (): void => {
     autoBetInProgress.set(true);
-    handleBet(); // Start a new game
+    handleBet();
 
     const executeBet = () => {
-        const currentGameInProgress = get(gameInProgress);
+        const currentGameInProgress = get(autoBetInProgress);
         const hiddenTiles = get(cardStatus).filter(tile => tile.state === TileStateEnum.Hidden);
         const currentNumOfBets = get(numOfBets);
 
         if (!currentGameInProgress || hiddenTiles.length === 0 || get(needToStopNextTime)) {
             clearInterval(autoBet);
             autoBetInProgress.set(false);
-            resetBoard();
             console.log("Auto-bet stopped.");
             return;
         }
@@ -282,21 +312,21 @@ export const handleAutoBet = (): void => {
         handleRandomClick();
         updateBetAmountOnWin();
 
-        // If numOfBets is greater than 0, decrement and check if it reaches zero
+        // Decrement numOfBets if it's a limited auto-bet session
         if (currentNumOfBets > 0) {
             numOfBets.update(n => n - 1);
+
             if (get(numOfBets) === 0) {
-                // If numOfBets reaches 0, prepare to stop after this bet
-                needToStopNextTime.set(true);
+                // clearInterval(autoBet);
+                autoBetInProgress.set(false);
             }
+
         }
     };
-
-    const autoBet = setInterval(executeBet, 700);
+    const autoBet = setInterval(executeBet, 500);
 };
 
 export function handleCashout() {
-    gameInProgress.set(false);
 
     const updatedCardStatus = get(cardStatus).map((tile) => {
         if (tile.state === TileStateEnum.Hidden) {
@@ -322,6 +352,9 @@ export function handleCashout() {
     currentWalletState.update((wallet) => {
         return { ...wallet, available: newBalance };
     });
+
+    gameInProgress.set(false);
+    autoBetInProgress.set(false)
 }
 
 export const updateBetAmountOnWin = () => {
@@ -419,3 +452,10 @@ export function resetBoard() {
     needToStopNextTime.set(false);
     currentProfit.set(0);
 }
+
+// export function endGame() {
+//     gameInProgress.set(false);
+//     nextMultiplier.set(0);
+//     totalMultiplier.set(0);
+//     leftGems.set(0);
+// }

@@ -167,7 +167,7 @@
 	let clickAction: any;
 
 	$: {
-		if ($autoBetInProgress) {
+		if ($autoBetInProgress && gameInProgress) {
 			buttonText = 'Stop Autobet';
 			clickAction = handleCashout;
 		} else {
@@ -406,7 +406,23 @@
 				</LabelInput>
 			</div>
 
-			{#if $gameInProgress}
+			<!-- DROPDOWN -->
+			<div>
+				<CustomDropdown
+					bgBlue={true}
+					v3={true}
+					labelV2={true}
+					wrapperStyle={{ backgroundColor: '#222c56' }}
+					buttonStyle={{ backgroundColor: '#222c56', color: '#fff' }}
+					{options}
+					{currentOption}
+					handleOptionClick={handleNumOfMinesChange}
+					isMobile={false}
+					disabled={$autoBetInProgress || $gameInProgress}
+				/>
+			</div>
+
+			{#if $gameInProgress || $autoBetInProgress}
 				<div class="first-line">
 					<LabelInput
 						readOnly
@@ -439,6 +455,7 @@
 						dataTestId="profit"
 						integerOnly={true}
 						labelContent="TOTAL PROFIT ({$totalMultiplier}X)"
+						disabled={$autoBetInProgress || $gameInProgress}
 					>
 						<div slot="inputIcon">
 							{#if $selectedFiatCurrency}
@@ -450,21 +467,6 @@
 					</LabelInput>
 				</div>
 			{/if}
-
-			<!-- DROPDOWN -->
-			<div>
-				<CustomDropdown
-					bgBlue={true}
-					v3={true}
-					labelV2={true}
-					wrapperStyle={{ backgroundColor: '#222c56' }}
-					buttonStyle={{ backgroundColor: '#222c56', color: '#fff' }}
-					{options}
-					{currentOption}
-					handleOptionClick={handleNumOfMinesChange}
-					isMobile={false}
-				/>
-			</div>
 
 			<div>
 				<LabelInput
@@ -492,7 +494,7 @@
 				</LabelInput>
 			</div>
 
-			{#if !$autoBetInProgress}
+			{#if !$autoBetInProgress && !$gameInProgress}
 				<div>
 					<LabelInput
 						min={0}
@@ -630,36 +632,6 @@
 				></CustomButton>
 			</div>
 		{/if}
-
-		<!-- <div>
-					<CustomButton
-						type="submit"
-						onClick={handleRandomClick}
-						width={'100%'}
-						bgColor={'#01d180'}
-						color={'#fff'}
-						padding={'16px'}
-						margin={'10px 0px'}
-						disabled={$loading}
-						dataTestId={'random-button'}
-						buttonText={'PICK RANDOM TILE'}
-					></CustomButton>
-				</div> -->
-
-		<!-- <div>
-					<CustomButton
-						type="submit"
-						onClick={handleCashout}
-						width={'100%'}
-						bgColor={'#01d180'}
-						color={'#fff'}
-						padding={'16px'}
-						margin={'10px 0px'}
-						disabled={(gameInProgress && 25 - $numOfMines - $leftGems == 0) || !gameInProgress}
-						dataTestId={'bet-button'}
-						buttonText={'Cashout'}
-					></CustomButton>
-				</div> -->
 	</div>
 </div>
 
