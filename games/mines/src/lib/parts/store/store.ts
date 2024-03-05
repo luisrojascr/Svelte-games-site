@@ -87,6 +87,7 @@ export const totalMultiplier = writable(0);
 export const leftGems = writable(0);
 
 export const mineSubsData = writable('');
+export const limitBet = writable(0);
 export const numOfBets = writable(0);
 
 export const betAmount = writable('0');
@@ -263,11 +264,10 @@ export const handleBet = (): void => {
         const newBalance = currentCurBalance + currentBetAmount;
         updateStorageBalance(currentSessionId, newBalance);
     }
-    gameInProgress.set(true)
 };
 
 function resetGameForNextBet() {
-    autoBetInProgress.set(true)
+    autoBetInProgress.set(false)
     cardStatus.set(initMineField());
     minePositions.set(generateRandomArr());
     leftGems.set(25 - get(numOfMines));
@@ -276,31 +276,22 @@ function resetGameForNextBet() {
     setTimeout(() => handleAutoBet(), 500);
 }
 
-function numberBetsLimit() {
-    handleCashout();
-
-    // Check if we should continue auto-betting
-    const currentNumOfBets = get(numOfBets);
-    if (currentNumOfBets !== 0) {
-        setTimeout(() => {
-            handleBet();
-            autoBetInProgress.set(true);
-            handleAutoBet();
-        }, 500);
-    } else {
-        autoBetInProgress.set(false);
-    }
+// Function to update both numOfBets and initialNumOfBets when the user sets a new value
+export function updateUserNumOfBets(newNumOfBets: number) {
+    numOfBets.set(newNumOfBets);
+    limitBet.set(newNumOfBets); // Also set the initial number of bets
 }
 
 //AUTO BET
 export const handleAutoBet = (): void => {
+    limitBet.set(get(numOfBets));
     autoBetInProgress.set(true);
     handleBet();
 
     const executeBet = () => {
+        let newProfit = get(currentProfit);
         const currentGameInProgress = get(autoBetInProgress);
         const hiddenTiles = get(cardStatus).filter(tile => tile.state === TileStateEnum.Hidden);
-        const currentNumOfBets = get(numOfBets);
 
         if (!currentGameInProgress || hiddenTiles.length === 0 || get(needToStopNextTime)) {
             clearInterval(autoBet);
@@ -311,23 +302,23 @@ export const handleAutoBet = (): void => {
 
         handleRandomClick();
         updateBetAmountOnWin();
+        updateBetAmountOnLoss()
 
-        // Decrement numOfBets if it's a limited auto-bet session
-        if (currentNumOfBets > 0) {
-            numOfBets.update(n => n - 1);
-
-            if (get(numOfBets) === 0) {
-                // clearInterval(autoBet);
-                autoBetInProgress.set(false);
+        // // Decrement numOfBets if it's a limited auto-bet session
+        // if (checkStopOnLossOrProfit(newProfit, parseFloat(get(stopOnLoss) as string), parseFloat(get(stopOnProfit) as string))) {
+        //     handleCashout();
+        // }
+        if (get(limitBet) > 0) {
+            limitBet.update(n => n - 1);
+            if (get(limitBet) === 0) {
+                handleAutoCashOut();
             }
-
         }
     };
     const autoBet = setInterval(executeBet, 500);
 };
 
 export function handleCashout() {
-
     const updatedCardStatus = get(cardStatus).map((tile) => {
         if (tile.state === TileStateEnum.Hidden) {
             return {
@@ -353,8 +344,45 @@ export function handleCashout() {
         return { ...wallet, available: newBalance };
     });
 
+
     gameInProgress.set(false);
     autoBetInProgress.set(false)
+
+}
+
+export function handleAutoCashOut() {
+    const updatedCardStatus = get(cardStatus).map((tile) => {
+        if (tile.state === TileStateEnum.Hidden) {
+            return {
+                ...tile,
+                state: TileStateEnum.Revealed,
+                isMine: checkIfMine(tile.id),
+            };
+        }
+        return tile;
+    });
+    cardStatus.set(updatedCardStatus);
+
+    const currentBalance = get(curBalance);
+    const multiplier = get(totalMultiplier);
+    let betAmountNumber = parseFloat(get(betAmount));
+    const newBalance = currentBalance + betAmountNumber * multiplier;
+    const sessionIdValue = get(sessionId);
+
+    updateStorageBalance(sessionIdValue, newBalance);
+    curBalance.set(newBalance);
+
+    currentWalletState.update((wallet) => {
+        return { ...wallet, available: newBalance };
+    });
+
+    limitBet.set(get(numOfBets));
+
+    if (get(autoBetInProgress)) {
+        setTimeout(() => {
+            handleAutoBet(); // Restart auto-betting
+        }, 1000);
+    }
 }
 
 export const updateBetAmountOnWin = () => {

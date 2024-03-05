@@ -38,6 +38,7 @@
 		inputStopOnLoss,
 		inputStopOnProfit,
 		leftGems,
+		limitBet,
 		loading,
 		maxBet,
 		numOfBets,
@@ -47,8 +48,10 @@
 		selectedFiatCurrency,
 		selectedOnLoss,
 		selectedOnWin,
-		totalMultiplier
+		totalMultiplier,
+		updateUserNumOfBets
 	} from '$lib/parts/store/store';
+	import { onMount } from 'svelte';
 
 	let tooltip = false;
 
@@ -65,13 +68,13 @@
 		onWin.set('0.00');
 	}
 
-	function handleOnWinIncrease() {
-		selectedOnWin.set(OnWin.INCREASE);
-	}
-
 	function handleOnLossReset() {
 		selectedOnLoss.set(OnLoss.AUTO);
 		onLoss.set('0.00');
+	}
+
+	function handleOnWinIncrease() {
+		selectedOnWin.set(OnWin.INCREASE);
 	}
 
 	function handleOnLossIncrease() {
@@ -183,6 +186,8 @@
 
 	$: isBetAmountValid =
 		(parseFloat($betAmount) > 0 && parseFloat($betAmount) < 1) || parseFloat($betAmount) >= 1;
+
+	$: $numOfBets, updateUserNumOfBets($numOfBets);
 </script>
 
 <div class="game-sidebar-wrapper">
@@ -485,9 +490,9 @@
 					<div slot="count">
 						{#if $numOfBets === 0}
 							<InfinityIcon />
-						{:else}
+						{:else if autoBetInProgress}
 							<div class="bet-countdown">
-								<span>{$numOfBets}</span>
+								<span>{$limitBet}</span>
 							</div>
 						{/if}
 					</div>
@@ -539,7 +544,7 @@
 							? '0.01'
 							: getNextDecimal(decimalCryptoDisplay(0, $currentWalletState.type))}
 						type={'number'}
-						valueStore={numOfBets}
+						valueStore={onLoss}
 						dataTestId="on-loss"
 						integerOnly={true}
 						labelContent="ON LOSS"
