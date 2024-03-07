@@ -125,42 +125,6 @@
 		}
 	}
 
-	// const totalProfit = derived(
-	// 	[totalMultiplier, betAmount, currentWalletState],
-	// 	//@ts-ignore
-	// 	([$totalMultiplier, $betAmount, $currentWalletState]) => {
-	// 		if ($totalMultiplier == 1) {
-	// 			return '0.0';
-	// 		} else {
-	// 			return ($betAmount * $totalMultiplier).toFixed(
-	// 				decimalDisplayLength($currentWalletState.type)
-	// 			);
-	// 		}
-	// 	}
-	// );
-
-	// const displayProfit = derived(
-	// 	[totalProfit, selectedFiatCurrency, coinPriceData, betAmount],
-	// 	//@ts-ignore
-	// 	([$totalProfit, $selectedFiatCurrency, $coinPriceData, $betAmount]) => {
-	// 		const profit = parseFloat($totalProfit);
-	// 		if (profit) {
-	// 			const deduction = profit - parseFloat($betAmount);
-	// 			if ($selectedFiatCurrency && $coinPriceData) {
-	// 				return deduction.toFixed(2);
-	// 			} else {
-	// 				return deduction.toFixed(decimalDisplayLength($currentWalletState.type));
-	// 			}
-	// 		} else {
-	// 			if ($selectedFiatCurrency && $coinPriceData) {
-	// 				return Number($totalProfit).toFixed(2);
-	// 			} else {
-	// 				return Number($totalProfit).toFixed(decimalDisplayLength($currentWalletState.type));
-	// 			}
-	// 		}
-	// 	}
-	// );
-
 	$: inputLossDisabled = $selectedOnLoss === OnLoss.AUTO;
 
 	$: inputWinDisabled = $selectedOnWin === OnWin.AUTO;
@@ -171,7 +135,7 @@
 	let clickAction: any;
 
 	$: {
-		if ($autoBetInProgress && gameInProgress) {
+		if ($autoBetInProgress && $gameInProgress) {
 			buttonText = 'Stop Autobet';
 			clickAction = handleCashout;
 		} else {

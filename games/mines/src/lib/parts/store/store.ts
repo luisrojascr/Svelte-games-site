@@ -221,6 +221,7 @@ export const handleTileClick = async (index: number): Promise<void> => {
     const currentCardStatus: TileState[] = get(cardStatus);
     const currentLeftGems: number = get(leftGems);
     const isAuto = get(autoBetInProgress);
+    const gameProgress = get(gameInProgress)
 
     if (currentCardStatus[index].state === TileStateEnum.Hidden) {
         const isMine = checkIfMine(index);
@@ -239,9 +240,14 @@ export const handleTileClick = async (index: number): Promise<void> => {
                 resetGameForNextBet();
             }
 
+            // Deduct the bet amount from currentProfit when a mine is hit during auto-betting
+            const betAmountNumber = parseFloat(get(betAmount));
+            currentProfit.update((curProfit) => curProfit - betAmountNumber);
+            console.log('bomb no profit', get(currentProfit));
+
             cardStatus.set(newCardStatus);
-            gameInProgress.set(false);
             nextMultiplier.set(0);
+            gameInProgress.set(false)
             totalMultiplier.set(0);
             leftGems.set(0);
             await timeout(300);
@@ -251,7 +257,6 @@ export const handleTileClick = async (index: number): Promise<void> => {
                     ? { ...tile, state: TileStateEnum.Revealed }
                     : tile
             );
-
             cardStatus.set(nextCardStatus);
         } else {
             playOpenDiamond();
@@ -306,13 +311,14 @@ export const handleBet = (): void => {
 };
 
 function resetGameForNextBet() {
-    // autoBetInProgress.set(false)
+    // autoBetInProgress.set(true)
+    // gameInProgress.set(true)
     cardStatus.set(initMineField());
     minePositions.set(generateRandomArr());
     leftGems.set(25 - get(numOfMines));
     totalMultiplier.set(1);
 
-    setTimeout(() => handleAutoBet(), 1000);
+    setTimeout(() => handleAutoBet(), 1500);
 }
 
 // Function to update both numOfBets and initialNumOfBets when the user sets a new value
@@ -322,10 +328,6 @@ export function updateUserNumOfBets(newNumOfBets: number) {
 }
 
 export function handleCashout() {
-    gameInProgress.set(false);
-    autoBetInProgress.set(false)
-    currentProfit.set(0)
-
     const updatedCardStatus = get(cardStatus).map((tile) => {
         if (tile.state === TileStateEnum.Hidden) {
             return {
@@ -350,63 +352,63 @@ export function handleCashout() {
     currentWalletState.update((wallet) => {
         return { ...wallet, available: newBalance };
     });
+
+    // gameInProgress.set(false);
+    // autoBetInProgress.set(false)
+    currentProfit.set(0)
 }
 
 //AUTO BET
 export const handleAutoBet = (): void => {
     limitBet.set(get(numOfBets));
-    autoBetInProgress.set(true);
+    autoBetInProgress.set(true)
+    gameInProgress.set(true)
 
-    // Deduct the betAmount from currentProfit at the start of a new auto-bet session
-    let betAmountNumber = parseFloat(get(betAmount));
-    // currentProfit.update(curProfit => curProfit - betAmountNumber);
-    console.log(get(currentProfit))
+    const isAuto = get(autoBetInProgress)
 
-    setTimeout(() => {
-        handleBet();
+    const currentDisplayProfit: any = get(displayProfit);
+    const curProfitNumber = parseFloat(currentDisplayProfit);
+    currentProfit.update((curProfit) => curProfit + curProfitNumber);
 
-        const executeBet = () => {
-            const currentGameInProgress = get(autoBetInProgress);
-            const hiddenTiles = get(cardStatus).filter(tile => tile.state === TileStateEnum.Hidden);
+    const updatedProfit = get(currentProfit);
+    console.log('no profit', updatedProfit);
 
+    // Check stop conditions after updating currentProfit
+    //@ts-ignore
+    if (checkStopOnLossOrProfit(updatedProfit, get(stopOnLoss), get(stopOnProfit))) {
+        handleCashout();
+        resetBoard()
+        console.log("Undangi!");
+    } else {
+        setTimeout(() => {
+            handleBet();
 
-            if (!currentGameInProgress || hiddenTiles.length === 0 || get(needToStopNextTime)) {
-                clearInterval(autoBet);
-                // autoBetInProgress.set(false);
-                console.log("Auto-bet stopped.");
-                return;
-            }
+            const executeBet = () => {
+                const currentGameInProgress = get(autoBetInProgress);
+                const hiddenTiles = get(cardStatus).filter(tile => tile.state === TileStateEnum.Hidden);
 
-            handleRandomClick();
-
-            updateBetAmountOnWin();
-
-            updateBetAmountOnLoss()
-
-            const currentDisplayProfit: any = get(displayProfit);
-            const curProfitNumber = parseFloat(currentDisplayProfit);
-            currentProfit.update((curProfit) => curProfit + curProfitNumber);
-            const updatedProfit = get(currentProfit);
-            console.log('real profit', updatedProfit)
-
-            // Check stop conditions after updating currentProfit
-            //@ts-ignore
-            if (checkStopOnLossOrProfit(updatedProfit, get(stopOnLoss), get(stopOnProfit))) {
-                handleCashout();
-                console.log("Stopping auto-bet due to reaching stop-on-loss or stop-on-profit condition.");
-            }
-
-
-            if (get(limitBet) > 0) {
-                limitBet.update(n => n - 1);
-                if (get(limitBet) === 0) {
-                    handleAutoCashOut();
+                if (!currentGameInProgress || hiddenTiles.length === 0 || get(needToStopNextTime)) {
+                    clearInterval(autoBet);
+                    autoBetInProgress.set(false);
+                    gameInProgress.set(false)
+                    console.log("Auto-bet stopped.");
+                    return;
                 }
-            }
-        };
-        const autoBet = setInterval(executeBet, 500);
-    }, 1000)
 
+                handleRandomClick();
+                updateBetAmountOnWin();
+                updateBetAmountOnLoss()
+
+                if (get(limitBet) > 0) {
+                    limitBet.update(n => n - 1);
+                    if (get(limitBet) === 0) {
+                        handleAutoCashOut();
+                    }
+                }
+            };
+            const autoBet = setInterval(executeBet, 500);
+        }, 500)
+    }
 };
 
 export function handleAutoCashOut() {
@@ -435,25 +437,31 @@ export function handleAutoCashOut() {
         return { ...wallet, available: newBalance };
     });
 
-
-    const currentDisplayProfit: any = get(displayProfit);
-    const curProfitNumber = parseFloat(currentDisplayProfit);
-    currentProfit.update((curProfit) => curProfit + curProfitNumber);
-    const updatedProfit = get(currentProfit);
-    console.log('real profit', updatedProfit)
-
-    // Check stop conditions after updating currentProfit
-    //@ts-ignore
-    if (checkStopOnLossOrProfit(updatedProfit, get(stopOnLoss), get(stopOnProfit))) {
-        handleCashout();
-        console.log("Stopping auto-bet due to reaching stop-on-loss or stop-on-profit condition.");
-
-    } else if (get(autoBetInProgress)) {
-        // If conditions are not met, continue with auto-betting
+    if (get(autoBetInProgress)) {
+        // Restart auto-betting only if stop conditions are not met     
         setTimeout(() => {
-            handleAutoBet(); // Restart auto-betting
+            handleAutoBet();
         }, 1000);
     }
+
+    // const currentDisplayProfit: any = get(displayProfit);
+    // const curProfitNumber = parseFloat(currentDisplayProfit);
+    // currentProfit.update((curProfit) => curProfit + curProfitNumber);
+
+    // const updatedProfit = get(currentProfit);
+    // console.log('Asa balato', updatedProfit);
+
+    // // Check stop conditions before restarting auto-bet
+    // //@ts-ignore
+    // if (checkStopOnLossOrProfit(updatedProfit, get(stopOnLoss), get(stopOnProfit))) {
+    //     handleCashout();
+    //     console.log("Undangi kay daogan ko");
+    // } else if (get(autoBetInProgress)) {
+    //     // Restart auto-betting only if stop conditions are not met
+    //     setTimeout(() => {
+    //         handleAutoBet();
+    //     }, 1000);
+    // }
 }
 
 export const updateBetAmountOnWin = () => {
@@ -472,7 +480,7 @@ export const updateBetAmountOnWin = () => {
     }
 
     betAmount.set(newBetAmount);
-    console.log("test:", newBetAmount)
+    // console.log("test:", newBetAmount)
 };
 
 export const updateBetAmountOnLoss = () => {
@@ -491,7 +499,7 @@ export const updateBetAmountOnLoss = () => {
     }
 
     betAmount.set(newBetAmount);
-    console.log("test:", newBetAmount)
+    // console.log("test:", newBetAmount)
 };
 
 export function updateStorageBalance(sessionIdToUpdate: string, newBalance: number) {
@@ -537,10 +545,10 @@ export function checkStopOnLossOrProfit(
     if (stopOnProfit > 0 && curProfit >= stopOnProfit) {
         return true;
     }
-    if (stopOnLoss > 0 && Math.abs(curProfit) >= stopOnLoss) {
+    if (stopOnLoss > 0 && curProfit <= -stopOnLoss) {
         return true;
     }
-    console.log("current:", curProfit, "stoploss:", stopOnLoss, "stopwin:", stopOnProfit)
+    console.log("current:", curProfit, "stoploss:", stopOnLoss, "stopwin:", stopOnProfit);
     return false;
 }
 
@@ -550,11 +558,7 @@ export function resetBoard() {
     gameInProgress.set(false);
     needToStopNextTime.set(false);
     currentProfit.set(0);
+    nextMultiplier.set(0);
+    totalMultiplier.set(0);
+    leftGems.set(0);
 }
-
-// export function endGame() {
-//     gameInProgress.set(false);
-//     nextMultiplier.set(0);
-//     totalMultiplier.set(0);
-//     leftGems.set(0);
-// }
