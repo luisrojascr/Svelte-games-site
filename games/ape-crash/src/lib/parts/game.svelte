@@ -1,337 +1,457 @@
 <script lang="ts">
-	import ApeCrash1 from '$lib/ape/ape-crash1.svg';
-	import ApeCrash2 from '$lib/ape/ape-crash2.svg';
-	import Ape from '$lib/ape/ape.svg';
-	import Ray from '$lib/ape/ray.svg';
-	import Layer1 from '$lib/ape/zone1-layer1.svg';
-	import Layer2 from '$lib/ape/zone1-layer2.svg';
-	import Layer3 from '$lib/ape/zone1-layer3.svg';
-	import Layer4 from '$lib/ape/zone1-layer4.svg';
-	import { onDestroy, onMount } from 'svelte';
-	import { tweened } from 'svelte/motion';
-	import { get } from 'svelte/store';
+  import ApeCrash1 from "$lib/ape/ape-crash1.svg";
+  import ApeCrash2 from "$lib/ape/ape-crash2.svg";
+  import Ape from "$lib/ape/ape.svg";
+  import Ray from "$lib/ape/ray.svg";
 
-	let playing = false;
-	let crashing = false;
-	let paused = true; // Default to true
-	let showFirstApeCrash = true;
-	let gameContainer: HTMLElement | undefined;
-	let gameContainerWidth: number;
+  import { onDestroy, onMount } from "svelte";
+  import { tweened } from "svelte/motion";
+  import { get } from "svelte/store";
 
-	let lastBackgroundVal = 0;
-	let lastMidgroundVal = 0;
-	let lastMidfrontgroundVal = 0;
-	let lastForegroundVal = 0;
+  import Layer1 from "$lib/ape/zone1-layer1.svg";
+  import Layer2 from "$lib/ape/zone1-layer2.svg";
+  import Layer3 from "$lib/ape/zone1-layer3.svg";
+  import Layer4 from "$lib/ape/zone1-layer4.svg";
 
-	// Define constants for repeated values and default states
-	const pauseDuration = 2000;
-	const durationTime = 80000;
-	const maxBackgroundOffset = 5155;
-	const foregroundMultipliersByWidth = [
-		{ width: 1535, multiplier: 5.204 },
-		{ width: 1279, multiplier: 4.915 },
-		{ width: 1023, multiplier: 4.659 },
-		{ width: 767, multiplier: 4.542 },
-		{ width: 640, multiplier: 4.516 }
-	];
+  import Layer5 from "$lib/ape/zone2-layer1.svg";
+  import Layer6 from "$lib/ape/zone2-layer2.svg";
+  import Layer7 from "$lib/ape/zone2-layer3.svg";
+  import Layer8 from "$lib/ape/zone2-layer4.svg";
 
-	// Remove redundant stages of "last" state variables
-	let background = tweened(0, { duration: durationTime });
-	let midground = tweened(0, { duration: durationTime });
-	let midfrontground = tweened(0, { duration: durationTime });
-	let foreground = tweened(0, { duration: durationTime });
+  let playing = false;
+  let crashing = false;
+  let paused = true; // Default to true
+  let showFirstApeCrash = true;
+  let gameContainer: HTMLElement | undefined;
+  let gameContainerWidth: number;
 
-	let multiplier = 1.0;
-	let betMultiplier = 1.1;
-	let animationFrameId: number | undefined;
+  let lastBackgroundVal = 0;
+  let lastMidgroundVal = 0;
+  let lastMidfrontgroundVal = 0;
+  let lastForegroundVal = 0;
 
-	$: probabilityPercentage = calculateProbability(betMultiplier).toFixed(2) + '%';
+  // Define constants for repeated values and default states
+  const pauseDuration = 2000;
+  const durationTime = 8000;
+  const maxBackgroundOffset = 5155;
+  const foregroundMultipliersByWidth = [
+    { width: 1535, multiplier: 5.204 },
+    { width: 1279, multiplier: 4.915 },
+    { width: 1023, multiplier: 4.659 },
+    { width: 767, multiplier: 4.542 },
+    { width: 640, multiplier: 4.516 }
+  ];
 
-	// Calculate foreground multiplier in a more efficient way
-	const calculateForegroundMultiplier = (): number => {
-		const screenWidth = window.innerWidth;
-		for (const { width, multiplier } of foregroundMultipliersByWidth) {
-			if (screenWidth <= width) return multiplier;
-		}
-		// Handle edge case for small screen widths dynamically
-		if (screenWidth <= 567) {
-			return calculateDynamicForegroundMultiplier(screenWidth);
-		}
-		return 5.5348; // Default
-	};
+  const zones = [
+    {
+      id: 1,
+      name: "Zone 1",
+      background: { Layer1 },
+      width: 5155
+    },
+    {
+      id: 2,
+      name: "Zone 2",
+      background: { Layer5 },
+      width: 4000
+    }
+  ];
 
-	const calculateDynamicForegroundMultiplier = (screenWidth: number): number => {
-		const baseSize = 567;
-		const baseMultiplier = 4.478;
-		const reductionPer10px = 0.00835;
-		const sizeDifference = baseSize - screenWidth;
-		const multiplierAdjustment = Math.floor(sizeDifference / 10) * reductionPer10px;
-		return baseMultiplier - multiplierAdjustment;
-	};
+  // Remove redundant stages of "last" state variables
+  let background = tweened(0, { duration: durationTime });
+  let midground = tweened(0, { duration: durationTime });
+  let midfrontground = tweened(0, { duration: durationTime });
+  let foreground = tweened(0, { duration: durationTime });
 
-	// Refactor probability calculation to use parameters instead of accessing outer scope directly
-	const calculateProbability = (multiplier: number): number => {
-		const baseMultiplier = 1.0;
-		const baseProbability = 1.0;
-		const decreasePerStep = 0.0001;
-		const stepsAboveBase = (multiplier - baseMultiplier) / 0.01;
-		let currentProbability = baseProbability - stepsAboveBase * decreasePerStep;
-		currentProbability = Math.max(currentProbability, 0);
-		return currentProbability;
-	};
+  //   const zone1Width = maxBackgroundOffset;
 
-	// Omitted shouldCrash function due to lack of usage in script
+  // Reactive variable to control the current zone index
+  let currentZoneIndex = 0;
 
-	const setAnimation = (value: number) => {
-		background.set(value);
-		midground.set(value * 1.6283);
-		midfrontground.set(value * 3.5614);
-		const foregroundMultiplier = calculateForegroundMultiplier();
-		foreground.set(value * foregroundMultiplier);
-	};
+  // Animation control (e.g., translateX)
+  let translateX = 0;
 
-	const animate = () => {
-		if (playing && !crashing) {
-			setAnimation(paused ? 0 : -maxBackgroundOffset); // Simplify background width value
-			animationFrameId = requestAnimationFrame(animate);
-			multiplier += 0.01;
-		}
-	};
+  let zone2Background = tweened(0, { duration: durationTime });
 
-	// Combine the resetLayerPositions into resetGameState
-	const resetGameState = () => {
-		cancelAnimation(); // Extracted cancelAnimationFrame to its own function
+  let multiplier = 1.0;
+  let betMultiplier = 1.1;
+  let animationFrameId: number | undefined;
 
-		multiplier = 1.0;
-		crashing = false;
-		paused = true;
+  $: probabilityPercentage =
+    calculateProbability(betMultiplier).toFixed(2) + "%";
 
-		background.set(typeof lastBackgroundVal !== 'undefined' ? lastBackgroundVal : 0, {
-			duration: 10
-		});
-		midground.set(typeof lastMidgroundVal !== 'undefined' ? lastMidgroundVal : 0, { duration: 10 });
-		midfrontground.set(typeof lastMidfrontgroundVal !== 'undefined' ? lastMidfrontgroundVal : 0, {
-			duration: 10
-		});
-		foreground.set(typeof lastForegroundVal !== 'undefined' ? lastForegroundVal : 0, {
-			duration: 10
-		});
-	};
+  // Calculate foreground multiplier in a more efficient way
+  const calculateForegroundMultiplier = (): number => {
+    const screenWidth = window.innerWidth;
+    for (const { width, multiplier } of foregroundMultipliersByWidth) {
+      if (screenWidth <= width) return multiplier;
+    }
+    // Handle edge case for small screen widths dynamically
+    if (screenWidth <= 567) {
+      return calculateDynamicForegroundMultiplier(screenWidth);
+    }
+    return 5.5348; // Default
+  };
 
-	const cancelAnimation = () => {
-		background.set(get(background));
-		midground.set(get(midground));
-		midfrontground.set(get(midfrontground));
-		foreground.set(get(foreground));
+  const calculateDynamicForegroundMultiplier = (
+    screenWidth: number
+  ): number => {
+    const baseSize = 567;
+    const baseMultiplier = 4.478;
+    const reductionPer10px = 0.00835;
+    const sizeDifference = baseSize - screenWidth;
+    const multiplierAdjustment =
+      Math.floor(sizeDifference / 10) * reductionPer10px;
+    return baseMultiplier - multiplierAdjustment;
+  };
 
-		if (animationFrameId !== undefined) {
-			cancelAnimationFrame(animationFrameId);
-			animationFrameId = undefined;
-		}
-	};
+  // Refactor probability calculation to use parameters instead of accessing outer scope directly
+  const calculateProbability = (multiplier: number): number => {
+    const baseMultiplier = 1.0;
+    const baseProbability = 1.0;
+    const decreasePerStep = 0.0001;
+    const stepsAboveBase = (multiplier - baseMultiplier) / 0.01;
+    let currentProbability = baseProbability - stepsAboveBase * decreasePerStep;
+    currentProbability = Math.max(currentProbability, 0);
+    return currentProbability;
+  };
 
-	const startAnimation = () => {
-		const maxOffset = maxBackgroundOffset;
-		const randomStartPos = Math.floor(Math.random() * maxOffset);
+  // Omitted shouldCrash function due to lack of usage in script
+  const setAnimation = (value: number) => {
+    background.set(value);
+    midground.set(value * 1.6283);
+    midfrontground.set(value * 3.5614);
+    const foregroundMultiplier = calculateForegroundMultiplier();
+    foreground.set(value * foregroundMultiplier);
+  };
 
-		// resetGameState();
+  const animate = () => {
+    if (playing && !crashing) {
+      setAnimation(paused ? 0 : -maxBackgroundOffset); // Simplify background width value
+      animationFrameId = requestAnimationFrame(animate);
+      multiplier += 0.01;
+    }
+  };
 
-		setAnimation(-randomStartPos);
-		animationFrameId = requestAnimationFrame(animate);
+  // Combine the resetLayerPositions into resetGameState
+  const resetGameState = () => {
+    cancelAnimation(); // Extracted cancelAnimationFrame to its own function
 
-		const startButton = document.getElementById('startAnimationButton') as HTMLButtonElement;
-		if (startButton) {
-			startButton.disabled = true;
-		}
+    multiplier = 1.0;
+    crashing = false;
+    paused = true;
 
-		playing = true;
-		paused = false;
-	};
+    background.set(
+      typeof lastBackgroundVal !== "undefined" ? lastBackgroundVal : 0,
+      {
+        duration: 10
+      }
+    );
+    midground.set(
+      typeof lastMidgroundVal !== "undefined" ? lastMidgroundVal : 0,
+      { duration: 10 }
+    );
+    midfrontground.set(
+      typeof lastMidfrontgroundVal !== "undefined" ? lastMidfrontgroundVal : 0,
+      {
+        duration: 10
+      }
+    );
+    foreground.set(
+      typeof lastForegroundVal !== "undefined" ? lastForegroundVal : 0,
+      {
+        duration: 10
+      }
+    );
+  };
 
-	const resetAnimation = () => {
-		playing = false;
-		paused = true;
-		crashing = false;
-		multiplier = 1.0;
+  const cancelAnimation = () => {
+    background.set(get(background));
+    midground.set(get(midground));
+    midfrontground.set(get(midfrontground));
+    foreground.set(get(foreground));
 
-		const startButton = document.getElementById('startAnimationButton') as HTMLButtonElement;
-		if (startButton) {
-			startButton.disabled = false;
-		}
-	};
+    if (animationFrameId !== undefined) {
+      cancelAnimationFrame(animationFrameId);
+      animationFrameId = undefined;
+    }
+  };
 
-	const handleReset = () => {
-		playing = false;
-		paused = true;
-		crashing = false;
-		multiplier = 1.0;
+  const startAnimation = () => {
+    const maxOffset = maxBackgroundOffset;
+    const randomStartPos = Math.floor(Math.random() * maxOffset);
 
-		background.set(0, { duration: 10 });
-		midground.set(0, { duration: 10 });
-		midfrontground.set(0, { duration: 10 });
-		foreground.set(0, { duration: 10 });
-	};
+    // resetGameState();
 
-	const increaseBet = () => {
-		betMultiplier += 0.1;
-	};
-	const decreaseBet = () => {
-		if (betMultiplier > 1.1) {
-			betMultiplier -= 0.1;
-		}
-	};
+    setAnimation(-randomStartPos);
+    animationFrameId = requestAnimationFrame(animate);
 
-	const handleCrash = () => {
-		if (playing) {
-			playing = false;
-			crashing = true;
-			cancelAnimation();
+    const startButton = document.getElementById(
+      "startAnimationButton"
+    ) as HTMLButtonElement;
+    if (startButton) {
+      startButton.disabled = true;
+    }
 
-			lastBackgroundVal = $background;
-			lastMidgroundVal = $midground;
-			lastMidfrontgroundVal = $midfrontground;
-			lastForegroundVal = $foreground;
+    playing = true;
+    paused = false;
+  };
 
-			setTimeout(() => {
-				toggleApeCrashImage();
-				crashing = false;
-				resetAnimation();
-			}, pauseDuration);
-		}
+  const resetAnimation = () => {
+    playing = false;
+    paused = true;
+    crashing = false;
+    multiplier = 1.0;
 
-		const startButton = document.getElementById('startAnimationButton') as HTMLButtonElement;
-		if (startButton) {
-			startButton.disabled = false;
-		}
-	};
+    const startButton = document.getElementById(
+      "startAnimationButton"
+    ) as HTMLButtonElement;
+    if (startButton) {
+      startButton.disabled = false;
+    }
+  };
 
-	const toggleApeCrashImage = () => {
-		showFirstApeCrash = !showFirstApeCrash;
-		setTimeout(toggleApeCrashImage, 3000); // Recursion instead of setInterval
-	};
+  const handleReset = () => {
+    playing = false;
+    paused = true;
+    crashing = false;
+    multiplier = 1.0;
 
-	// Removed redundant calculateWidth function, using onMount directly
-	onMount(() => {
-		gameContainerWidth = gameContainer?.clientWidth || 0;
-	});
+    background.set(0, { duration: 10 });
+    midground.set(0, { duration: 10 });
+    midfrontground.set(0, { duration: 10 });
+    foreground.set(0, { duration: 10 });
+  };
 
-	onDestroy(resetGameState); // Pass the reset function directly
+  const increaseBet = () => {
+    betMultiplier += 0.1;
+  };
+  const decreaseBet = () => {
+    if (betMultiplier > 1.1) {
+      betMultiplier -= 0.1;
+    }
+  };
+
+  const handleCrash = () => {
+    if (playing) {
+      playing = false;
+      crashing = true;
+      cancelAnimation();
+
+      lastBackgroundVal = $background;
+      lastMidgroundVal = $midground;
+      lastMidfrontgroundVal = $midfrontground;
+      lastForegroundVal = $foreground;
+
+      setTimeout(() => {
+        toggleApeCrashImage();
+        crashing = false;
+        resetAnimation();
+      }, pauseDuration);
+    }
+
+    const startButton = document.getElementById(
+      "startAnimationButton"
+    ) as HTMLButtonElement;
+    if (startButton) {
+      startButton.disabled = false;
+    }
+  };
+
+  const toggleApeCrashImage = () => {
+    showFirstApeCrash = !showFirstApeCrash;
+    setTimeout(toggleApeCrashImage, 3000); // Recursion instead of setInterval
+  };
+
+  let backgroundWidth;
+
+  function measureBackground() {
+    const img = new Image();
+    img.onload = function () {
+      backgroundWidth = this.naturalWidth;
+      console.log("Background width: ", backgroundWidth);
+    };
+    img.src = "ape-crash/src/lib/ape/zone2-layer1.svg"; // Adjust the path accordingly
+  }
+
+  onMount(() => {
+    measureBackground();
+  });
+
+  // Removed redundant calculateWidth function, using onMount directly
+  onMount(() => {
+    gameContainerWidth = gameContainer?.clientWidth || 0;
+  });
+
+  onDestroy(resetGameState); // Pass the reset function directly
 </script>
 
 <div bind:this={gameContainer} class="game-container">
-	<div class="ape-container">
-		<span class="rope"></span>
-		{#if crashing}
-			{#if showFirstApeCrash}
-				<img class="ape-crashing" src={ApeCrash1} alt="Ape" />
-			{:else}
-				<img class="ape-crashing" src={ApeCrash2} alt="Ape" />
-			{/if}
-		{:else}
-			<img class="ape" src={Ape} alt="Ape" />
-		{/if}
-	</div>
+  <div class="ape-container">
+    <span class="rope"></span>
+    {#if crashing}
+      {#if showFirstApeCrash}
+        <img class="ape-crashing" src={ApeCrash1} alt="Ape" />
+      {:else}
+        <img class="ape-crashing" src={ApeCrash2} alt="Ape" />
+      {/if}
+    {:else}
+      <img class="ape" src={Ape} alt="Ape" />
+    {/if}
+  </div>
 
-	{#if crashing}
-		<div class="crash">
-			<img src={Ray} alt="Ray" />
-		</div>
-	{/if}
+  {#if crashing}
+    <div class="crash">
+      <img src={Ray} alt="Ray" />
+    </div>
+  {/if}
 
-	<!-- Bind the style property to the tweened value for each layer -->
-	<div class="layer background-layer" style:transform="translateX({$background}px)">
-		<img src={Layer1} alt="Layer 1" />
-	</div>
-	<div class="layer midground-layer" style:transform="translateX({$midground}px)">
-		<img src={Layer2} alt="Layer 2" />
-	</div>
-	<div class="layer midfrontground-layer" style:transform="translateX({$midfrontground}px)">
-		<img src={Layer3} alt="Layer 3" />
-	</div>
-	<div class="layer foreground-layer" style:transform="translateX({$foreground}px)">
-		<img src={Layer4} alt="Layer 4" />
-	</div>
+  <!-- Bind the style property to the tweened value for each layer -->
+  <div>
+    <!-- ZONE 1 -->
+    <div
+      class="layer background-layer z-[-2]"
+      style:transform="translateX({$background}px)"
+    >
+      <img src={Layer1} alt="Layer 1" />
+    </div>
+    <div
+      class="layer midground-layer"
+      style:transform="translateX({$midground}px)"
+    >
+      <img src={Layer2} alt="Layer 2" />
+    </div>
+    <div
+      class="layer midfrontground-layer"
+      style:transform="translateX({$midfrontground}px)"
+    >
+      <img src={Layer3} alt="Layer 3" />
+    </div>
+    <div
+      class="layer foreground-layer"
+      style:transform="translateX({$foreground}px)"
+    >
+      <img src={Layer4} alt="Layer 4" />
+    </div>
+
+    <!-- ZONE 2 -->
+    <div>
+      <!-- <div
+        class="layer background-layer z-[-1]"
+        style:transform="translateX({$zone2Background}px)"
+      >
+        <img src={Layer5} alt="Layer 5" />
+      </div> -->
+      <!-- <div
+    class="layer midground-layer"
+    style:transform="translateX({$midground}px)"
+  >
+    <img src={Layer6} alt="Layer 6" />
+  </div>
+  <div
+    class="layer midfrontground-layer"
+    style:transform="translateX({$midfrontground}px)"
+  >
+    <img src={Layer3} alt="Layer 3" />
+  </div>
+  <div
+    class="layer foreground-layer"
+    style:transform="translateX({$foreground}px)"
+  >
+    <img src={Layer4} alt="Layer 4" />
+  </div> -->
+    </div>
+  </div>
 </div>
 
 <div class="multiplier-display">
-	{multiplier.toFixed(2)}x
+  {multiplier.toFixed(2)}x
 </div>
 
 <div class="multiplier-container">
-	<button class="multiplier-button" on:click={increaseBet}>Add Bet</button>
-	<p class="multiplier-count">{betMultiplier.toFixed(1)}x</p>
-	<button class="multiplier-button" on:click={decreaseBet}>Decrease Bet</button>
-	<p class="probability-count">{probabilityPercentage}</p>
+  <button class="multiplier-button" on:click={increaseBet}>Add Bet</button>
+  <p class="multiplier-count">{betMultiplier.toFixed(1)}x</p>
+  <button class="multiplier-button" on:click={decreaseBet}>Decrease Bet</button>
+  <p class="probability-count">{probabilityPercentage}</p>
 </div>
 
 <div class="buttons">
-	<button id="startAnimationButton" class="play-button" on:click={startAnimation}>
-		Start Animation
-	</button>
-	<button class="rain-button" on:click={handleCrash}>Make it crash</button>
-	<button class="reset-button" on:click={handleReset}>Reset</button>
+  <button
+    id="startAnimationButton"
+    class="play-button"
+    on:click={startAnimation}
+  >
+    Start Animation
+  </button>
+  <button class="rain-button" on:click={handleCrash}>Make it crash</button>
+  <button class="reset-button" on:click={handleReset}>Reset</button>
 </div>
 
 <style lang="postcss">
-	.game-container {
-		@apply relative overflow-hidden w-full h-[420px];
-	}
-	.game-container img {
-		@apply max-w-fit absolute bottom-0;
-	}
-	.ape-container {
-		@apply relative top-[32%] z-10;
-	}
-	.ape,
-	.ape-crashing {
-		@apply z-10 w-[60px] top-1/2 left-1/2;
-	}
-	.ape-crashing {
-		transition: opacity 0.5s ease;
-		opacity: 1;
-		width: 145px;
-		top: -19px;
-		left: 47%;
-	}
-	.rope {
-		@apply bg-[#a9a9a9] h-[3px] w-full block top-0;
-	}
-	.crash {
-		@apply relative top-[37%] z-10 left-[53%];
-	}
-	.crash img {
-		@apply w-[90px];
-	}
-	.buttons {
-		@apply flex flex-row;
-	}
-	.play-button,
-	.rain-button,
-	.reset-button {
-		@apply mt-4 bg-green-600 text-white py-2 rounded-md transition-colors ml-0 text-sm px-6;
-	}
-	.rain-button {
-		@apply ml-3 mr-3;
-	}
-	.layer {
-		@apply absolute w-full h-full bottom-0 left-0 will-change-transform;
-	}
-	.foreground-layer {
-		@apply z-20;
-	}
-	.multiplier-display {
-		@apply text-white text-4xl;
-	}
-	.multiplier-container {
-		@apply flex items-center gap-6;
-	}
-	.multiplier-button {
-		@apply my-4 bg-gray-700 text-white py-2 rounded-md transition-colors ml-0 text-sm px-6;
-	}
-	.multiplier-count {
-		@apply text-xl text-white;
-	}
-	.probability-count {
-		@apply text-base text-white;
-	}
+  .game-container {
+    @apply relative overflow-hidden w-full h-[420px];
+  }
+  .game-container img {
+    @apply max-w-fit absolute bottom-0;
+  }
+  .ape-container {
+    @apply relative top-[32%] z-10;
+  }
+  .ape,
+  .ape-crashing {
+    @apply z-10 w-[60px] top-1/2 left-1/2;
+  }
+  .ape-crashing {
+    transition: opacity 0.5s ease;
+    opacity: 1;
+    width: 145px;
+    top: -19px;
+    left: 47%;
+  }
+  .rope {
+    @apply bg-[#a9a9a9] h-[3px] w-full block top-0;
+  }
+  .crash {
+    @apply relative top-[37%] z-10 left-[53%];
+  }
+  .crash img {
+    @apply w-[90px];
+  }
+  .buttons {
+    @apply flex flex-row;
+  }
+  .play-button,
+  .rain-button,
+  .reset-button {
+    @apply mt-4 bg-green-600 text-white py-2 rounded-md transition-colors ml-0 text-sm px-6;
+  }
+  .rain-button {
+    @apply ml-3 mr-3;
+  }
+  .layer {
+    @apply absolute w-full h-full top-0 bottom-0 left-0 will-change-transform;
+  }
+  .foreground-layer {
+    @apply z-20;
+  }
+
+  /* .background-layer-2 {
+    display: absolute;
+  } */
+
+  .multiplier-display {
+    @apply text-white text-4xl;
+  }
+  .multiplier-container {
+    @apply flex items-center gap-6;
+  }
+  .multiplier-button {
+    @apply my-4 bg-gray-700 text-white py-2 rounded-md transition-colors ml-0 text-sm px-6;
+  }
+  .multiplier-count {
+    @apply text-xl text-white;
+  }
+  .probability-count {
+    @apply text-base text-white;
+  }
 </style>
