@@ -6,7 +6,7 @@
 
   import { onDestroy, onMount } from "svelte";
   import { tweened } from "svelte/motion";
-  import { get } from "svelte/store";
+  import { derived, get, writable } from "svelte/store";
 
   import Layer1 from "$lib/ape/zone1-layer1.svg";
   import Layer2 from "$lib/ape/zone1-layer2.svg";
@@ -42,36 +42,11 @@
     { width: 640, multiplier: 4.516 }
   ];
 
-  const zones = [
-    {
-      id: 1,
-      name: "Zone 1",
-      background: { Layer1 },
-      width: 5155
-    },
-    {
-      id: 2,
-      name: "Zone 2",
-      background: { Layer5 },
-      width: 4000
-    }
-  ];
-
   // Remove redundant stages of "last" state variables
   let background = tweened(0, { duration: durationTime });
   let midground = tweened(0, { duration: durationTime });
   let midfrontground = tweened(0, { duration: durationTime });
   let foreground = tweened(0, { duration: durationTime });
-
-  //   const zone1Width = maxBackgroundOffset;
-
-  // Reactive variable to control the current zone index
-  let currentZoneIndex = 0;
-
-  // Animation control (e.g., translateX)
-  let translateX = 0;
-
-  let zone2Background = tweened(0, { duration: durationTime });
 
   let multiplier = 1.0;
   let betMultiplier = 1.1;
@@ -263,7 +238,68 @@
     setTimeout(toggleApeCrashImage, 3000); // Recursion instead of setInterval
   };
 
-  let backgroundWidth;
+  // Define your zone images in a structured manner
+  const zoneImages = {
+    1: {
+      background: Layer1,
+      midground: Layer2,
+      midfrontground: Layer3,
+      foreground: Layer4
+    },
+
+    2: {
+      background: Layer5,
+      midground: Layer6,
+      midfrontground: Layer7,
+      foreground: Layer8
+    }
+    // Continue for each zone
+  };
+
+  let currentZone = writable(1); // Current zone state
+
+  let zone2BackgroundPosition = tweened(1024, { duration: durationTime });
+
+  // Example function to transition to Zone 2
+  function transitionToZone2() {
+    currentZone.set(2);
+    zone2BackgroundPosition.set(-maxBackgroundOffset);
+  }
+
+  $: {
+    if ($background <= -maxBackgroundOffset && $currentZone === 1) {
+      transitionToZone2();
+    }
+  }
+
+  let backgroundWidth: any;
+  let windowWidth = writable(window.innerWidth);
+
+  function updateWindowWidth() {
+    windowWidth.set(window.innerWidth);
+  }
+
+  let apeProgress = derived(
+    [background, windowWidth],
+    ([$background, $windowWidth]) => {
+      if (!backgroundWidth) return 0;
+
+      let traversableDistance = backgroundWidth - $windowWidth;
+      let traversedDistance = Math.abs($background);
+      let progressPercentage = (traversedDistance / traversableDistance) * 100;
+      progressPercentage = Math.min(progressPercentage, 100);
+
+      console.log(`Ape's progress: ${progressPercentage.toFixed(2)}%`);
+
+      return progressPercentage;
+    }
+  );
+
+  $: {
+    if ($apeProgress >= 50) {
+      console.log("halfway point!");
+    }
+  }
 
   function measureBackground() {
     const img = new Image();
@@ -271,19 +307,19 @@
       backgroundWidth = this.naturalWidth;
       console.log("Background width: ", backgroundWidth);
     };
-    img.src = "ape-crash/src/lib/ape/zone2-layer1.svg"; // Adjust the path accordingly
+    img.src = "ape-crash/src/lib/ape/zone1-layer4.svg"; // Adjust the path accordingly
   }
 
   onMount(() => {
     measureBackground();
-  });
-
-  // Removed redundant calculateWidth function, using onMount directly
-  onMount(() => {
     gameContainerWidth = gameContainer?.clientWidth || 0;
+    window.addEventListener("resize", updateWindowWidth);
   });
 
-  onDestroy(resetGameState); // Pass the reset function directly
+  onDestroy(() => {
+    resetGameState;
+    window.removeEventListener("resize", updateWindowWidth);
+  });
 </script>
 
 <div bind:this={gameContainer} class="game-container">
@@ -313,54 +349,105 @@
       class="layer background-layer z-[-2]"
       style:transform="translateX({$background}px)"
     >
-      <img src={Layer1} alt="Layer 1" />
+      <div class="background-container">
+        <img
+          src={Layer1}
+          alt="Zone 1 Background"
+          class="background"
+          id="zone1-background"
+        />
+      </div>
+
+      <div class="background-container">
+        <img
+          src={Layer5}
+          alt="Zone 2 Background"
+          class="background"
+          style:transform="translateX({5455}px)"
+          id="zone2-background"
+        />
+      </div>
     </div>
+
     <div
       class="layer midground-layer"
       style:transform="translateX({$midground}px)"
     >
-      <img src={Layer2} alt="Layer 2" />
+      <div class="background-container">
+        <img src={Layer2} alt="Layer 2" />
+        <div class="">
+          <img
+            src={Layer6}
+            alt="Zone 2 Midground"
+            class=""
+            style:transform="translateX({6090}px)"
+          />
+        </div>
+      </div>
     </div>
+
     <div
       class="layer midfrontground-layer"
       style:transform="translateX({$midfrontground}px)"
     >
-      <img src={Layer3} alt="Layer 3" />
+      <div class="background-container">
+        <img src={Layer3} alt="Layer 3" />
+        <div class="">
+          <img
+            src={Layer7}
+            alt="Zone 2 Midfrontground"
+            class=""
+            style:transform="translateX({13590}px)"
+            id="zone1-background"
+          />
+        </div>
+      </div>
     </div>
     <div
       class="layer foreground-layer"
       style:transform="translateX({$foreground}px)"
     >
-      <img src={Layer4} alt="Layer 4" />
+      <div class="background-container">
+        <img src={Layer4} alt="Layer 4" />
+        <div class="">
+          <img
+            src={Layer8}
+            alt="Zone 2 Foreground"
+            class=""
+            style:transform="translateX({19390}px)"
+            id="zone1-background"
+          />
+        </div>
+      </div>
     </div>
 
-    <!-- ZONE 2 -->
-    <div>
-      <!-- <div
-        class="layer background-layer z-[-1]"
-        style:transform="translateX({$zone2Background}px)"
+    <!-- 
+    {#if $apeProgress >= 98}
+      <div
+        class="layer background-layer z-[-2]"
+        style:transform="translateX({$background}px)"
       >
-        <img src={Layer5} alt="Layer 5" />
-      </div> -->
-      <!-- <div
-    class="layer midground-layer"
-    style:transform="translateX({$midground}px)"
-  >
-    <img src={Layer6} alt="Layer 6" />
-  </div>
-  <div
-    class="layer midfrontground-layer"
-    style:transform="translateX({$midfrontground}px)"
-  >
-    <img src={Layer3} alt="Layer 3" />
-  </div>
-  <div
-    class="layer foreground-layer"
-    style:transform="translateX({$foreground}px)"
-  >
-    <img src={Layer4} alt="Layer 4" />
-  </div> -->
-    </div>
+        <img src={Layer5} alt="Layer 1" />
+      </div>
+      <div
+        class="layer midground-layer"
+        style:transform="translateX({$midground}px)"
+      >
+        <img src={Layer6} alt="Layer 2" />
+      </div>
+      <div
+        class="layer midfrontground-layer"
+        style:transform="translateX({$midfrontground}px)"
+      >
+        <img src={Layer7} alt="Layer 3" />
+      </div>
+      <div
+        class="layer foreground-layer"
+        style:transform="translateX({$foreground}px)"
+      >
+        <img src={Layer8} alt="Layer 4" />
+      </div>
+    {/if} -->
   </div>
 </div>
 
@@ -391,6 +478,20 @@
   .game-container {
     @apply relative overflow-hidden w-full h-[420px];
   }
+
+  .background-container {
+    display: flex;
+    min-width: 100%;
+    transition: transform 2s;
+    /* position: absolute; */
+  }
+
+  .background {
+    flex-shrink: 0;
+    width: auto;
+    height: 100vh;
+  }
+
   .game-container img {
     @apply max-w-fit absolute bottom-0;
   }
