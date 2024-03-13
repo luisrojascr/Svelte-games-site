@@ -32,7 +32,7 @@
 
   // Define constants for repeated values and default states
   const pauseDuration = 2000;
-  const durationTime = 8000;
+  const durationTime = 80000;
   const maxBackgroundOffset = 5155;
   const foregroundMultipliersByWidth = [
     { width: 1535, multiplier: 5.204 },
@@ -238,24 +238,6 @@
     setTimeout(toggleApeCrashImage, 3000); // Recursion instead of setInterval
   };
 
-  // Define your zone images in a structured manner
-  const zoneImages = {
-    1: {
-      background: Layer1,
-      midground: Layer2,
-      midfrontground: Layer3,
-      foreground: Layer4
-    },
-
-    2: {
-      background: Layer5,
-      midground: Layer6,
-      midfrontground: Layer7,
-      foreground: Layer8
-    }
-    // Continue for each zone
-  };
-
   let currentZone = writable(1); // Current zone state
 
   let zone2BackgroundPosition = tweened(1024, { duration: durationTime });
@@ -273,37 +255,11 @@
   }
 
   let backgroundWidth: any;
-  let windowWidth = writable(window.innerWidth);
-
-  function updateWindowWidth() {
-    windowWidth.set(window.innerWidth);
-  }
-
-  let apeProgress = derived(
-    [background, windowWidth],
-    ([$background, $windowWidth]) => {
-      if (!backgroundWidth) return 0;
-
-      let traversableDistance = backgroundWidth - $windowWidth;
-      let traversedDistance = Math.abs($background);
-      let progressPercentage = (traversedDistance / traversableDistance) * 100;
-      progressPercentage = Math.min(progressPercentage, 100);
-
-      console.log(`Ape's progress: ${progressPercentage.toFixed(2)}%`);
-
-      return progressPercentage;
-    }
-  );
-
-  $: {
-    if ($apeProgress >= 50) {
-      console.log("halfway point!");
-    }
-  }
 
   function measureBackground() {
     const img = new Image();
     img.onload = function () {
+      //@ts-ignore
       backgroundWidth = this.naturalWidth;
       console.log("Background width: ", backgroundWidth);
     };
@@ -313,12 +269,10 @@
   onMount(() => {
     measureBackground();
     gameContainerWidth = gameContainer?.clientWidth || 0;
-    window.addEventListener("resize", updateWindowWidth);
   });
 
   onDestroy(() => {
     resetGameState;
-    window.removeEventListener("resize", updateWindowWidth);
   });
 </script>
 
@@ -342,28 +296,25 @@
     </div>
   {/if}
 
-  <!-- Bind the style property to the tweened value for each layer -->
   <div>
     <!-- ZONE 1 -->
     <div
       class="layer background-layer z-[-2]"
       style:transform="translateX({$background}px)"
     >
-      <div class="background-container">
-        <img
-          src={Layer1}
-          alt="Zone 1 Background"
-          class="background"
-          id="zone1-background"
-        />
-      </div>
+      <img
+        src={Layer1}
+        alt="Zone 1 Background"
+        class=""
+        id="zone1-background"
+      />
 
       <div class="background-container">
         <img
           src={Layer5}
           alt="Zone 2 Background"
-          class="background"
-          style:transform="translateX({5455}px)"
+          class=""
+          style:transform="translateX({5155}px)"
           id="zone2-background"
         />
       </div>
@@ -380,7 +331,7 @@
             src={Layer6}
             alt="Zone 2 Midground"
             class=""
-            style:transform="translateX({6090}px)"
+            style:transform="translateX({7590}px)"
           />
         </div>
       </div>
@@ -397,12 +348,13 @@
             src={Layer7}
             alt="Zone 2 Midfrontground"
             class=""
-            style:transform="translateX({13590}px)"
+            style:transform="translateX({15290}px)"
             id="zone1-background"
           />
         </div>
       </div>
     </div>
+
     <div
       class="layer foreground-layer"
       style:transform="translateX({$foreground}px)"
@@ -414,40 +366,12 @@
             src={Layer8}
             alt="Zone 2 Foreground"
             class=""
-            style:transform="translateX({19390}px)"
+            style:transform="translateX({21690}px)"
             id="zone1-background"
           />
         </div>
       </div>
     </div>
-
-    <!-- 
-    {#if $apeProgress >= 98}
-      <div
-        class="layer background-layer z-[-2]"
-        style:transform="translateX({$background}px)"
-      >
-        <img src={Layer5} alt="Layer 1" />
-      </div>
-      <div
-        class="layer midground-layer"
-        style:transform="translateX({$midground}px)"
-      >
-        <img src={Layer6} alt="Layer 2" />
-      </div>
-      <div
-        class="layer midfrontground-layer"
-        style:transform="translateX({$midfrontground}px)"
-      >
-        <img src={Layer7} alt="Layer 3" />
-      </div>
-      <div
-        class="layer foreground-layer"
-        style:transform="translateX({$foreground}px)"
-      >
-        <img src={Layer8} alt="Layer 4" />
-      </div>
-    {/if} -->
   </div>
 </div>
 
