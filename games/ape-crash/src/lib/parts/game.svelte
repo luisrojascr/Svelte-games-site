@@ -5,7 +5,9 @@
   import Ray from "$lib/ape/ray.svg";
 
   import { onDestroy, onMount } from "svelte";
+  import { backIn, backOut, circIn, cubicIn, expoIn } from "svelte/easing";
   import { tweened } from "svelte/motion";
+
   import { derived, get, writable } from "svelte/store";
 
   import Layer1 from "$lib/ape/zone1-layer1.svg";
@@ -32,8 +34,8 @@
 
   // Define constants for repeated values and default states
   const pauseDuration = 2000;
-  const durationTime = 80000;
-  const maxBackgroundOffset = 5155;
+  const durationTime = 2000;
+  const maxBackgroundOffset = -20000;
   const foregroundMultipliersByWidth = [
     { width: 1535, multiplier: 5.204 },
     { width: 1279, multiplier: 4.915 },
@@ -42,11 +44,15 @@
     { width: 640, multiplier: 4.516 }
   ];
 
-  // Remove redundant stages of "last" state variables
-  let background = tweened(0, { duration: durationTime });
-  let midground = tweened(0, { duration: durationTime });
-  let midfrontground = tweened(0, { duration: durationTime });
-  let foreground = tweened(0, { duration: durationTime });
+  let background = tweened(0, { duration: durationTime, easing: circIn });
+  let midground = tweened(0, { duration: durationTime, easing: circIn });
+  let midfrontground = tweened(0, { duration: durationTime, easing: circIn });
+  let foreground = tweened(0, { duration: durationTime, easing: circIn });
+
+  // let background2 = tweened(0, { duration: durationTime, easing: circIn });
+  // let midground2 = tweened(0, { duration: durationTime, easing: circIn });
+  // let midfrontground2 = tweened(0, { duration: durationTime, easing: circIn });
+  // let foreground2 = tweened(0, { duration: durationTime, easing: circIn });
 
   let multiplier = 1.0;
   let betMultiplier = 1.1;
@@ -91,21 +97,26 @@
     return currentProbability;
   };
 
-  // Omitted shouldCrash function due to lack of usage in script
   const setAnimation = (value: number) => {
     background.set(value);
     midground.set(value * 1.6283);
     midfrontground.set(value * 3.5614);
     const foregroundMultiplier = calculateForegroundMultiplier();
     foreground.set(value * foregroundMultiplier);
+
+    // midground2.set(value * 1.3);
+    // midfrontground2.set(value * 4.5614);
+    // // const foregroundMultiplier2 = calculateForegroundMultiplier();
+    // foreground2.set(value * 6);
   };
 
   const animate = () => {
     if (playing && !crashing) {
-      setAnimation(paused ? 0 : -maxBackgroundOffset); // Simplify background width value
+      setAnimation(paused ? 0 : maxBackgroundOffset); // Simplify background width value
       animationFrameId = requestAnimationFrame(animate);
       multiplier += 0.01;
     }
+    console.log(get(animationProgress));
   };
 
   // Combine the resetLayerPositions into resetGameState
@@ -238,20 +249,19 @@
     setTimeout(toggleApeCrashImage, 3000); // Recursion instead of setInterval
   };
 
-  let currentZone = writable(1); // Current zone state
+  const animationProgress = derived(background, $background => {
+    return Math.abs($background / maxBackgroundOffset) * 100;
+  });
 
-  let zone2BackgroundPosition = tweened(1024, { duration: durationTime });
+  let zone2Opacity = 0; // Initial opacity
 
-  // Example function to transition to Zone 2
-  function transitionToZone2() {
-    currentZone.set(2);
-    zone2BackgroundPosition.set(-maxBackgroundOffset);
-  }
-
-  $: {
-    if ($background <= -maxBackgroundOffset && $currentZone === 1) {
-      transitionToZone2();
-    }
+  $: if ($animationProgress > 18 && $animationProgress <= 22) {
+    // Start increasing opacity when progress is between 15% and 22%
+    zone2Opacity = (($animationProgress - 15) / 10) * 1;
+  } else if ($animationProgress > 20) {
+    zone2Opacity = 1;
+  } else {
+    zone2Opacity = 0;
   }
 
   let backgroundWidth: any;
@@ -298,25 +308,26 @@
 
   <div>
     <!-- ZONE 1 -->
-    <div
-      class="layer background-layer z-[-2]"
-      style:transform="translateX({$background}px)"
-    >
-      <img
-        src={Layer1}
-        alt="Zone 1 Background"
-        class=""
-        id="zone1-background"
-      />
-
-      <div class="background-container">
+    <div class="background-container">
+      <div class="layer background-layer z-[-2]">
         <img
-          src={Layer5}
-          alt="Zone 2 Background"
+          src={Layer1}
+          alt="Zone 1 Background"
           class=""
-          style:transform="translateX({5155}px)"
-          id="zone2-background"
+          style:transform="translateX({$background}px)"
+          id="zone1-background"
         />
+        {#if $animationProgress > 15.5}
+          <div class="zone-background" style="opacity: {zone2Opacity}">
+            <img
+              src={Layer5}
+              alt="Zone 2 Background"
+              class=""
+              id="zone2-background"
+              style:transform="translateX({$background + 4555}px)"
+            />
+          </div>
+        {/if}
       </div>
     </div>
 
@@ -324,16 +335,14 @@
       class="layer midground-layer"
       style:transform="translateX({$midground}px)"
     >
-      <div class="background-container">
-        <img src={Layer2} alt="Layer 2" />
-        <div class="">
-          <img
-            src={Layer6}
-            alt="Zone 2 Midground"
-            class=""
-            style:transform="translateX({7590}px)"
-          />
-        </div>
+      <img src={Layer2} alt="Layer 2" />
+      <div class="">
+        <img
+          src={Layer6}
+          alt="Zone 2 Midground"
+          class=""
+          style:transform="translateX({8190}px)"
+        />
       </div>
     </div>
 
@@ -341,17 +350,15 @@
       class="layer midfrontground-layer"
       style:transform="translateX({$midfrontground}px)"
     >
-      <div class="background-container">
-        <img src={Layer3} alt="Layer 3" />
-        <div class="">
-          <img
-            src={Layer7}
-            alt="Zone 2 Midfrontground"
-            class=""
-            style:transform="translateX({15290}px)"
-            id="zone1-background"
-          />
-        </div>
+      <img src={Layer3} alt="Layer 3" />
+      <div class="">
+        <img
+          src={Layer7}
+          alt="Zone 2 Midfrontground"
+          class=""
+          style:transform="translateX({15290}px)"
+          id="zone1-background"
+        />
       </div>
     </div>
 
@@ -359,17 +366,15 @@
       class="layer foreground-layer"
       style:transform="translateX({$foreground}px)"
     >
-      <div class="background-container">
-        <img src={Layer4} alt="Layer 4" />
-        <div class="">
-          <img
-            src={Layer8}
-            alt="Zone 2 Foreground"
-            class=""
-            style:transform="translateX({21690}px)"
-            id="zone1-background"
-          />
-        </div>
+      <img src={Layer4} alt="Layer 4" />
+      <div class="">
+        <img
+          src={Layer8}
+          alt="Zone 2 Foreground"
+          class=""
+          style:transform="translateX({22690}px)"
+          id="zone1-background"
+        />
       </div>
     </div>
   </div>
@@ -410,10 +415,13 @@
     /* position: absolute; */
   }
 
-  .background {
-    flex-shrink: 0;
-    width: auto;
-    height: 100vh;
+  .zone-background {
+    transition: opacity 10s ease;
+    opacity: 0;
+  }
+
+  .visible {
+    opacity: 1;
   }
 
   .game-container img {
