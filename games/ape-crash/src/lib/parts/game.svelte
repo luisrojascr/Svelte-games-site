@@ -20,6 +20,21 @@
   import Layer7 from "$lib/ape/zone2-layer3.svg";
   import Layer8 from "$lib/ape/zone2-layer4.svg";
 
+  import Layer9 from "$lib/ape/zone3-layer1.svg";
+  import Layer10 from "$lib/ape/zone3-layer2.svg";
+  import Layer11 from "$lib/ape/zone3-layer3.svg";
+  import Layer12 from "$lib/ape/zone3-layer4.svg";
+
+  import Layer13 from "$lib/ape/zone4-layer1.svg";
+  import Layer14 from "$lib/ape/zone4-layer2.svg";
+  // import Layer15 from "$lib/ape/zone4-layer3.svg";
+  import Layer16 from "$lib/ape/zone4-layer4.svg";
+
+  import Layer17 from "$lib/ape/zone5-layer1.svg";
+  import Layer18 from "$lib/ape/zone5-layer2.svg";
+  import Layer19 from "$lib/ape/zone5-layer3.svg";
+  import Layer20 from "$lib/ape/zone5-layer4.svg";
+
   let playing = false;
   let crashing = false;
   let paused = true; // Default to true
@@ -35,7 +50,7 @@
   // Define constants for repeated values and default states
   const pauseDuration = 2000;
   const durationTime = 2000;
-  const maxBackgroundOffset = -20000;
+  const maxBackgroundOffset = -50000;
   const foregroundMultipliersByWidth = [
     { width: 1535, multiplier: 5.204 },
     { width: 1279, multiplier: 4.915 },
@@ -253,15 +268,35 @@
     return Math.abs($background / maxBackgroundOffset) * 100;
   });
 
-  let zone2Opacity = 0; // Initial opacity
+  let zone2Opacity = 0;
+  let zone3Opacity = 0;
+  let zone4Opacity = 0;
 
-  $: if ($animationProgress > 18 && $animationProgress <= 22) {
-    // Start increasing opacity when progress is between 15% and 22%
+  $: if ($animationProgress > 7 && $animationProgress <= 7.8) {
+    // Start increasing opacity when progress is between
     zone2Opacity = (($animationProgress - 15) / 10) * 1;
-  } else if ($animationProgress > 20) {
+  } else if ($animationProgress > 7) {
     zone2Opacity = 1;
   } else {
     zone2Opacity = 0;
+  }
+
+  $: if ($animationProgress > 16 && $animationProgress <= 19) {
+    // Start increasing opacity when progress is between
+    zone3Opacity = (($animationProgress - 15) / 10) * 1;
+  } else if ($animationProgress > 16) {
+    zone3Opacity = 1;
+  } else {
+    zone3Opacity = 0;
+  }
+
+  $: if ($animationProgress > 25 && $animationProgress <= 27) {
+    // Start increasing opacity when progress is between
+    zone4Opacity = (($animationProgress - 15) / 10) * 1;
+  } else if ($animationProgress > 25) {
+    zone4Opacity = 1;
+  } else {
+    zone4Opacity = 0;
   }
 
   let backgroundWidth: any;
@@ -307,7 +342,6 @@
   {/if}
 
   <div>
-    <!-- ZONE 1 -->
     <div class="background-container">
       <div class="layer background-layer z-[-2]">
         <img
@@ -317,7 +351,7 @@
           style:transform="translateX({$background}px)"
           id="zone1-background"
         />
-        {#if $animationProgress > 15.5}
+        {#if $animationProgress > 6}
           <div class="zone-background" style="opacity: {zone2Opacity}">
             <img
               src={Layer5}
@@ -325,6 +359,39 @@
               class=""
               id="zone2-background"
               style:transform="translateX({$background + 4555}px)"
+            />
+          </div>
+        {/if}
+        {#if $animationProgress > 16}
+          <div class="zone-background" style="opacity: {zone3Opacity}">
+            <img
+              src={Layer9}
+              alt="Zone 2 Background"
+              class=""
+              id="zone2-background"
+              style:transform="translateX({$background + 9355}px)"
+            />
+          </div>
+        {/if}
+        {#if $animationProgress > 26}
+          <div class="zone-background" style="opacity: {zone3Opacity}">
+            <img
+              src={Layer13}
+              alt="Zone 2 Background"
+              class=""
+              id="zone2-background"
+              style:transform="translateX({$background + 13555}px)"
+            />
+          </div>
+        {/if}
+        {#if $animationProgress > 26}
+          <div class="zone-background" style="opacity: {zone3Opacity}">
+            <img
+              src={Layer17}
+              alt="Zone 2 Background"
+              class=""
+              id="zone2-background"
+              style:transform="translateX({$background + 18555}px)"
             />
           </div>
         {/if}
@@ -344,6 +411,30 @@
           style:transform="translateX({8190}px)"
         />
       </div>
+      <div class="">
+        <img
+          src={Layer10}
+          alt="Zone 2 Midground"
+          class=""
+          style:transform="translateX({14790}px)"
+        />
+      </div>
+      <div class="">
+        <img
+          src={Layer14}
+          alt="Zone 2 Midground"
+          class=""
+          style:transform="translateX({21990}px)"
+        />
+      </div>
+      <div class="">
+        <img
+          src={Layer18}
+          alt="Zone 2 Midground"
+          class=""
+          style:transform="translateX({28990}px)"
+        />
+      </div>
     </div>
 
     <div
@@ -360,6 +451,33 @@
           id="zone1-background"
         />
       </div>
+      <div class="">
+        <img
+          src={Layer11}
+          alt="Zone 2 Midfrontground"
+          class=""
+          style:transform="translateX({30090}px)"
+          id="zone1-background"
+        />
+      </div>
+      <!-- <div class="">
+        <img
+          src={Layer11}
+          alt="Zone 2 Midfrontground"
+          class=""
+          style:transform="translateX({45390}px)"
+          id="zone1-background"
+        />
+      </div> -->
+      <div class="">
+        <img
+          src={Layer19}
+          alt="Zone 2 Midfrontground"
+          class=""
+          style:transform="translateX({60190}px)"
+          id="zone1-background"
+        />
+      </div>
     </div>
 
     <div
@@ -373,6 +491,33 @@
           alt="Zone 2 Foreground"
           class=""
           style:transform="translateX({22690}px)"
+          id="zone1-background"
+        />
+      </div>
+      <div class="">
+        <img
+          src={Layer12}
+          alt="Zone 2 Foreground"
+          class=""
+          style:transform="translateX({44690}px)"
+          id="zone1-background"
+        />
+      </div>
+      <div class="">
+        <img
+          src={Layer16}
+          alt="Zone 2 Foreground"
+          class=""
+          style:transform="translateX({66690}px)"
+          id="zone1-background"
+        />
+      </div>
+      <div class="">
+        <img
+          src={Layer20}
+          alt="Zone 2 Foreground"
+          class=""
+          style:transform="translateX({88690}px)"
           id="zone1-background"
         />
       </div>
