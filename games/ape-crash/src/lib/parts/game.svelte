@@ -48,9 +48,24 @@
 	let lastForegroundVal = 0;
 
 	// Define constants for repeated values and default states
-	let durationTime = 4500; // Start at 4000ms
-	const minDuration = 2000; // Minimum duration of 2000ms
+	let durationTime = writable(2000); // Start at 2000
+	const minDuration = 1000; // Minimum duration of 1000
 	let durationDecrementInterval: any;
+
+	const startDurationDecrement = () => {
+		if (durationDecrementInterval) clearInterval(durationDecrementInterval);
+
+		durationDecrementInterval = setInterval(() => {
+			durationTime.update((n) => {
+				let newDuration = n - 10;
+				if (newDuration <= minDuration) {
+					clearInterval(durationDecrementInterval);
+					newDuration = minDuration;
+				}
+				return newDuration;
+			});
+		}, 1000);
+	};
 
 	const pauseDuration = 2000;
 	const maxBackgroundOffset = -50000;
@@ -62,10 +77,18 @@
 		{ width: 640, multiplier: 4.516 }
 	];
 
-	let background = tweened(0, { duration: durationTime, easing: circIn });
-	let midground = tweened(0, { duration: durationTime, easing: circIn });
-	let midfrontground = tweened(0, { duration: durationTime, easing: circIn });
-	let foreground = tweened(0, { duration: durationTime, easing: circIn });
+	let background = tweened(0, { duration: $durationTime, easing: circIn });
+	let midground = tweened(0, { duration: $durationTime, easing: circIn });
+	let midfrontground = tweened(0, { duration: $durationTime, easing: circIn });
+	let foreground = tweened(0, { duration: $durationTime, easing: circIn });
+
+	// Reactively update the animations when durationTime changes
+	$: {
+		background = tweened($background, { duration: $durationTime, easing: circIn });
+		midground = tweened($midground, { duration: $durationTime, easing: circIn });
+		midfrontground = tweened($midfrontground, { duration: $durationTime, easing: circIn });
+		foreground = tweened($foreground, { duration: $durationTime, easing: circIn });
+	}
 
 	let multiplier = 1.0;
 	let betMultiplier = 1.1;
@@ -114,13 +137,34 @@
 		foreground.set(value * foregroundMultiplier);
 	};
 
+	const startAnimation = () => {
+		const maxOffset = maxBackgroundOffset;
+		const randomStartPos = Math.floor(Math.random() * maxOffset);
+
+		startDurationDecrement();
+		// resetGameState();
+
+		setAnimation(-randomStartPos);
+		animationFrameId = requestAnimationFrame(animate);
+
+		const startButton = document.getElementById('startAnimationButton') as HTMLButtonElement;
+		if (startButton) {
+			startButton.disabled = true;
+		}
+
+		playing = true;
+		paused = false;
+	};
+
 	const animate = () => {
 		if (playing && !crashing) {
 			setAnimation(paused ? 0 : maxBackgroundOffset); // Simplify background width value
 			animationFrameId = requestAnimationFrame(animate);
 			multiplier += 0.01;
+			animationProgress = multiplier;
+			// console.log(animationProgress);
 		}
-		console.log(get(animationProgress));
+		// console.log('Minimum duration time reached:', get(durationTime));
 	};
 
 	// Combine the resetLayerPositions into resetGameState
@@ -153,43 +197,6 @@
 			cancelAnimationFrame(animationFrameId);
 			animationFrameId = undefined;
 		}
-	};
-
-	const startAnimation = () => {
-		const maxOffset = maxBackgroundOffset;
-		const randomStartPos = Math.floor(Math.random() * maxOffset);
-
-		// resetGameState();
-		if (durationDecrementInterval) {
-			clearInterval(durationDecrementInterval);
-		}
-
-		// Start decrementing the durationTime
-		durationDecrementInterval = setInterval(() => {
-			durationTime -= 50;
-			if (durationTime <= minDuration) {
-				clearInterval(durationDecrementInterval);
-				console.log('Minimum duration time reached:', durationTime);
-			}
-
-			background = tweened($background, { duration: durationTime, easing: circIn });
-			midground = tweened($midground, { duration: durationTime, easing: circIn });
-			midfrontground = tweened($midfrontground, { duration: durationTime, easing: circIn });
-			foreground = tweened($foreground, { duration: durationTime, easing: circIn });
-
-			console.log('Current durationTime:', durationTime);
-		}, 1000);
-
-		setAnimation(-randomStartPos);
-		animationFrameId = requestAnimationFrame(animate);
-
-		const startButton = document.getElementById('startAnimationButton') as HTMLButtonElement;
-		if (startButton) {
-			startButton.disabled = true;
-		}
-
-		playing = true;
-		paused = false;
 	};
 
 	const resetAnimation = () => {
@@ -254,46 +261,44 @@
 		setTimeout(toggleApeCrashImage, 3000); // Recursion instead of setInterval
 	};
 
-	const animationProgress = derived(background, ($background) => {
-		return Math.abs($background / maxBackgroundOffset) * 100;
-	});
+	let animationProgress = multiplier;
 
 	let zone2Opacity = 0;
 	let zone3Opacity = 0;
 	let zone4Opacity = 0;
 	let zone5Opacity = 0;
 
-	$: if ($animationProgress > 7 && $animationProgress <= 7.8) {
+	$: if (animationProgress > 28 && animationProgress <= 30) {
 		// Start increasing opacity when progress is between
-		zone2Opacity = (($animationProgress - 15) / 10) * 1;
-	} else if ($animationProgress > 7) {
+		zone2Opacity = ((animationProgress - 15) / 10) * 1;
+	} else if (animationProgress > 28) {
 		zone2Opacity = 1;
 	} else {
 		zone2Opacity = 0;
 	}
 
-	$: if ($animationProgress > 16 && $animationProgress <= 18.5) {
+	$: if (animationProgress > 44 && animationProgress <= 46) {
 		// Start increasing opacity when progress is between
-		zone3Opacity = (($animationProgress - 15) / 10) * 1;
-	} else if ($animationProgress > 16) {
+		zone3Opacity = ((animationProgress - 15) / 10) * 1;
+	} else if (animationProgress > 44) {
 		zone3Opacity = 1;
 	} else {
 		zone3Opacity = 0;
 	}
 
-	$: if ($animationProgress > 27 && $animationProgress <= 29) {
+	$: if (animationProgress > 27 && animationProgress <= 29) {
 		// Start increasing opacity when progress is between
-		zone4Opacity = (($animationProgress - 15) / 10) * 1;
-	} else if ($animationProgress > 27) {
+		zone4Opacity = ((animationProgress - 15) / 10) * 1;
+	} else if (animationProgress > 27) {
 		zone4Opacity = 1;
 	} else {
 		zone4Opacity = 0;
 	}
 
-	$: if ($animationProgress > 36 && $animationProgress <= 38) {
+	$: if (animationProgress > 36 && animationProgress <= 38) {
 		// Start increasing opacity when progress is between
-		zone5Opacity = (($animationProgress - 15) / 10) * 1;
-	} else if ($animationProgress > 36) {
+		zone5Opacity = ((animationProgress - 15) / 10) * 1;
+	} else if (animationProgress > 36) {
 		zone5Opacity = 1;
 	} else {
 		zone5Opacity = 0;
@@ -344,14 +349,16 @@
 	<div>
 		<div class="background-container">
 			<div class="layer background-layer z-[-2]">
-				<img
-					src={Layer1}
-					alt="Zone 1 Background"
-					class=""
-					style:transform="translateX({$background}px)"
-					id="zone1-background"
-				/>
-				{#if $animationProgress > 6}
+				{#if animationProgress < 31}
+					<img
+						src={Layer1}
+						alt="Zone 1 Background"
+						class=""
+						style:transform="translateX({$background}px)"
+						id="zone1-background"
+					/>
+				{/if}
+				{#if animationProgress < 45}
 					<div class="zone-background" style="opacity: {zone2Opacity}">
 						<img
 							src={Layer5}
@@ -362,7 +369,7 @@
 						/>
 					</div>
 				{/if}
-				{#if $animationProgress > 15}
+				{#if animationProgress < 60}
 					<div class="zone-background" style="opacity: {zone3Opacity}">
 						<img
 							src={Layer9}
@@ -373,7 +380,7 @@
 						/>
 					</div>
 				{/if}
-				{#if $animationProgress > 25}
+				{#if animationProgress > 25}
 					<div class="zone-background" style="opacity: {zone4Opacity}">
 						<img
 							src={Layer13}
@@ -384,7 +391,7 @@
 						/>
 					</div>
 				{/if}
-				{#if $animationProgress > 35}
+				{#if animationProgress > 35}
 					<div class="zone-background" style="opacity: {zone5Opacity}">
 						<img
 							src={Layer17}
@@ -399,7 +406,9 @@
 		</div>
 
 		<div class="layer midground-layer" style:transform="translateX({$midground}px)">
-			<img src={Layer2} alt="Layer 2" />
+			{#if animationProgress < 31}
+				<img src={Layer2} alt="Layer 2" />
+			{/if}
 			<div class="">
 				<img src={Layer6} alt="Zone 2 Midground" class="" style:transform="translateX({8190}px)" />
 			</div>
@@ -430,7 +439,9 @@
 		</div>
 
 		<div class="layer midfrontground-layer" style:transform="translateX({$midfrontground}px)">
-			<img src={Layer3} alt="Layer 3" />
+			{#if animationProgress < 31}
+				<img src={Layer3} alt="Layer 3" />
+			{/if}
 			<div class="">
 				<img
 					src={Layer7}
