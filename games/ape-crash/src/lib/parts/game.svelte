@@ -268,37 +268,37 @@
 	let zone4Opacity = 0;
 	let zone5Opacity = 0;
 
-	$: if (animationProgress > 28 && animationProgress <= 30) {
+	$: if (animationProgress > 27 && animationProgress <= 30) {
 		// Start increasing opacity when progress is between
 		zone2Opacity = ((animationProgress - 15) / 10) * 1;
-	} else if (animationProgress > 28) {
+	} else if (animationProgress > 27) {
 		zone2Opacity = 1;
 	} else {
 		zone2Opacity = 0;
 	}
 
-	$: if (animationProgress > 44 && animationProgress <= 46) {
+	$: if (animationProgress > 43.5 && animationProgress <= 45.5) {
 		// Start increasing opacity when progress is between
 		zone3Opacity = ((animationProgress - 15) / 10) * 1;
-	} else if (animationProgress > 44) {
+	} else if (animationProgress > 43.5) {
 		zone3Opacity = 1;
 	} else {
 		zone3Opacity = 0;
 	}
 
-	$: if (animationProgress > 27 && animationProgress <= 29) {
+	$: if (animationProgress > 56 && animationProgress <= 58) {
 		// Start increasing opacity when progress is between
 		zone4Opacity = ((animationProgress - 15) / 10) * 1;
-	} else if (animationProgress > 27) {
+	} else if (animationProgress > 56) {
 		zone4Opacity = 1;
 	} else {
 		zone4Opacity = 0;
 	}
 
-	$: if (animationProgress > 36 && animationProgress <= 38) {
+	$: if (animationProgress > 68 && animationProgress <= 70) {
 		// Start increasing opacity when progress is between
 		zone5Opacity = ((animationProgress - 15) / 10) * 1;
-	} else if (animationProgress > 36) {
+	} else if (animationProgress > 68) {
 		zone5Opacity = 1;
 	} else {
 		zone5Opacity = 0;
@@ -358,7 +358,8 @@
 						id="zone1-background"
 					/>
 				{/if}
-				{#if animationProgress < 45}
+
+				{#if animationProgress < 46}
 					<div class="zone-background" style="opacity: {zone2Opacity}">
 						<img
 							src={Layer5}
@@ -369,35 +370,37 @@
 						/>
 					</div>
 				{/if}
+
 				{#if animationProgress < 60}
 					<div class="zone-background" style="opacity: {zone3Opacity}">
 						<img
 							src={Layer9}
-							alt="Zone 2 Background"
+							alt="Zone 3 Background"
 							class=""
-							id="zone2-background"
+							id="zone3-background"
 							style:transform="translateX({$background + 9355}px)"
 						/>
 					</div>
 				{/if}
-				{#if animationProgress > 25}
+
+				{#if animationProgress < 71}
 					<div class="zone-background" style="opacity: {zone4Opacity}">
 						<img
 							src={Layer13}
-							alt="Zone 2 Background"
+							alt="Zone 4 Background"
 							class=""
-							id="zone2-background"
+							id="zone4-background"
 							style:transform="translateX({$background + 13555}px)"
 						/>
 					</div>
 				{/if}
-				{#if animationProgress > 35}
+				{#if animationProgress < 100}
 					<div class="zone-background" style="opacity: {zone5Opacity}">
 						<img
 							src={Layer17}
-							alt="Zone 2 Background"
+							alt="Zone 5 Background"
 							class=""
-							id="zone2-background"
+							id="zone5-background"
 							style:transform="translateX({$background + 18555}px)"
 						/>
 					</div>
@@ -407,121 +410,153 @@
 
 		<div class="layer midground-layer" style:transform="translateX({$midground}px)">
 			{#if animationProgress < 31}
-				<img src={Layer2} alt="Layer 2" />
+				<img src={Layer2} alt="Zone 1 Midground" />
 			{/if}
-			<div class="">
-				<img src={Layer6} alt="Zone 2 Midground" class="" style:transform="translateX({8190}px)" />
-			</div>
-			<div class="">
-				<img
-					src={Layer10}
-					alt="Zone 2 Midground"
-					class=""
-					style:transform="translateX({14790}px)"
-				/>
-			</div>
-			<div class="">
-				<img
-					src={Layer14}
-					alt="Zone 2 Midground"
-					class=""
-					style:transform="translateX({23990}px)"
-				/>
-			</div>
-			<div class="">
-				<img
-					src={Layer18}
-					alt="Zone 2 Midground"
-					class=""
-					style:transform="translateX({32990}px)"
-				/>
-			</div>
+
+			{#if animationProgress < 46}
+				<div class="">
+					<img
+						src={Layer6}
+						alt="Zone 2 Midground"
+						class=""
+						style:transform="translateX({8190}px)"
+					/>
+				</div>
+			{/if}
+
+			{#if animationProgress < 60}
+				<div class="">
+					<img
+						src={Layer10}
+						alt="Zone 3 Midground"
+						class=""
+						style:transform="translateX({14790}px)"
+					/>
+				</div>
+			{/if}
+
+			{#if animationProgress < 71}
+				<div class="">
+					<img
+						src={Layer14}
+						alt="Zone 4 Midground"
+						class=""
+						style:transform="translateX({23990}px)"
+					/>
+				</div>
+			{/if}
+
+			{#if animationProgress < 100}
+				<div class="">
+					<img
+						src={Layer18}
+						alt="Zone 5 Midground"
+						class=""
+						style:transform="translateX({29990}px)"
+					/>
+				</div>
+			{/if}
 		</div>
 
 		<div class="layer midfrontground-layer" style:transform="translateX({$midfrontground}px)">
 			{#if animationProgress < 31}
 				<img src={Layer3} alt="Layer 3" />
 			{/if}
-			<div class="">
-				<img
-					src={Layer7}
-					alt="Zone 2 Midfrontground"
-					class=""
-					style:transform="translateX({15290}px)"
-					id="zone1-background"
-				/>
-			</div>
-			<div class="">
-				<img
-					src={Layer11}
-					alt="Zone 2 Midfrontground"
-					class=""
-					style:transform="translateX({30090}px)"
-					id="zone1-background"
-				/>
-			</div>
-			<div class="">
-				<img
-					src={Layer11}
-					alt="Zone 2 Midfrontground"
-					class=""
-					style:transform="translateX({45390}px)"
-					id="zone1-background"
-				/>
-			</div>
-			<div class="">
-				<img
-					src={Layer19}
-					alt="Zone 2 Midfrontground"
-					class=""
-					style:transform="translateX({60190}px)"
-					id="zone1-background"
-				/>
-			</div>
+
+			{#if animationProgress < 46}
+				<div class="">
+					<img
+						src={Layer7}
+						alt="Zone 2 Midfrontground"
+						class=""
+						style:transform="translateX({15290}px)"
+					/>
+				</div>
+			{/if}
+
+			{#if animationProgress < 60}
+				<div class="">
+					<img
+						src={Layer11}
+						alt="Zone 3 Midfrontground"
+						class=""
+						style:transform="translateX({30090}px)"
+					/>
+				</div>
+			{/if}
+
+			{#if animationProgress < 71}
+				<div class="">
+					<img
+						src={Layer11}
+						alt="Zone 4 Midfrontground"
+						class=""
+						style:transform="translateX({45390}px)"
+					/>
+				</div>
+			{/if}
+
+			{#if animationProgress < 100}
+				<div class="">
+					<img
+						src={Layer19}
+						alt="Zone 5 Midfrontground"
+						class=""
+						style:transform="translateX({60190}px)"
+					/>
+				</div>
+			{/if}
 		</div>
 
-		<!-- <div
-      class="layer foreground-layer"
-      style:transform="translateX({$foreground}px)"
-    >
-      <img src={Layer4} alt="Layer 4" />
-      <div class="">
-        <img
-          src={Layer8}
-          alt="Zone 2 Foreground"
-          class=""
-          style:transform="translateX({22690}px)"
-          id="zone1-background"
-        />
-      </div>
-      <div class="">
-        <img
-          src={Layer12}
-          alt="Zone 2 Foreground"
-          class=""
-          style:transform="translateX({44690}px)"
-          id="zone1-background"
-        />
-      </div>
-      <div class="">
-        <img
-          src={Layer16}
-          alt="Zone 2 Foreground"
-          class=""
-          style:transform="translateX({66690}px)"
-          id="zone1-background"
-        />
-      </div>
-      <div class="">
-        <img
-          src={Layer20}
-          alt="Zone 2 Foreground"
-          class=""
-          style:transform="translateX({88690}px)"
-          id="zone1-background"
-        />
-      </div>
-    </div> -->
+		<div class="layer foreground-layer" style:transform="translateX({$foreground}px)">
+			{#if animationProgress < 31}
+				<img src={Layer4} alt="Layer 4" />
+			{/if}
+
+			{#if animationProgress < 46}
+				<div class="">
+					<img
+						src={Layer8}
+						alt="Zone 2 Foreground"
+						class=""
+						style:transform="translateX({23690}px)"
+					/>
+				</div>
+			{/if}
+
+			{#if animationProgress < 60}
+				<div class="">
+					<img
+						src={Layer12}
+						alt="Zone 3 Foreground"
+						class=""
+						style:transform="translateX({47690}px)"
+					/>
+				</div>
+			{/if}
+
+			{#if animationProgress < 71}
+				<div class="">
+					<img
+						src={Layer16}
+						alt="Zone 4 Foreground"
+						class=""
+						style:transform="translateX({72690}px)"
+					/>
+				</div>
+			{/if}
+
+			{#if animationProgress < 100}
+				<div class="">
+					<img
+						src={Layer20}
+						alt="Zone 5 Foreground"
+						class=""
+						style:transform="translateX({95690}px)"
+					/>
+				</div>
+			{/if}
+		</div>
 	</div>
 </div>
 
