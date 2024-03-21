@@ -93,6 +93,7 @@
 	let multiplier = 1.0;
 	let betMultiplier = 1.1;
 	let animationFrameId: number | undefined;
+	let animationProgress = multiplier;
 
 	$: probabilityPercentage = calculateProbability(betMultiplier).toFixed(2) + '%';
 
@@ -162,9 +163,7 @@
 			animationFrameId = requestAnimationFrame(animate);
 			multiplier += 0.01;
 			animationProgress = multiplier;
-			// console.log(animationProgress);
 		}
-		// console.log('Minimum duration time reached:', get(durationTime));
 	};
 
 	// Combine the resetLayerPositions into resetGameState
@@ -261,23 +260,30 @@
 		setTimeout(toggleApeCrashImage, 3000); // Recursion instead of setInterval
 	};
 
-	let animationProgress = multiplier;
+	// A function to stop the animation
+	function stopAnimation() {
+		playing = false;
+		if (animationFrameId !== undefined) {
+			cancelAnimationFrame(animationFrameId);
+			animationFrameId = undefined;
+		}
+	}
 
 	let zone2Opacity = 0;
 	let zone3Opacity = 0;
 	let zone4Opacity = 0;
 	let zone5Opacity = 0;
 
-	$: if (animationProgress > 27 && animationProgress <= 30) {
+	$: if (animationProgress > 26 && animationProgress <= 29) {
 		// Start increasing opacity when progress is between
 		zone2Opacity = ((animationProgress - 15) / 10) * 1;
-	} else if (animationProgress > 27) {
+	} else if (animationProgress > 26) {
 		zone2Opacity = 1;
 	} else {
 		zone2Opacity = 0;
 	}
 
-	$: if (animationProgress > 43.5 && animationProgress <= 45.5) {
+	$: if (animationProgress > 43.5 && animationProgress <= 38.5) {
 		// Start increasing opacity when progress is between
 		zone3Opacity = ((animationProgress - 15) / 10) * 1;
 	} else if (animationProgress > 43.5) {
@@ -302,6 +308,10 @@
 		zone5Opacity = 1;
 	} else {
 		zone5Opacity = 0;
+	}
+
+	$: if (animationProgress >= 75) {
+		stopAnimation();
 	}
 
 	let backgroundWidth: any;
@@ -359,7 +369,7 @@
 					/>
 				{/if}
 
-				{#if animationProgress < 46}
+				{#if animationProgress < 46 && animationProgress > 18}
 					<div class="zone-background" style="opacity: {zone2Opacity}">
 						<img
 							src={Layer5}
@@ -371,7 +381,7 @@
 					</div>
 				{/if}
 
-				{#if animationProgress < 60}
+				{#if animationProgress < 60 && animationProgress > 37}
 					<div class="zone-background" style="opacity: {zone3Opacity}">
 						<img
 							src={Layer9}
@@ -383,7 +393,7 @@
 					</div>
 				{/if}
 
-				{#if animationProgress < 71}
+				{#if animationProgress < 71 && animationProgress > 48}
 					<div class="zone-background" style="opacity: {zone4Opacity}">
 						<img
 							src={Layer13}
@@ -394,7 +404,7 @@
 						/>
 					</div>
 				{/if}
-				{#if animationProgress < 100}
+				{#if animationProgress < 100 && animationProgress > 58}
 					<div class="zone-background" style="opacity: {zone5Opacity}">
 						<img
 							src={Layer17}
@@ -413,7 +423,7 @@
 				<img src={Layer2} alt="Zone 1 Midground" />
 			{/if}
 
-			{#if animationProgress < 46}
+			{#if animationProgress < 46 && animationProgress > 18}
 				<div class="">
 					<img
 						src={Layer6}
@@ -424,7 +434,7 @@
 				</div>
 			{/if}
 
-			{#if animationProgress < 60}
+			{#if animationProgress < 60 && animationProgress > 37.5}
 				<div class="">
 					<img
 						src={Layer10}
@@ -435,7 +445,7 @@
 				</div>
 			{/if}
 
-			{#if animationProgress < 71}
+			{#if animationProgress < 71 && animationProgress > 48.5}
 				<div class="">
 					<img
 						src={Layer14}
@@ -446,7 +456,7 @@
 				</div>
 			{/if}
 
-			{#if animationProgress < 100}
+			{#if animationProgress < 100 && animationProgress > 58.5}
 				<div class="">
 					<img
 						src={Layer18}
@@ -463,7 +473,7 @@
 				<img src={Layer3} alt="Layer 3" />
 			{/if}
 
-			{#if animationProgress < 46}
+			{#if animationProgress < 46 && animationProgress > 18}
 				<div class="">
 					<img
 						src={Layer7}
@@ -474,7 +484,7 @@
 				</div>
 			{/if}
 
-			{#if animationProgress < 60}
+			{#if animationProgress < 60 && animationProgress > 38}
 				<div class="">
 					<img
 						src={Layer11}
@@ -485,7 +495,7 @@
 				</div>
 			{/if}
 
-			{#if animationProgress < 71}
+			{#if animationProgress < 71 && animationProgress > 49}
 				<div class="">
 					<img
 						src={Layer11}
@@ -496,7 +506,7 @@
 				</div>
 			{/if}
 
-			{#if animationProgress < 100}
+			{#if animationProgress < 100 && animationProgress > 59}
 				<div class="">
 					<img
 						src={Layer19}
@@ -513,7 +523,7 @@
 				<img src={Layer4} alt="Layer 4" />
 			{/if}
 
-			{#if animationProgress < 46}
+			{#if animationProgress < 46 && animationProgress > 18}
 				<div class="">
 					<img
 						src={Layer8}
@@ -524,7 +534,7 @@
 				</div>
 			{/if}
 
-			{#if animationProgress < 60}
+			{#if animationProgress < 60 && animationProgress > 38.5}
 				<div class="">
 					<img
 						src={Layer12}
@@ -535,7 +545,7 @@
 				</div>
 			{/if}
 
-			{#if animationProgress < 71}
+			{#if animationProgress < 71 && animationProgress > 49.5}
 				<div class="">
 					<img
 						src={Layer16}
@@ -546,7 +556,7 @@
 				</div>
 			{/if}
 
-			{#if animationProgress < 100}
+			{#if animationProgress < 100 && animationProgress > 59.5}
 				<div class="">
 					<img
 						src={Layer20}
