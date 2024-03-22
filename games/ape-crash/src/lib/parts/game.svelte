@@ -5,7 +5,7 @@
 	import Ray from '$lib/ape/ray.svg';
 
 	import { onDestroy, onMount } from 'svelte';
-	import { backIn, backOut, circIn, cubicIn, expoIn } from 'svelte/easing';
+	import { circIn, cubicIn, sineIn, sineOut } from 'svelte/easing';
 	import { tweened } from 'svelte/motion';
 
 	import { derived, get, writable } from 'svelte/store';
@@ -48,25 +48,33 @@
 	let lastForegroundVal = 0;
 
 	// Define constants for repeated values and default states
-	let durationTime = writable(2000); // Start at 2000
-	const minDuration = 1000; // Minimum duration of 1000
+	let durationTime = writable(600);
+	const minDuration = 400;
 	let durationDecrementInterval: any;
+	let debounceTimer: any;
 
 	const startDurationDecrement = () => {
-		if (durationDecrementInterval) clearInterval(durationDecrementInterval);
+		clearInterval(durationDecrementInterval);
+		let pendingDecrements = 0;
 
 		durationDecrementInterval = setInterval(() => {
-			durationTime.update((n) => {
-				let newDuration = n - 10;
-				if (newDuration <= minDuration) {
-					clearInterval(durationDecrementInterval);
-					newDuration = minDuration;
-				}
-				return newDuration;
-			});
-		}, 1000);
-	};
+			pendingDecrements += 30;
 
+			clearTimeout(debounceTimer);
+			debounceTimer = setTimeout(() => {
+				durationTime.update((n) => {
+					let newDuration = n - pendingDecrements;
+					pendingDecrements = 0;
+
+					if (newDuration <= minDuration) {
+						clearInterval(durationDecrementInterval);
+						newDuration = minDuration;
+					}
+					return newDuration;
+				});
+			}, 1000);
+		}, 10000);
+	};
 	const pauseDuration = 2000;
 	const maxBackgroundOffset = -50000;
 	const foregroundMultipliersByWidth = [
@@ -77,17 +85,17 @@
 		{ width: 640, multiplier: 4.516 }
 	];
 
-	let background = tweened(0, { duration: $durationTime, easing: circIn });
-	let midground = tweened(0, { duration: $durationTime, easing: circIn });
-	let midfrontground = tweened(0, { duration: $durationTime, easing: circIn });
-	let foreground = tweened(0, { duration: $durationTime, easing: circIn });
+	let background = tweened(0, { duration: $durationTime, easing: cubicIn });
+	let midground = tweened(0, { duration: $durationTime, easing: cubicIn });
+	let midfrontground = tweened(0, { duration: $durationTime, easing: cubicIn });
+	let foreground = tweened(0, { duration: $durationTime, easing: cubicIn });
 
 	// Reactively update the animations when durationTime changes
 	$: {
-		background = tweened($background, { duration: $durationTime, easing: circIn });
-		midground = tweened($midground, { duration: $durationTime, easing: circIn });
-		midfrontground = tweened($midfrontground, { duration: $durationTime, easing: circIn });
-		foreground = tweened($foreground, { duration: $durationTime, easing: circIn });
+		background = tweened($background, { duration: $durationTime, easing: cubicIn });
+		midground = tweened($midground, { duration: $durationTime, easing: cubicIn });
+		midfrontground = tweened($midfrontground, { duration: $durationTime, easing: cubicIn });
+		foreground = tweened($foreground, { duration: $durationTime, easing: cubicIn });
 	}
 
 	let multiplier = 1.0;
@@ -274,43 +282,43 @@
 	let zone4Opacity = 0;
 	let zone5Opacity = 0;
 
-	$: if (animationProgress > 26 && animationProgress <= 29) {
+	$: if (animationProgress > 36 && animationProgress <= 38) {
 		// Start increasing opacity when progress is between
 		zone2Opacity = ((animationProgress - 15) / 10) * 1;
-	} else if (animationProgress > 26) {
+	} else if (animationProgress > 36) {
 		zone2Opacity = 1;
 	} else {
 		zone2Opacity = 0;
 	}
 
-	$: if (animationProgress > 43.5 && animationProgress <= 38.5) {
+	$: if (animationProgress > 53 && animationProgress <= 56) {
 		// Start increasing opacity when progress is between
 		zone3Opacity = ((animationProgress - 15) / 10) * 1;
-	} else if (animationProgress > 43.5) {
+	} else if (animationProgress > 53) {
 		zone3Opacity = 1;
 	} else {
 		zone3Opacity = 0;
 	}
 
-	$: if (animationProgress > 56 && animationProgress <= 58) {
+	$: if (animationProgress > 68 && animationProgress <= 70) {
 		// Start increasing opacity when progress is between
 		zone4Opacity = ((animationProgress - 15) / 10) * 1;
-	} else if (animationProgress > 56) {
+	} else if (animationProgress > 68) {
 		zone4Opacity = 1;
 	} else {
 		zone4Opacity = 0;
 	}
 
-	$: if (animationProgress > 68 && animationProgress <= 70) {
+	$: if (animationProgress > 92 && animationProgress <= 94) {
 		// Start increasing opacity when progress is between
 		zone5Opacity = ((animationProgress - 15) / 10) * 1;
-	} else if (animationProgress > 68) {
+	} else if (animationProgress > 92) {
 		zone5Opacity = 1;
 	} else {
 		zone5Opacity = 0;
 	}
 
-	$: if (animationProgress >= 75) {
+	$: if (animationProgress >= 100) {
 		stopAnimation();
 	}
 
@@ -359,17 +367,17 @@
 	<div>
 		<div class="background-container">
 			<div class="layer background-layer z-[-2]">
-				{#if animationProgress < 31}
-					<img
-						src={Layer1}
-						alt="Zone 1 Background"
-						class=""
-						style:transform="translateX({$background}px)"
-						id="zone1-background"
-					/>
-				{/if}
+				<!-- {#if animationProgress < 31} -->
+				<img
+					src={Layer1}
+					alt="Zone 1 Background"
+					class=""
+					style:transform="translateX({$background}px)"
+					id="zone1-background"
+				/>
+				<!-- {/if} -->
 
-				{#if animationProgress < 46 && animationProgress > 18}
+				{#if animationProgress > 34}
 					<div class="zone-background" style="opacity: {zone2Opacity}">
 						<img
 							src={Layer5}
@@ -381,7 +389,7 @@
 					</div>
 				{/if}
 
-				{#if animationProgress < 60 && animationProgress > 37}
+				{#if animationProgress > 51}
 					<div class="zone-background" style="opacity: {zone3Opacity}">
 						<img
 							src={Layer9}
@@ -393,7 +401,7 @@
 					</div>
 				{/if}
 
-				{#if animationProgress < 71 && animationProgress > 48}
+				{#if animationProgress > 66}
 					<div class="zone-background" style="opacity: {zone4Opacity}">
 						<img
 							src={Layer13}
@@ -404,7 +412,7 @@
 						/>
 					</div>
 				{/if}
-				{#if animationProgress < 100 && animationProgress > 58}
+				{#if animationProgress > 90}
 					<div class="zone-background" style="opacity: {zone5Opacity}">
 						<img
 							src={Layer17}
@@ -419,153 +427,118 @@
 		</div>
 
 		<div class="layer midground-layer" style:transform="translateX({$midground}px)">
-			{#if animationProgress < 31}
-				<img src={Layer2} alt="Zone 1 Midground" />
-			{/if}
+			<img src={Layer2} alt="Zone 1 Midground" />
 
-			{#if animationProgress < 46 && animationProgress > 18}
-				<div class="">
-					<img
-						src={Layer6}
-						alt="Zone 2 Midground"
-						class=""
-						style:transform="translateX({8190}px)"
-					/>
-				</div>
-			{/if}
+			<div class="">
+				<img src={Layer6} alt="Zone 2 Midground" class="" style:transform="translateX({8190}px)" />
+			</div>
 
-			{#if animationProgress < 60 && animationProgress > 37.5}
-				<div class="">
-					<img
-						src={Layer10}
-						alt="Zone 3 Midground"
-						class=""
-						style:transform="translateX({14790}px)"
-					/>
-				</div>
-			{/if}
+			<div class="">
+				<img
+					src={Layer10}
+					alt="Zone 3 Midground"
+					class=""
+					style:transform="translateX({14790}px)"
+				/>
+			</div>
 
-			{#if animationProgress < 71 && animationProgress > 48.5}
-				<div class="">
-					<img
-						src={Layer14}
-						alt="Zone 4 Midground"
-						class=""
-						style:transform="translateX({23990}px)"
-					/>
-				</div>
-			{/if}
+			<div class="">
+				<img
+					src={Layer14}
+					alt="Zone 4 Midground"
+					class=""
+					style:transform="translateX({23990}px)"
+				/>
+			</div>
 
-			{#if animationProgress < 100 && animationProgress > 58.5}
-				<div class="">
-					<img
-						src={Layer18}
-						alt="Zone 5 Midground"
-						class=""
-						style:transform="translateX({29990}px)"
-					/>
-				</div>
-			{/if}
+			<div class="">
+				<img
+					src={Layer18}
+					alt="Zone 5 Midground"
+					class=""
+					style:transform="translateX({29990}px)"
+				/>
+			</div>
 		</div>
 
 		<div class="layer midfrontground-layer" style:transform="translateX({$midfrontground}px)">
-			{#if animationProgress < 31}
-				<img src={Layer3} alt="Layer 3" />
-			{/if}
+			<img src={Layer3} alt="Layer 3" />
 
-			{#if animationProgress < 46 && animationProgress > 18}
-				<div class="">
-					<img
-						src={Layer7}
-						alt="Zone 2 Midfrontground"
-						class=""
-						style:transform="translateX({15290}px)"
-					/>
-				</div>
-			{/if}
+			<div class="">
+				<img
+					src={Layer7}
+					alt="Zone 2 Midfrontground"
+					class=""
+					style:transform="translateX({15290}px)"
+				/>
+			</div>
 
-			{#if animationProgress < 60 && animationProgress > 38}
-				<div class="">
-					<img
-						src={Layer11}
-						alt="Zone 3 Midfrontground"
-						class=""
-						style:transform="translateX({30090}px)"
-					/>
-				</div>
-			{/if}
+			<div class="">
+				<img
+					src={Layer11}
+					alt="Zone 3 Midfrontground"
+					class=""
+					style:transform="translateX({30090}px)"
+				/>
+			</div>
 
-			{#if animationProgress < 71 && animationProgress > 49}
-				<div class="">
-					<img
-						src={Layer11}
-						alt="Zone 4 Midfrontground"
-						class=""
-						style:transform="translateX({45390}px)"
-					/>
-				</div>
-			{/if}
+			<div class="">
+				<img
+					src={Layer11}
+					alt="Zone 4 Midfrontground"
+					class=""
+					style:transform="translateX({45390}px)"
+				/>
+			</div>
 
-			{#if animationProgress < 100 && animationProgress > 59}
-				<div class="">
-					<img
-						src={Layer19}
-						alt="Zone 5 Midfrontground"
-						class=""
-						style:transform="translateX({60190}px)"
-					/>
-				</div>
-			{/if}
+			<div class="">
+				<img
+					src={Layer19}
+					alt="Zone 5 Midfrontground"
+					class=""
+					style:transform="translateX({60190}px)"
+				/>
+			</div>
 		</div>
 
 		<div class="layer foreground-layer" style:transform="translateX({$foreground}px)">
-			{#if animationProgress < 31}
-				<img src={Layer4} alt="Layer 4" />
-			{/if}
+			<img src={Layer4} alt="Layer 4" />
 
-			{#if animationProgress < 46 && animationProgress > 18}
-				<div class="">
-					<img
-						src={Layer8}
-						alt="Zone 2 Foreground"
-						class=""
-						style:transform="translateX({23690}px)"
-					/>
-				</div>
-			{/if}
+			<div class="">
+				<img
+					src={Layer8}
+					alt="Zone 2 Foreground"
+					class=""
+					style:transform="translateX({23690}px)"
+				/>
+			</div>
 
-			{#if animationProgress < 60 && animationProgress > 38.5}
-				<div class="">
-					<img
-						src={Layer12}
-						alt="Zone 3 Foreground"
-						class=""
-						style:transform="translateX({47690}px)"
-					/>
-				</div>
-			{/if}
+			<div class="">
+				<img
+					src={Layer12}
+					alt="Zone 3 Foreground"
+					class=""
+					style:transform="translateX({47690}px)"
+				/>
+			</div>
 
-			{#if animationProgress < 71 && animationProgress > 49.5}
-				<div class="">
-					<img
-						src={Layer16}
-						alt="Zone 4 Foreground"
-						class=""
-						style:transform="translateX({72690}px)"
-					/>
-				</div>
-			{/if}
+			<div class="">
+				<img
+					src={Layer16}
+					alt="Zone 4 Foreground"
+					class=""
+					style:transform="translateX({72690}px)"
+				/>
+			</div>
 
-			{#if animationProgress < 100 && animationProgress > 59.5}
-				<div class="">
-					<img
-						src={Layer20}
-						alt="Zone 5 Foreground"
-						class=""
-						style:transform="translateX({95690}px)"
-					/>
-				</div>
-			{/if}
+			<div class="">
+				<img
+					src={Layer20}
+					alt="Zone 5 Foreground"
+					class=""
+					style:transform="translateX({95690}px)"
+				/>
+			</div>
 		</div>
 	</div>
 </div>
