@@ -90,6 +90,11 @@
 	let midfrontground = tweened(0, { duration: $durationTime, easing: cubicIn });
 	let foreground = tweened(0, { duration: $durationTime, easing: cubicIn });
 
+	let multiplier = 1.0;
+	let betMultiplier = 1.1;
+	let animationFrameId: number | undefined;
+	let animationProgress = multiplier;
+
 	// Reactively update the animations when durationTime changes
 	$: {
 		background = tweened($background, { duration: $durationTime, easing: cubicIn });
@@ -98,10 +103,19 @@
 		foreground = tweened($foreground, { duration: $durationTime, easing: cubicIn });
 	}
 
-	let multiplier = 1.0;
-	let betMultiplier = 1.1;
-	let animationFrameId: number | undefined;
-	let animationProgress = multiplier;
+	// const totalForegroundDistance = 117153;
+
+	// const foregroundProgress = derived(foreground, ($foreground) => {
+	// 	const progress = (Math.abs($foreground) / totalForegroundDistance) * 100;
+	// 	return Math.min(progress, 100); // Ensures the maximum progress does not exceed 100%
+	// });
+
+	$: if ($foreground <= -115290) {
+		console.log('Foreground has reached the target position.');
+		stopAnimation();
+	}
+
+	// $: console.log('Current foreground position:', $foreground);
 
 	$: probabilityPercentage = calculateProbability(betMultiplier).toFixed(2) + '%';
 
@@ -291,19 +305,19 @@
 		zone2Opacity = 0;
 	}
 
-	$: if (animationProgress > 53 && animationProgress <= 56) {
+	$: if (animationProgress > 54 && animationProgress <= 58) {
 		// Start increasing opacity when progress is between
 		zone3Opacity = ((animationProgress - 15) / 10) * 1;
-	} else if (animationProgress > 53) {
+	} else if (animationProgress > 54) {
 		zone3Opacity = 1;
 	} else {
 		zone3Opacity = 0;
 	}
 
-	$: if (animationProgress > 68 && animationProgress <= 70) {
+	$: if (animationProgress > 71 && animationProgress <= 74) {
 		// Start increasing opacity when progress is between
 		zone4Opacity = ((animationProgress - 15) / 10) * 1;
-	} else if (animationProgress > 68) {
+	} else if (animationProgress > 71) {
 		zone4Opacity = 1;
 	} else {
 		zone4Opacity = 0;
@@ -318,10 +332,6 @@
 		zone5Opacity = 0;
 	}
 
-	$: if (animationProgress >= 100) {
-		stopAnimation();
-	}
-
 	let backgroundWidth: any;
 
 	function measureBackground() {
@@ -331,7 +341,7 @@
 			backgroundWidth = this.naturalWidth;
 			console.log('Background width: ', backgroundWidth);
 		};
-		img.src = 'ape-crash/src/lib/ape/zone1-layer4.svg'; // Adjust the path accordingly
+		img.src = 'ape-crash/src/lib/ape/zone5-layer4.svg'; // Adjust the path accordingly
 	}
 
 	onMount(() => {
@@ -340,7 +350,9 @@
 	});
 
 	onDestroy(() => {
-		resetGameState;
+		resetGameState();
+		handleCrash();
+		startDurationDecrement();
 	});
 </script>
 
@@ -367,7 +379,6 @@
 	<div>
 		<div class="background-container">
 			<div class="layer background-layer z-[-2]">
-				<!-- {#if animationProgress < 31} -->
 				<img
 					src={Layer1}
 					alt="Zone 1 Background"
@@ -375,7 +386,6 @@
 					style:transform="translateX({$background}px)"
 					id="zone1-background"
 				/>
-				<!-- {/if} -->
 
 				{#if animationProgress > 34}
 					<div class="zone-background" style="opacity: {zone2Opacity}">
@@ -389,7 +399,7 @@
 					</div>
 				{/if}
 
-				{#if animationProgress > 51}
+				{#if animationProgress > 52}
 					<div class="zone-background" style="opacity: {zone3Opacity}">
 						<img
 							src={Layer9}
@@ -401,7 +411,7 @@
 					</div>
 				{/if}
 
-				{#if animationProgress > 66}
+				{#if animationProgress > 69}
 					<div class="zone-background" style="opacity: {zone4Opacity}">
 						<img
 							src={Layer13}
@@ -469,7 +479,7 @@
 					src={Layer7}
 					alt="Zone 2 Midfrontground"
 					class=""
-					style:transform="translateX({15290}px)"
+					style:transform="translateX({15490}px)"
 				/>
 			</div>
 
@@ -478,7 +488,7 @@
 					src={Layer11}
 					alt="Zone 3 Midfrontground"
 					class=""
-					style:transform="translateX({30090}px)"
+					style:transform="translateX({30500}px)"
 				/>
 			</div>
 

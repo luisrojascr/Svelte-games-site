@@ -39,6 +39,7 @@ declare module '$env/static/private' {
 	export const VITE_GIT_VERSION: string;
 	export const SHLVL: string;
 	export const npm_package_files_0: string;
+	export const MOTD_SHOWN: string;
 	export const HOME: string;
 	export const OLDPWD: string;
 	export const npm_package_files_1: string;
@@ -193,6 +194,7 @@ declare module '$env/dynamic/private' {
 		VITE_GIT_VERSION: string;
 		SHLVL: string;
 		npm_package_files_0: string;
+		MOTD_SHOWN: string;
 		HOME: string;
 		OLDPWD: string;
 		npm_package_files_1: string;
